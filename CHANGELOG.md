@@ -4,6 +4,8 @@ All notable changes to AstroDeck are documented in this file.
 
 ## [Unreleased]
 
+- Fixed ignored-only format requests, stale demo copy feedback and timezone-dependent release dates. Verification reports complete test failures and requires an explicit decorative marker on images with empty alt text.
+
 - Added strict Fallow checks for dead code, imports, dependencies, complexity, and duplication to `pnpm run verify` and `pnpm run validate`.
 
 ## [4.0.1] - 2026-11-06 — Accessibility and canonical URL fixes

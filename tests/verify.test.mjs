@@ -86,6 +86,23 @@ test('run() reports a failing step with its output tail and exits 1', () => {
   assert.match(out, /VERIFY FAILED \(1\)/);
 });
 
+test('run() retains early test diagnostics and limits other failure output', () => {
+  const lines = [];
+  const failing =
+    "console.log('early failure'); console.log('late output\\n'.repeat(50)); process.exit(1)";
+  assert.equal(
+    run([stub('test', failing), stub('other', failing), stub('later', '')], (line) =>
+      lines.push(line)
+    ),
+    1
+  );
+  const out = lines.join('\n');
+  assert.match(out, /--- test \(full output\) ---\nearly failure/);
+  assert.match(out, /--- other \(last 40 lines\) ---\nlate output/);
+  assert.equal(out.match(/early failure/g)?.length, 1);
+  assert.match(out, /later\s+\| ok/);
+});
+
 test('run() passes with exit 0 when every step passes', () => {
   const lines = [];
   assert.equal(

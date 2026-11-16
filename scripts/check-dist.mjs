@@ -37,15 +37,7 @@ function resolves(dir, urlPath) {
 }
 
 function emptyAltIsValid(img) {
-  if (img.getAttribute('aria-hidden') === 'true') return true;
-  if (img.getAttribute('role') === 'presentation') return true;
-  const container = img.parentNode;
-  const parent = container?.rawTagName === 'picture' ? container.parentNode : container;
-  if (parent?.text?.trim()) return true;
-  // A decorative icon can share the visible name of its link, button or list item.
-  for (let el = parent; el; el = el.parentNode)
-    if (['a', 'button', 'li'].includes(el.rawTagName) && el.text.trim()) return true;
-  return false;
+  return img.getAttribute('aria-hidden') === 'true' || img.getAttribute('role') === 'presentation';
 }
 
 function isGenericAlt(text, src) {

@@ -1,6 +1,7 @@
 ---
-import RegistryUsage from './RegistryUsage.astro';
-import { groupComponents } from './section-groups';
+import Icon from '@/components/Icon.astro';
+import RegistryUsage from '@/components/demos/RegistryUsage.astro';
+import { groupComponents } from '@/components/demos/section-groups';
 import Features from '@/components/sections/Features.astro';
 import ContentBlock from '@/components/sections/ContentBlock.astro';
 import LogoCloud from '@/components/sections/LogoCloud.astro';
@@ -334,51 +335,15 @@ import IntegrationGrid from '@/components/sections/IntegrationGrid.astro';
               <h2 class="text-3xl font-bold mb-4">Build faster with our components</h2>
               <ul class="space-y-3">
                 <li class="flex items-center gap-2">
-                  <svg
-                    class="h-5 w-5 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    ></path>
-                  </svg>
+                  <Icon name="check" class="h-5 w-5 text-primary" />
                   <span>Pre-built components</span>
                 </li>
                 <li class="flex items-center gap-2">
-                  <svg
-                    class="h-5 w-5 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    ></path>
-                  </svg>
+                  <Icon name="check" class="h-5 w-5 text-primary" />
                   <span>Full TypeScript support</span>
                 </li>
                 <li class="flex items-center gap-2">
-                  <svg
-                    class="h-5 w-5 text-primary"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    ></path>
-                  </svg>
+                  <Icon name="check" class="h-5 w-5 text-primary" />
                   <span>Dark mode ready</span>
                 </li>
               </ul>

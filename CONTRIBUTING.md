@@ -7,7 +7,7 @@ Please be respectful and constructive in all interactions.
 
 ## Setup
 
-Requires Node.js >= 22.23.4, npm and Git.
+Requires Node.js >= 22.23.4, Git, and [pnpm](https://pnpm.io/installation) 12.21.0 (pinned in `package.json`).
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/astrodeck.git   # your fork

@@ -25,7 +25,14 @@ test('bad fixture triggers each rule', () => {
     'title-empty',
     'title-unique',
   ]);
-  assert.equal(f.filter((x) => x.rule === 'alt-quality').length, 3);
+  const altMessages = f.filter((x) => x.rule === 'alt-quality').map(({ message }) => message);
+  assert.equal(altMessages.length, 4);
+  for (const src of ['/img/hero.png', '/a.png', '/b.png', '/diagram.png']) {
+    assert.ok(
+      altMessages.some((message) => message.includes(src)),
+      src
+    );
+  }
   assert.equal(f.filter((x) => x.rule === 'title-unique').length, 2);
   assert.deepEqual(
     f.filter((x) => x.rule === 'link-scheme').map((x) => x.message),

@@ -135,8 +135,13 @@ export function run(steps, log = console.log) {
   const failed = results.filter((r) => !r.ok);
   for (const r of failed) {
     const lines = r.output.trimEnd().split('\n');
-    log(`\n--- ${r.id} (last ${Math.min(TAIL_LINES, lines.length)} lines) ---`);
-    log(lines.slice(-TAIL_LINES).join('\n'));
+    if (r.id === 'test') {
+      log(`\n--- ${r.id} (full output) ---`);
+      log(lines.join('\n'));
+    } else {
+      log(`\n--- ${r.id} (last ${Math.min(TAIL_LINES, lines.length)} lines) ---`);
+      log(lines.slice(-TAIL_LINES).join('\n'));
+    }
   }
   log(failed.length ? `\nVERIFY FAILED (${failed.length})` : '\nVERIFY PASSED');
   return failed.length ? 1 : 0;

@@ -213,8 +213,8 @@ pnpm run check:fallow      # run the strict static analysis on its own
 `verify` runs Oxfmt, Oxlint, Astro lint (directives, exports, styles and deprecated APIs),
 `astro check`, Fallow, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
 registry check, tests, the build and checks on the built HTML (one `h1`,
-unique titles, meta descriptions, internal links, alt text). It runs offline and says which
-step failed.
+unique titles, meta descriptions, internal links, alt text). Images with empty alt need an explicit
+decorative marker such as `aria-hidden="true"`. Verify runs offline and reports which step failed.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured

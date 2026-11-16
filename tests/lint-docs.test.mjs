@@ -56,9 +56,12 @@ before(() => {
       'Globs `src/**/*.ts` and `src/{a,b}.ts` are skipped.',
       'Built on Astro v6 and Tailwind CSS 4.3 with Node.js 22.23.',
       'We ship 15 sections, 1 layouts and 2 UI components.',
+      '~~~~markdown',
       '```',
+      '~~~',
       'Astro 5 with 99 sections and `src/in-fence.ts`',
-      '```',
+      '~~~~~',
+      'Outside the fence `src/missing-after-fence.ts`.',
     ].join('\n')
   );
   put(root, 'CHANGELOG.md', 'Astro 3\n');
@@ -74,6 +77,7 @@ test('reports dead paths, stale versions, wrong counts, URL drift', () => {
     f.map((x) => `${key(x)}:${x.line ?? ''}`).sort(),
     [
       'README.md:dead-path:1',
+      'README.md:dead-path:11',
       'README.md:version-drift:4',
       'README.md:count-drift:5',
       'astro.config.mjs:site-url-drift:',
@@ -102,6 +106,8 @@ test('docs lint ignores skill content and paths into the skill directories', (t)
     'docs/skills.md',
     'Optional resources in `.agents/skills/missing.md` and `.claude/skills/missing.md`.'
   );
+  put(root, '.claude/worktrees/copy/README.md', 'See `src/worktree-path.ts`.');
+  put(root, 'docs/node_modules/package/README.md', 'See `src/dependency-path.ts`.');
   put(root, '.claude/agents/reviewer.md', 'See `src/missing-reviewer-file.ts`.');
   const findings = lintDocs(root);
   assert.deepEqual(

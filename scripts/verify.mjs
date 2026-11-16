@@ -50,7 +50,7 @@ export const STEPS = [
   { id: 'lint-design', cmd: node, args: ['scripts/lint-design.mjs'] },
   { id: 'lint-docs', cmd: node, args: ['scripts/lint-docs.mjs'] },
   { id: 'registry', cmd: node, args: ['scripts/check-registry.mjs'] },
-  { id: 'test', cmd: node, args: ['--test', 'tests/**/*.test.mjs'] },
+  { id: 'test', cmd: node, args: ['--test', '--test-reporter=spec', 'tests/**/*.test.mjs'] },
   {
     id: 'build',
     cmd: 'pnpm',
@@ -146,6 +146,13 @@ export function run(steps, log = console.log) {
 }
 
 function main() {
+  if (!['darwin', 'linux'].includes(process.platform)) {
+    console.error(
+      'AstroDeck verification supports macOS and Linux. This platform is unsupported: ' +
+        process.platform
+    );
+    process.exit(1);
+  }
   const argv = process.argv.slice(2);
   const { engines, packageManager } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
   const steps = selectSteps(argv);

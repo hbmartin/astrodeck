@@ -29,7 +29,7 @@ TypeScript, React 19 islands and [shadcn/ui](https://ui.shadcn.com) on Radix.
 
 ## How it works
 
-1. **Download** the ZIP from the [latest release](https://github.com/holger1411/astrodeck/releases/latest)
+1. **Download** the [main branch source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip)
    (or from [templatedeck.com](https://templatedeck.com/templates/astrodeck)) and unzip it.
 2. **Open the folder in your coding agent.** It reads `AGENTS.md` and finds the skills in
    `.agents/skills/`.
@@ -47,7 +47,7 @@ Requires **macOS or Linux**, **Node.js >= 22.23.4**, and **pnpm 12.21.0**.
 
 ### No coding experience
 
-1. Download and unzip the [latest release](https://github.com/holger1411/astrodeck/releases/latest).
+1. Download and unzip the [main branch source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip).
 2. Open the folder in your coding agent (Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI,
    Windsurf).
 3. Say: *"Build my website for [your business or project in one sentence]."*
@@ -59,7 +59,7 @@ what to change.
 ### Developers
 
 ```bash
-pnpm dlx degit holger1411/astrodeck my-site  # or git clone, or the release ZIP
+git clone --branch main --single-branch https://github.com/hbmartin/astrodeck.git my-site
 cd my-site
 pnpm install --frozen-lockfile
 pnpm run dev                                 # http://localhost:4321
@@ -69,7 +69,7 @@ Then let your agent run the workflow, or work by hand: set `src/config/site.ts`,
 `pnpm run theme`, compose pages from `src/components/sections/`, finish with `pnpm run verify`.
 
 Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can write its own
-`AGENTS.md` over the kit's. Use the ZIP, `git clone` or `degit`.
+`AGENTS.md` over the kit's. Use the main branch source ZIP or `git clone`.
 
 ## What you get
 
@@ -215,8 +215,8 @@ pnpm run check:fallow      # run the strict static analysis on its own
 `verify` runs Oxfmt, Oxlint, Astro lint (directives, exports, styles and deprecated APIs),
 `astro check`, Fallow, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
 registry check, tests, the build and checks on the built HTML (one `h1`,
-unique titles, meta descriptions, internal links, alt text). Images with empty alt need an explicit
-decorative marker such as `aria-hidden="true"`. Verify runs offline and reports which step failed.
+unique titles, meta descriptions, internal links, alt text, and names for image-only links).
+Use `alt=""` for decorative images. Verify runs offline and reports which step failed.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured

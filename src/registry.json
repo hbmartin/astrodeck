@@ -191,7 +191,7 @@
       "example": "---\nimport Pricing from \"@/components/sections/Pricing.astro\";\n---\n\n<Pricing\n  title=\"Simple pricing\"\n  subtitle=\"Pick the plan that fits\"\n  note=\"Prices exclude VAT.\"\n  tiers={[\n    {\n      name: \"Free\",\n      price: \"$0\",\n      description: \"For side projects\",\n      features: [\"1 project\", \"Community support\"],\n      cta: { label: \"Start free\", href: \"/signup\" },\n    },\n    {\n      name: \"Pro\",\n      price: \"$29\",\n      period: \"/month\",\n      description: \"For teams\",\n      features: [\"Unlimited projects\", \"Priority support\"],\n      cta: { label: \"Subscribe\", href: \"/signup\" },\n      highlighted: true,\n    },\n  ]}\n/>",
       "features": ["responsive", "dark-mode"],
       "category": "pricing",
-      "notes": "The grid switches to two columns at a container width of 45rem and to three at 61rem. The highlighted card scales in the three-column layout. Pass period to append a billing interval."
+      "notes": "The grid switches to two columns at a container width of 45rem and to three at 61rem, up to the number of tiers. The highlighted card scales in the three-column layout. Pass period to append a billing interval."
     },
     {
       "name": "Testimonials",

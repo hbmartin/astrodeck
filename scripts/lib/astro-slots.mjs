@@ -27,8 +27,8 @@ function collectSlots(node, component, output) {
   ts.forEachChild(node, (child) => collectSlots(child, component, output));
 }
 
-function compiledSlots(source, file) {
-  const { code, diagnostics } = transform(source, { filename: file, compact: 'jsx' });
+function compiledSlots(source, file, compact) {
+  const { code, diagnostics } = transform(source, { filename: file, compact });
   const error = diagnostics.find(({ severity }) => severity === 'error');
   if (error) throw new Error(`${file}: Astro compilation failed: ${error.text}`);
 
@@ -50,9 +50,9 @@ function compiledSlots(source, file) {
 }
 
 /** Return labels for slots whose emitted text changes between two versions of an Astro file. */
-export function changedAstroSlots(before, after, file) {
-  const original = compiledSlots(before, file);
-  const formatted = compiledSlots(after, file);
+export function changedAstroSlots(before, after, file, compact) {
+  const original = compiledSlots(before, file, compact);
+  const formatted = compiledSlots(after, file, compact);
   const labels = new Set();
   for (let index = 0; index < Math.max(original.length, formatted.length); index++) {
     const oldSlot = original[index];

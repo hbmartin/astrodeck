@@ -40,7 +40,7 @@ const textSizeClasses = {
   lg: 'text-lg',
 };
 
-const label = logo.alt ?? name;
+const label = logo.alt?.trim() || name;
 const withText = showText && logo.text.trim() !== '';
 ---
 

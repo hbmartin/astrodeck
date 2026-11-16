@@ -18,6 +18,7 @@ test('bad fixture triggers each rule', () => {
     'demo-leftover',
     'form-novalidate',
     'h1-count',
+    'image-link-name',
     'internal-link',
     'link-scheme',
     'meta-description',
@@ -26,13 +27,17 @@ test('bad fixture triggers each rule', () => {
     'title-unique',
   ]);
   const altMessages = f.filter((x) => x.rule === 'alt-quality').map(({ message }) => message);
-  assert.equal(altMessages.length, 4);
-  for (const src of ['/img/hero.png', '/a.png', '/b.png', '/diagram.png']) {
+  assert.equal(altMessages.length, 3);
+  for (const src of ['/img/hero.png', '/b.png', '/blank.png']) {
     assert.ok(
       altMessages.some((message) => message.includes(src)),
       src
     );
   }
+  assert.deepEqual(
+    f.filter((x) => x.rule === 'image-link-name').map((x) => x.message),
+    ['Image link to "/" has no accessible name', 'Image link to "/dup.html" has no accessible name']
+  );
   assert.equal(f.filter((x) => x.rule === 'title-unique').length, 2);
   assert.deepEqual(
     f.filter((x) => x.rule === 'link-scheme').map((x) => x.message),

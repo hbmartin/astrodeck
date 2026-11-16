@@ -4,6 +4,12 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from '@astrojs/compiler-rs';
 import { formatFindings } from './lib/findings.mjs';
+import {
+  bindingAt,
+  indexAstroNodes,
+  isTypeOnlyDeclaration,
+  unwrap,
+} from './lib/astro-bindings.mjs';
 
 const ROUTE_EXPORTS = new Set(['getStaticPaths', 'partial', 'prerender']);
 const DEPRECATED_APIS = new Map([
@@ -11,166 +17,13 @@ const DEPRECATED_APIS = new Map([
   ['fetchContent', 'no-deprecated-astro-fetchcontent'],
   ['resolve', 'no-deprecated-astro-resolve'],
 ]);
-const FUNCTIONS = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
-const BLOCKS = new Set([
-  'BlockStatement',
-  'CatchClause',
-  'ForStatement',
-  'ForInStatement',
-  'ForOfStatement',
-  'SwitchStatement',
-]);
 const UNKNOWN = Symbol('unknown value');
 const ASTRO = Symbol('Astro global');
 
-const PATTERN_CHILDREN = new Map([
-  ['AssignmentPattern', (node) => [node.left]],
-  ['RestElement', (node) => [node.argument]],
-  ['ObjectPattern', (node) => node.properties.map((prop) => prop.value ?? prop.argument)],
-  ['ArrayPattern', (node) => node.elements],
-  ['VariableDeclaration', (node) => node.declarations.map(({ id }) => id)],
-]);
-
-function* boundNames(pattern) {
-  const node = unwrap(pattern);
-  if (!node) return;
-  if (node.type === 'Identifier') {
-    yield node.name;
-    return;
-  }
-  for (const child of PATTERN_CHILDREN.get(node.type)?.(node) ?? []) yield* boundNames(child);
-}
-
-function markName(scope, node) {
-  if (node.id) scope.bindings.set(node.id.name, null);
-}
-
-function nodeScope(node, parent) {
-  if (node.type === 'Program')
-    return { parent: null, bindings: new Map(), isVarScope: true, hasAstroGlobal: false };
-  const isVarScope = FUNCTIONS.has(node.type) || node.type === 'StaticBlock';
-  if (!isVarScope && !BLOCKS.has(node.type)) return parent;
-  return { parent, bindings: new Map(), isVarScope, hasAstroGlobal: parent.hasAstroGlobal };
-}
-
-function markPattern(scope, pattern) {
-  for (const name of boundNames(pattern)) scope.bindings.set(name, null);
-}
-
-function markFunction(scope, node) {
-  markName(scope, node);
-  for (const param of node.params) markPattern(scope, param);
-}
-
-function markImports(scope, node) {
-  if (node.importKind === 'type') return;
-  for (const specifier of node.specifiers)
-    if (specifier.importKind !== 'type') scope.bindings.set(specifier.local.name, null);
-}
-
-function varOwner(scope) {
-  while (scope.parent && !scope.isVarScope) scope = scope.parent;
-  return scope;
-}
-
-function initializerBinding(id, init, scope, kind) {
-  if (id.type !== 'Identifier' || !init) return null;
-  return { node: init, scope, constant: kind === 'const', written: false };
-}
-
-function markDeclaredName(owner, name, id, init, scope, kind) {
-  const previous = owner.bindings.get(name);
-  if (kind === 'var' && previous) {
-    if (init) previous.written = true;
-    return;
-  }
-  owner.bindings.set(name, initializerBinding(id, init, scope, kind));
-}
-
-function markVariables(scope, { kind, declarations }) {
-  const owner = kind === 'var' ? varOwner(scope) : scope;
-  for (const { id, init } of declarations)
-    for (const name of boundNames(id)) markDeclaredName(owner, name, id, init, scope, kind);
-}
-
-const BINDINGS = new Map([
-  ['CatchClause', (scope, node) => markPattern(scope, node.param)],
-  ['ImportDeclaration', markImports],
-  ['VariableDeclaration', markVariables],
-]);
-
-/** Index bindings before checking references so a later declaration can shadow an outer name. */
-function collectNodes(node, parent, nodes) {
-  if (!node?.type) return;
-  if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration')
-    markName(parent, node);
-  const scope = nodeScope(node, parent);
-  if (FUNCTIONS.has(node.type)) markFunction(scope, node);
-  BINDINGS.get(node.type)?.(scope, node);
-  nodes.push({ node, scope });
-  collectChildren(node, scope, nodes);
-}
-
-function collectChildren(node, scope, nodes) {
-  for (const value of Object.values(node)) {
-    if (Array.isArray(value)) {
-      for (const child of value) collectNodes(child, scope, nodes);
-    } else {
-      collectNodes(value, scope, nodes);
-    }
-  }
-}
-
-function bindingFor(scope, name) {
-  for (let current = scope; current; current = current.parent)
-    if (current.bindings.has(name)) return current.bindings.get(name);
-}
-
-/** Any write makes an initializer unreliable for static evaluation throughout its scope. */
-function markBindingWrites(nodes) {
-  for (const { node, scope } of nodes) {
-    let target;
-    switch (node.type) {
-      case 'AssignmentExpression':
-      case 'ForInStatement':
-      case 'ForOfStatement':
-        target = node.left;
-        break;
-      case 'UpdateExpression':
-        target = node.argument;
-        break;
-      default:
-        continue;
-    }
-    for (const name of boundNames(target)) {
-      const binding = bindingFor(scope, name);
-      if (binding) binding.written = true;
-    }
-  }
-}
-
-function unwrap(node) {
-  while (
-    node &&
-    [
-      'JSXExpressionContainer',
-      'TSAsExpression',
-      'TSSatisfiesExpression',
-      'TSNonNullExpression',
-      'TSTypeAssertion',
-      'ChainExpression',
-      'ParenthesizedExpression',
-    ].includes(node.type)
-  ) {
-    node = node.expression;
-  }
-  return node;
-}
-
 function identifierValue(node, scope, seen) {
-  const binding = bindingFor(scope, node.name);
+  const binding = bindingAt(node, scope);
   if (binding === undefined) return globalValue(node.name, scope);
-  if (!binding || binding.written || seen.has(binding)) return UNKNOWN;
+  if (!binding || seen.has(binding)) return UNKNOWN;
   const value = staticValue(binding.node, binding.scope, new Set(seen).add(binding));
   return binding.constant || value === ASTRO ? value : UNKNOWN;
 }
@@ -224,27 +77,6 @@ function propertyName(key, computed, scope) {
   if (!computed && key.type === 'Identifier') return key.name;
   const value = staticValue(key, scope);
   return typeof value === 'string' || typeof value === 'number' ? String(value) : null;
-}
-
-const TYPE_ONLY_NODES = new Set([
-  'TSDeclareFunction',
-  'TSInterfaceDeclaration',
-  'TSTypeAliasDeclaration',
-  'EmptyStatement',
-]);
-
-function typeOnlyBody(node) {
-  if (node.type === 'TSModuleDeclaration') return isTypeOnlyDeclaration(node.body);
-  if (node.type === 'TSModuleBlock') return node.body.every(isTypeOnlyDeclaration);
-  if (node.type === 'ExportNamedDeclaration')
-    return node.exportKind === 'type' || isTypeOnlyDeclaration(node.declaration);
-  return false;
-}
-
-function isTypeOnlyDeclaration(node) {
-  if (!node) return false;
-  if (node.declare || TYPE_ONLY_NODES.has(node.type)) return true;
-  return typeOnlyBody(node);
 }
 
 function exportedNames(node) {
@@ -364,20 +196,6 @@ export function lintAstro(source, file) {
     if (frontmatter.has(node)) lintAstroExport(node, inPages, report);
   }
   return findings;
-}
-
-function indexAstroNodes(body, frontmatter) {
-  const componentScope = {
-    parent: null,
-    bindings: new Map(),
-    isVarScope: true,
-    hasAstroGlobal: true,
-  };
-  const nodes = [];
-  for (const node of frontmatter) collectNodes(node, componentScope, nodes);
-  for (const node of body) collectNodes(node, componentScope, nodes);
-  markBindingWrites(nodes);
-  return nodes;
 }
 
 function lintContentImport(node, _scope, report) {

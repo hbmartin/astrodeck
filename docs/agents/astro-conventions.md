@@ -9,7 +9,12 @@ MCP server is described in [MCP setup](mcp-setup.md).
 - The default `compressHTML: 'jsx'` can remove whitespace between elements. Use `{" "}` where
   inline elements on separate lines need a separating space.
 - Use explicit string expressions such as `{'Label'}` when exact component slot text matters.
-  The format command checks slot text before writing Astro source.
+  The format command writes files whose compiled slot text is preserved. It reports each
+  refused file and exits with an error after formatting the safe files.
+- Match `astro.compressHTML` in `.oxfmtrc.json` to the Astro build. Use `"jsx"` for Astro’s
+  default, `"html"` for `true`, and `"none"` for `false`. The slot check uses the root formatter
+  setting and checks all three modes when an override or nested or executable config can
+  change that setting.
 - Use `{/* */}` for comments inside `.map()` expressions.
 - Reserve `fetch.ts` in `src/` for the Astro fetch entrypoint (`fetchFile`).
 - Use `ClientRouter` from `astro:transitions` for client routing.

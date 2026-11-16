@@ -179,7 +179,10 @@ text for longer than the default.
 
 Mobile-first. Base classes are the mobile layout; `sm:` 640, `md:` 768, `lg:` 1024, `xl:` 1280.
 
-- Grids stack on mobile: `grid gap-6 md:grid-cols-2 lg:grid-cols-3`.
+- Grids stack in narrow layouts. Features and Pricing adapt to their own container width so
+  cards retain room for padding and text even when the section sits inside a narrower layout.
+  Features uses two columns from 37rem and three from 45rem when configured for three.
+  Pricing uses two columns from 45rem and three from 61rem, up to the number of tiers.
 - Two-column splits: `grid gap-12 lg:grid-cols-2 lg:gap-16 items-center`.
 - Navigation collapses below `md` (see `Header.astro`); anything `hidden md:flex` or
   `hidden lg:block` needs a matching `md:hidden` / `lg:hidden` mobile equivalent.

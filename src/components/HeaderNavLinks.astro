@@ -5,8 +5,21 @@ interface Props {
   mobile?: boolean;
 }
 const { mobile = false } = Astro.props;
-const path = Astro.url.pathname;
-const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
+const path = normalizePath(Astro.url.pathname);
+
+function linkPath(href: string) {
+  if (!/^\/(?![/\\])/.test(href)) return undefined;
+  return normalizePath(new URL(href, Astro.url).pathname);
+}
+
+function getNavState(href: string) {
+  const target = linkPath(href);
+  const exact = target === path;
+  const descendant = target && target !== '/' && path.startsWith(target + '/');
+  return { exact, active: exact || descendant };
+}
+
 const base = mobile
   ? 'block px-3 py-2 rounded-md text-base font-medium transition-colors'
   : 'inline-block py-2 transition-colors';
@@ -16,12 +29,15 @@ const inactive = mobile
   : 'text-foreground/60 hover:text-foreground/80';
 ---
 
-{site.nav.map(({ href, label }) => (
-  <a
-    href={href}
-    class:list={[base, isCurrent(href) ? current : inactive]}
-    aria-current={isCurrent(href) ? 'page' : undefined}
-  >
-    {label}
-  </a>
-))}
+{site.nav.map(({ href, label }) => {
+  const { active, exact } = getNavState(href);
+  return (
+    <a
+      href={href}
+      class:list={[base, active ? current : inactive]}
+      aria-current={exact ? 'page' : undefined}
+    >
+      {label}
+    </a>
+  );
+})}

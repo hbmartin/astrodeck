@@ -89,32 +89,84 @@ test('checks deprecated Astro properties in frontmatter and template expressions
   );
 });
 
-test('invalidates Astro aliases with writes anywhere in their lexical scope', () => {
-  const writes = [
-    'runtime = { resolve() {} };',
-    'runtime ||= { resolve() {} };',
-    'runtime++;',
-    '({ value: runtime = {} } = replacement);',
-    '[runtime] = replacements;',
-    'for (runtime in replacements) {}',
-    'for (runtime of replacements) {}',
-    'function replace() { runtime = {}; }',
-  ];
-  for (const write of writes) {
-    assert.deepEqual(rules(astro(`let runtime = Astro; runtime.resolve(); ${write}`)), [], write);
+test('Astro aliases are evaluated at the read, including during reassignment', () => {
+  const code = [
+    'let runtime = Astro;',
+    'runtime.resolve();',
+    'runtime = {};',
+    'runtime.resolve();',
+    'runtime = Astro;',
+    'runtime = runtime.resolve();',
+    'runtime.resolve();',
+  ].join('\n');
+  assert.deepEqual(
+    lintAstro(astro(code), component).map(({ line }) => line),
+    [3, 7]
+  );
+  assert.deepEqual(
+    rules(astro('var runtime = Astro; runtime.resolve(); var runtime = {}; runtime.resolve();')),
+    ['astro/no-deprecated-astro-resolve']
+  );
+  assert.deepEqual(
+    rules(astro('let runtime = Astro;', '<p>{(runtime = {}, runtime.resolve())}</p>')),
+    []
+  );
+});
+
+test('initialized var declarations take effect at their position in a function', () => {
+  const prefix = 'runtime.resolve(); var runtime = Astro;';
+  const expected = ['astro/no-deprecated-astro-resolve'];
+  assert.deepEqual(
+    rules(astro('function f(runtime) {' + prefix + 'runtime.resolve(); }')),
+    expected
+  );
+  assert.deepEqual(
+    rules(astro('function f() {' + prefix + 'function runtime() {} runtime.resolve(); }')),
+    expected
+  );
+  assert.deepEqual(
+    rules(astro('function f() { var { runtime } = other; ' + prefix + 'runtime.resolve(); }')),
+    expected
+  );
+});
+
+test('namespace-local variables and erased declarations preserve the outer binding', () => {
+  const code = [
+    'const runtime = Astro;',
+    'namespace Example { var runtime = {}; runtime.resolve(); }',
+    'declare namespace Astro { export function resolve(): void; }',
+    'runtime.resolve();',
+    'Astro.resolve();',
+    'const Named = class Astro { method() { Astro.resolve(); } };',
+  ].join('\n');
+  assert.deepEqual(
+    lintAstro(astro(code), component).map(({ line }) => line),
+    [5, 6]
+  );
+});
+
+test('uncertain writes only resolve when the branch and execution order establish the value', () => {
+  const resolve = ['astro/no-deprecated-astro-resolve'];
+  assert.deepEqual(
+    rules(astro('let x = Astro; x.resolve(); if (cond) x = {}; x.resolve();')),
+    resolve
+  );
+  assert.deepEqual(
+    rules(astro('let x = {}; if (cond) { x = Astro; x.resolve(); } x.resolve();')),
+    resolve
+  );
+  for (const write of [
+    'x ||= Astro;',
+    '({ key: x } = other);',
+    'for (var x of items) {}',
+    'const result = maybe?.[x = Astro];',
+    'const { y = (x = Astro) } = other;',
+    'function replace() { x = Astro; }',
+  ]) {
+    assert.deepEqual(rules(astro('var x = {}; ' + write + ' x.resolve();')), [], write);
   }
-  assert.deepEqual(
-    rules(astro('var runtime = Astro; for (var runtime of replacements) {} runtime.resolve();')),
-    []
-  );
-  assert.deepEqual(
-    rules(astro('var runtime = Astro; runtime.resolve(); var runtime = replacement;')),
-    []
-  );
-  assert.deepEqual(
-    rules(astro('let runtime = Astro;', '<p>{(runtime = replacement, runtime.resolve())}</p>')),
-    []
-  );
+  assert.deepEqual(rules(astro('let x = Astro; while (cond) { x.resolve(); x = {}; }')), []);
+  assert.deepEqual(rules(astro('let x = Astro; function replace() { x = {}; } x.resolve();')), []);
 });
 
 test('keeps Astro aliases with no writes to the binding', () => {

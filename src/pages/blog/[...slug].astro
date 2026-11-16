@@ -5,6 +5,7 @@ import { render } from 'astro:content';
 import { formatDate, getPublishedPosts } from '@/lib/blog';
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
+import { boundedImageWidths } from '@/lib/starter/image-widths.mjs';
 import { getReadingTime } from '@/lib/reading-time';
 
 export async function getStaticPaths() {
@@ -46,12 +47,16 @@ interface Props {
 const { post, prevPost, nextPost, relatedPosts } = Astro.props;
 const { Content } = await render(post);
 const readingTime = getReadingTime(post.body ?? '');
+const banner = post.data.image;
+const widths = banner ? boundedImageWidths(banner.width, [640, 1024, 1280]) : [];
 ---
 
 <BaseLayout
   title={post.data.title}
   description={post.data.description}
-  image={post.data.image?.src}
+  image={
+    banner && { path: banner.src, alt: post.data.title, width: banner.width, height: banner.height }
+  }
   type="article"
   publishedTime={post.data.pubDate}
   author={post.data.author}
@@ -113,8 +118,8 @@ const readingTime = getReadingTime(post.body ?? '');
             <Image
               src={post.data.image}
               alt={post.data.title}
-              widths={[640, 1024, 1280]}
-              sizes="(max-width: 1024px) 100vw, 1024px"
+              widths={widths.length ? widths : undefined}
+              sizes={widths.length ? '(max-width: 1024px) 100vw, 1024px' : undefined}
               loading="eager"
               class="w-full h-full object-cover"
             />

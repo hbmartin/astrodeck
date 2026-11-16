@@ -11,8 +11,9 @@ export default defineConfig({
     sitemap({
       changefreq: 'weekly',
       priority: 0.7,
-      // Demo-only form target, not meant to be indexed
-      filter: (page) => !page.endsWith('/thanks/'),
+      // These utility pages are marked noindex where rendered.
+      filter: (page) =>
+        !['/404', '/login', '/thanks'].includes(new URL(page).pathname.replace(/\/$/, '')),
       // No lastmod: a build-time date would mark every page as changed on every deploy
     }),
   ],

@@ -34,3 +34,7 @@ npm-debug.log*
 
 # vibe2prod audit runs (reports, Lighthouse/axe JSON, screenshots)
 .vibe2prod/
+
+# Opt-in browser QA
+playwright-report/
+test-results/

@@ -926,9 +926,9 @@
           "description": "Meta description for SEO and OpenGraph"
         },
         "image": {
-          "type": "string",
+          "type": "string | SocialImage",
           "required": false,
-          "description": "OpenGraph image URL"
+          "description": "Social image URL or { path, alt, width, height }"
         },
         "type": {
           "type": "'website' | 'article'",
@@ -976,9 +976,9 @@
           "description": "Meta description for SEO and OpenGraph"
         },
         "image": {
-          "type": "string",
+          "type": "string | SocialImage",
           "required": false,
-          "description": "OpenGraph image URL"
+          "description": "Social image URL or { path, alt, width, height }"
         },
         "noindex": {
           "type": "boolean",
@@ -1010,9 +1010,9 @@
           "description": "Meta description for SEO and OpenGraph"
         },
         "image": {
-          "type": "string",
+          "type": "string | SocialImage",
           "required": false,
-          "description": "OpenGraph image URL"
+          "description": "Social image URL or { path, alt, width, height }"
         },
         "noindex": {
           "type": "boolean",

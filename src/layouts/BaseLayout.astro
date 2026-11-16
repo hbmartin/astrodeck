@@ -38,10 +38,12 @@ import Footer from '@/components/Footer.astro';
 import Analytics from '@vercel/analytics/astro';
 import AnimationObserver from '@/components/AnimationObserver.astro';
 
+import type { SocialImage } from '@/lib/seo';
+
 interface Props {
   title: string;
   description?: string;
-  image?: string;
+  image?: string | SocialImage;
   type?: 'website' | 'article';
   publishedTime?: Date;
   author?: string;

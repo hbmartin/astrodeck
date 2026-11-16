@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, chmodSync, rmSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { findOnPath } from '../scripts/setup-audit.mjs';
+import { findOnPath } from '../scripts/lib/executables.mjs';
 
 const SCRIPT = join(import.meta.dirname, '..', 'scripts', 'setup-audit.mjs');
 
@@ -37,6 +37,34 @@ test('findOnPath resolves an executable on PATH and returns null otherwise', () 
     const norm = (f) => (process.platform === 'win32' ? f?.toLowerCase() : f);
     assert.equal(norm(found), norm(file));
     assert.equal(findOnPath('nope-tool', env), null);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('audit install uses npm on PATH even under a JavaScript pnpm launcher', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'audit-launcher-'));
+  try {
+    const bin = join(dir, 'bin');
+    const runtime = join(dir, 'runtime with spaces');
+    const fakePnpm = join(dir, 'pnpm.cjs');
+    const windows = process.platform === 'win32';
+    mkdirSync(bin);
+    writeFileSync(fakePnpm, "console.log('wrong package manager'); process.exit(55);");
+    const stub = windows
+      ? '@echo off\r\necho %CD%\r\necho %*\r\nexit /b 29\r\n'
+      : '#!/bin/sh\nprintf "%s\\n" "$PWD"\nprintf "%s " "$@"\nexit 29\n';
+    for (const name of ['npm', 'axe', 'lighthouse']) {
+      writeFileSync(join(bin, windows ? `${name}.cmd` : name), stub, { mode: 0o755 });
+    }
+    const r = spawnSync(process.execPath, [SCRIPT], {
+      encoding: 'utf8',
+      env: { ...process.env, PATH: bin, VIBE2PROD_RUNTIME: runtime, npm_execpath: fakePnpm },
+    });
+    assert.equal(r.status, 1, r.stderr);
+    assert.match(r.stdout, /runtime with spaces/);
+    assert.match(r.stdout, /install --prefix \. playwright @axe-core\/playwright/);
+    assert.doesNotMatch(r.stdout, /wrong package manager/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

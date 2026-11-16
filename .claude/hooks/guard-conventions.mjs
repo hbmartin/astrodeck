@@ -2,7 +2,7 @@
 /**
  * AstroDeck convention guard (PreToolUse + PostToolUse hook for Write/Edit/MultiEdit).
  *
- * The rules live in scripts/lib/rules.mjs and are shared with `npm run lint:design`.
+ * The rules live in scripts/lib/rules.mjs and are shared with `pnpm run lint:design`.
  *
  * PreToolUse  - hard-blocks non-negotiable violations (tailwind.config.*,
  *               ViewTransitions, z from astro:content) before the edit happens.
@@ -21,72 +21,76 @@ const BLOCKING = new Set(['tailwind-config', 'view-transitions', 'zod-from-conte
 // Project root: CLAUDE_PROJECT_DIR, else two levels up from .claude/hooks (works in ZIP copies).
 const root = resolve(process.env.CLAUDE_PROJECT_DIR || join(import.meta.dirname, '..', '..'));
 
+function hookFile(input) {
+  const filePath = input.file_path;
+  if (!filePath) return null;
+  const absolute = isAbsolute(filePath) ? filePath : resolve(root, filePath);
+  const relativePath = relative(root, absolute).split(sep).join('/');
+  return {
+    absolute,
+    relative: relativePath.startsWith('..') ? filePath.split(sep).join('/') : relativePath,
+  };
+}
+
+function proposedText(input) {
+  const edits = Array.isArray(input.edits) ? input.edits : [];
+  return [input.content, input.new_string, ...edits.map((edit) => edit?.new_string)]
+    .filter((value) => typeof value === 'string')
+    .join('\n');
+}
+
+function reportBlocked(findings, formatFindings) {
+  const blocked = findings.filter((f) => BLOCKING.has(f.rule));
+  if (!blocked.length) return 0;
+  process.stderr.write(`BLOCKED:\n${formatFindings(blocked)}\n`);
+  return 2;
+}
+
+function reportFindings(event, path, findings, formatFindings) {
+  if (event === 'PreToolUse') return reportBlocked(findings, formatFindings);
+  if (event !== 'PostToolUse' || !findings.length) return 0;
+  process.stderr.write(
+    `AstroDeck convention findings for ${path}:\n${formatFindings(findings)}\n` +
+      'Please fix this now unless the user explicitly asked for an exception.\n'
+  );
+  return 2;
+}
+
+function inputText(event, file, input) {
+  return event === 'PostToolUse' && existsSync(file.absolute)
+    ? readFileSync(file.absolute, 'utf8')
+    : proposedText(input);
+}
+
+async function checkPayload({ hook_event_name: event = '', tool_input: input = {} }) {
+  const file = hookFile(input ?? {});
+  if (!file) return 0;
+  const { lintText } = await import(pathToFileURL(join(root, 'scripts', 'lib', 'rules.mjs')).href);
+  const { formatFindings } = await import(
+    pathToFileURL(join(root, 'scripts', 'lib', 'findings.mjs')).href
+  );
+  const findings = lintText(file.relative, inputText(event, file, input));
+  return reportFindings(event, file.relative, findings, formatFindings);
+}
+
+function parsePayload(chunks) {
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    return undefined; // Malformed input must not break the session.
+  }
+}
+
 const chunks = [];
 process.stdin.on('data', (c) => chunks.push(c));
-process.stdin.on('end', async () => {
-  let payload;
-  try {
-    payload = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  } catch {
-    process.exit(0); // never break the session on malformed input
-  }
+function hookError(err) {
+  console.error(`guard-conventions: hook disabled (${err?.message ?? err})`);
+}
 
-  try {
-    const { lintText } = await import(
-      pathToFileURL(join(root, 'scripts', 'lib', 'rules.mjs')).href
-    );
-    const { formatFindings } = await import(
-      pathToFileURL(join(root, 'scripts', 'lib', 'findings.mjs')).href
-    );
-
-    const event = payload.hook_event_name || '';
-    const input = payload.tool_input || {};
-    const filePath = input.file_path || '';
-    if (!filePath) process.exit(0);
-
-    const abs = isAbsolute(filePath) ? filePath : resolve(root, filePath);
-    const rel = relative(root, abs).split(sep).join('/');
-    // Files outside the project are not ours to police.
-    const path = rel.startsWith('..') ? filePath.split(sep).join('/') : rel;
-
-    // Every piece of text this tool call writes
-    const texts = [];
-    if (typeof input.content === 'string') texts.push(input.content);
-    if (typeof input.new_string === 'string') texts.push(input.new_string);
-    if (Array.isArray(input.edits)) {
-      for (const e of input.edits) if (typeof e?.new_string === 'string') texts.push(e.new_string);
-    }
-    let text = texts.join('\n');
-
-    if (event === 'PostToolUse' && existsSync(abs)) {
-      try {
-        text = readFileSync(abs, 'utf8'); // full file after the write
-      } catch {
-        /* fall back to the written text */
-      }
-    }
-
-    const findings = lintText(path, text);
-
-    if (event === 'PreToolUse') {
-      const blocked = findings.filter((f) => BLOCKING.has(f.rule));
-      if (blocked.length) {
-        process.stderr.write(`BLOCKED:\n${formatFindings(blocked)}\n`);
-        process.exit(2);
-      }
-      process.exit(0);
-    }
-
-    if (event === 'PostToolUse' && findings.length) {
-      process.stderr.write(
-        `AstroDeck convention findings for ${path}:\n${formatFindings(findings)}\n` +
-          'Please fix this now unless the user explicitly asked for an exception.\n'
-      );
-      process.exit(2);
-    }
-  } catch (err) {
-    process.stderr.write(`guard-conventions: hook disabled (${err?.message ?? err})\n`);
-    process.exit(0); // never break the session on hook errors
-  }
-  process.exit(0);
+process.stdin.on('end', () => {
+  const payload = parsePayload(chunks);
+  if (payload === undefined) return;
+  checkPayload(payload).then((status) => {
+    process.exitCode = status;
+  }, hookError);
 });

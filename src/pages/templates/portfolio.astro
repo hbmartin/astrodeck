@@ -1,4 +1,5 @@
 ---
+import { logos } from '@/components/demos/demo-logos';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import HeroSplit from '@/components/sections/HeroSplit.astro';
 import LogoCloud from '@/components/sections/LogoCloud.astro';
@@ -8,16 +9,6 @@ import Team from '@/components/sections/Team.astro';
 import Testimonials from '@/components/sections/Testimonials.astro';
 import Newsletter from '@/components/sections/Newsletter.astro';
 import CTA from '@/components/sections/CTA.astro';
-import type { IconName } from '@/lib/icons';
-
-const logos = [
-  { name: 'Northwind Labs', icon: 'zap' },
-  { name: 'Lumen Works', icon: 'globe' },
-  { name: 'Fernhill', icon: 'users' },
-  { name: 'Quartz & Co', icon: 'shield' },
-  { name: 'Brightwave', icon: 'chart' },
-  { name: 'Oakline', icon: 'lock' },
-] satisfies { name: string; icon: IconName }[];
 
 const stats = [
   { value: '240+', label: 'Projects Completed', description: 'Across web, mobile & brand' },

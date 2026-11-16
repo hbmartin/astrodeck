@@ -68,7 +68,7 @@ Rules:
 - All content via typed props. No brand names, sample copy or fake data as defaults: content
   props are required, optional props are omitted when empty.
 - Semantic tokens only (`bg-card`, `text-muted-foreground`, `border`); no raw colors, hex, `text-white`,
-  `dark:` overrides, inline `style`. `npm run lint:design` enforces this.
+  `dark:` overrides, inline `style`. `pnpm run lint:design` enforces this.
 - Icons via an `IconName` prop from `src/lib/icons.ts`; add missing icons there.
 - Links and form targets come from props (`href`, `action`); never `#`.
 - `h2` for the section title (an optional `headingLevel` prop when it may open a page, like Contact).
@@ -82,8 +82,8 @@ Rules:
 Add an entry to `sections` in `src/registry.json`: `name`, `file`, `description`, `useWhen`
 (one sentence: when to pick it, and any honesty constraint), `props` (every prop with `type`
 exactly as in the code, `required`, `description`), `example` (a minimal valid usage),
-`category`, `features`. `npm run check:registry` compares the props with the code.
-`README.md` states how many sections the kit has; `npm run lint:docs` (part of verify) asks you to
+`category`, `features`. `pnpm run check:registry` compares the props with the code.
+`README.md` states how many sections the kit has; `pnpm run lint:docs` (part of verify) asks you to
 update that number when you add one.
 
 ## 5. Place it
@@ -95,6 +95,6 @@ it could go. Update the sitemap line in `PROJECT.md`.
 ## 6. Done when
 
 - [ ] Renders in the dev server at 375 px and 1280 px, light and dark
-- [ ] Registered; `npm run check:registry` clean
+- [ ] Registered; `pnpm run check:registry` clean
 - [ ] Placed on a page with real content
-- [ ] `npm run verify` ends with `VERIFY PASSED`
+- [ ] `pnpm run verify` ends with `VERIFY PASSED`

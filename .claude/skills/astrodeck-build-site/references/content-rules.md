@@ -78,9 +78,9 @@ must return nothing: resolve each one or remove the element.
 - No two pages share a title or description.
 - `public/robots.txt` and `public/llms.txt` name the real domain and pages.
 - OG image: 1200x630 in `public/`, referenced by `site.ogImage`. No image from the user → run
-  `npm run icons` (writes `og.png` in `public/`: brand color + logo mark, no invented content), set
+  `pnpm run icons` (writes `og.png` in `public/`: brand color + logo mark, no invented content), set
   `ogImage: '/og.png'` and list "a real social image (photo)" under Open questions.
-- Lengths (checked by `npm run verify`, same limits as vibe2prod): home page `<title>` 30–60
+- Lengths (checked by `pnpm run verify`, same limits as vibe2prod): home page `<title>` 30–60
   characters, home description 50–160, no description over 160.
 - Structured data only when it is correct and complete; never guess it.
 
@@ -111,11 +111,11 @@ brief or a design source asks for them:
 5. Centered text everywhere (headings and body)
 6. Decorative glassmorphism (`backdrop-blur` on translucent panels)
 
-Differentiate with the brand's own colors via `npm run theme`, left-aligned split layouts
+Differentiate with the brand's own colors via `pnpm run theme`, left-aligned split layouts
 (HeroSplit, ContentBlock with the user's images), real imagery and specific copy.
 
 ## 8. Check
 
-- `npm run verify` (dead links, titles, descriptions, alt quality, demo leftovers with `--starter`)
+- `pnpm run verify` (dead links, titles, descriptions, alt quality, demo leftovers with `--starter`)
 - `grep -rn "TODO(brief)" src` returns nothing
 - the vibe2prod audit before handover; its AI-slop category must be clean

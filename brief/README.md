@@ -19,7 +19,7 @@ Good to know:
 
 - The agent uses only facts from your material and your answers. It does not invent reviews,
   customer logos, numbers or team members; gaps are listed as open questions in `PROJECT.md`.
-- A `DESIGN.md` here can be applied directly: `npm run theme -- --from brief/DESIGN.md`.
+- A `DESIGN.md` here can be applied directly: `pnpm run theme --from brief/DESIGN.md`.
 - Files in this folder are inputs, not part of the website. Images you want on the site are
   copied to `public/` or `src/` by the agent.
 - Do not put passwords or private keys here. If the project is a public Git repository, this

@@ -12,14 +12,14 @@ Requires Node.js >= 22.23.4, npm and Git.
 ```bash
 git clone https://github.com/YOUR_USERNAME/astrodeck.git   # your fork
 cd astrodeck
-npm install
-npm run dev                                                 # http://localhost:4321
+pnpm install --frozen-lockfile
+pnpm run dev                                                 # http://localhost:4321
 git checkout -b fix/short-description
 ```
 
 This repository is two things at once: the **astrodeck.dev demo and docs site** (deployed from
 `main`) and the **starter** users download. Demo-only files are listed in
-`starter.manifest.json`; `npm run starter:clean` removes them in a user's copy. Keep both states
+`starter.manifest.json`; `pnpm run starter:clean` removes them in a user's copy. Keep both states
 working.
 
 ## Conventions
@@ -40,20 +40,20 @@ logos or numbers, one `h1` per page, light and dark mode, mobile first.
 ### Sections and the registry
 
 - New or changed section: follow `.agents/skills/astrodeck-new-section/SKILL.md`, then update
-  `src/registry.json` (props, `useWhen`, `example`). `npm run check:registry` compares it with the
+  `src/registry.json` (props, `useWhen`, `example`). `pnpm run check:registry` compares it with the
   component.
 - Icons come from `src/lib/icons.ts`; add new ones there.
 
 ### Skills and agent files
 
-- Edit skills only in `.agents/skills/`, then run `npm run sync:agents`. `.claude/skills/` is a
-  generated mirror; `npm run verify` fails on drift.
+- Edit skills only in `.agents/skills/`, then run `pnpm run sync:agents`. `.claude/skills/` is a
+  generated mirror. Run `pnpm run sync:agents --check` to check it on demand.
 - Keep `AGENTS.md` a compact index (at most 250 lines): golden rules and task → skill routes.
   Details belong in a skill's `references/`.
 - Skill front matter: only `name`, `description`, `license`, `compatibility`, `metadata`,
-  `allowed-tools`; folder name equals `name`; body under 500 lines (`npm run lint:docs` checks).
+  `allowed-tools`; folder name equals `name`; body under 500 lines.
 - `.agents/skills/vibe2prod/` is vendored from upstream; never edit it by hand
-  (`npm run sync:vibe2prod -- --tag vX.Y.Z` updates it).
+  (`pnpm run sync:vibe2prod --tag vX.Y.Z` updates it).
 - No symlinks anywhere: they do not survive ZIP extraction on Windows.
 - How the layers fit together: `docs/maintainers/agent-layer.md`.
 
@@ -63,7 +63,7 @@ Scripts are ES modules in `scripts/` (shared helpers in `scripts/lib/`) with tes
 (`node --test`). They use `node:path` APIs, work on Windows, and need no network access, except
 `sync-vibe2prod.mjs` and `setup-audit.mjs`.
 
-`npm test` also runs inside every user's project (it is part of `npm run verify`), so tests must
+`pnpm test` also runs inside every user's project (it is part of `pnpm run verify`), so tests must
 hold for any site built from the kit: never assert on the user's palette, copy or config values.
 Checks that only make sense for the kit itself run when `ASTRODECK_KIT_CHECKS=1` is set (CI does
 this); for example, `tests/fixtures/default-globals.css` must match `src/styles/globals.css`, so
@@ -72,7 +72,7 @@ update the fixture when you change the shipped default palette.
 ## Before you open a pull request
 
 ```bash
-npm run verify
+pnpm run verify
 ```
 
 It must end with `VERIFY PASSED`. Fix the cause of a failure; do not add ignore markers or

@@ -65,16 +65,19 @@ export function planClean(root, { keepBlog = false } = {}) {
 
 /** Apply the --keep-blog choice to a replacement file that carries the markers. */
 function tune(text, keepBlog, from) {
+  if (!keepBlog) return text.replace(BLOG_NAV_MARKER, '');
+  checkBlogMarkers(text, from);
+  return text
+    .replace(BLOG_NAV_MARKER, "    { href: '/blog', label: 'Blog' },\n")
+    .replace(/blog: false, rss: false/, 'blog: true, rss: true');
+}
+
+function checkBlogMarkers(text, from) {
   const hasNav = BLOG_NAV_MARKER.test(text);
-  if (keepBlog && hasNav && !/blog: false, rss: false/.test(text))
+  if (hasNav && !/blog: false, rss: false/.test(text))
     throw new Error(`${from}: "blog: false, rss: false" not found, cannot apply --keep-blog`);
-  if (keepBlog && /site\.ts$/.test(from) && !hasNav)
+  if (!hasNav && /site\.ts$/.test(from))
     throw new Error(`${from}: "// starter:blog-nav" marker not found, cannot apply --keep-blog`);
-  let out = text;
-  if (hasNav)
-    out = out.replace(BLOG_NAV_MARKER, keepBlog ? "    { href: '/blog', label: 'Blog' },\n" : '');
-  if (keepBlog) out = out.replace(/blog: false, rss: false/, 'blog: true, rss: true');
-  return out;
 }
 
 /** Drop registry entries for deleted pages and screenshots that no longer exist. */
@@ -98,14 +101,14 @@ function pruneRegistry(root) {
  * @param {string} root project root
  * @param {string[]} files paths relative to root
  */
-export function formatWritten(root, files) {
+function formatWritten(root, files) {
   try {
-    const manifest = import.meta.resolve('oxfmt/package.json');
-    const bin = fileURLToPath(new URL('./bin/oxfmt', manifest));
+    const formatter = fileURLToPath(new URL('./format.mjs', import.meta.url));
     const paths = [...new Set(files)].filter((file) => existsSync(inside(root, file)));
     if (paths.length)
-      spawnSync(process.execPath, [bin, '--write', '--no-error-on-unmatched-pattern', ...paths], {
+      spawnSync(process.execPath, [formatter, ...paths], {
         cwd: root,
+        stdio: ['ignore', 'ignore', 'inherit'],
       });
   } catch {
     // Keep the replacement files as written.
@@ -113,7 +116,7 @@ export function formatWritten(root, files) {
 }
 
 /** Every file applyClean writes, relative to root. */
-export function writtenFiles(plan) {
+function writtenFiles(plan) {
   return [...plan.replace.map((r) => r.to), 'src/registry.json'];
 }
 
@@ -148,8 +151,7 @@ function printPlan(plan) {
   for (const r of plan.replace) console.log(`  ${r.from} -> ${r.to}`);
 }
 
-async function main() {
-  const args = process.argv.slice(2);
+function parseOptions(args) {
   const rootIdx = args.indexOf('--root');
   const rootArg = rootIdx !== -1 ? args[rootIdx + 1] : undefined;
   if (rootIdx !== -1 && !rootArg) {
@@ -163,8 +165,32 @@ async function main() {
     console.error(`Unknown option(s): ${bad.join(' ')}`);
     process.exit(1);
   }
+  return {
+    rootArg,
+    keepBlog: args.includes('--keep-blog'),
+    dryRun: args.includes('--dry-run'),
+    confirmed: args.includes('--yes'),
+  };
+}
+
+async function confirmClean() {
+  if (!process.stdin.isTTY) {
+    console.error('Not a TTY and no --yes given: nothing changed. Re-run with --yes to apply.');
+    process.exit(2);
+  }
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const answer = (await rl.question('Proceed? (y/N) ')).trim().toLowerCase();
+  rl.close();
+  if (answer !== 'y' && answer !== 'yes') {
+    console.log('Aborted. Nothing changed.');
+    process.exit(1);
+  }
+}
+
+async function main() {
+  const { rootArg, keepBlog, dryRun, confirmed } = parseOptions(process.argv.slice(2));
   const root = rootArg ? resolve(rootArg) : resolve(import.meta.dirname, '..');
-  const plan = planClean(root, { keepBlog: args.includes('--keep-blog') });
+  const plan = planClean(root, { keepBlog });
   if (plan.alreadyCleaned) {
     console.log('Already cleaned - nothing to do (starter/ not found).');
     return;
@@ -174,20 +200,8 @@ async function main() {
     console.log('Nothing to do - the demo is already cleaned.');
     return;
   }
-  if (args.includes('--dry-run')) return;
-  if (!args.includes('--yes')) {
-    if (!process.stdin.isTTY) {
-      console.error('Not a TTY and no --yes given: nothing changed. Re-run with --yes to apply.');
-      process.exit(2);
-    }
-    const rl = createInterface({ input: process.stdin, output: process.stdout });
-    const answer = (await rl.question('Proceed? (y/N) ')).trim().toLowerCase();
-    rl.close();
-    if (answer !== 'y' && answer !== 'yes') {
-      console.log('Aborted. Nothing changed.');
-      process.exit(1);
-    }
-  }
+  if (dryRun) return;
+  if (!confirmed) await confirmClean();
   applyClean(root, plan);
   formatWritten(root, writtenFiles(plan));
   console.log('Done. Run `pnpm run build` to verify the clean starter.');

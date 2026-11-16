@@ -90,8 +90,8 @@ Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can wr
 - **Honest content rules.** No invented testimonials, customer logos, numbers or team members;
   gaps become open questions instead of placeholder text.
 - **Demo cleanup.** `pnpm run starter:clean` removes the demo site in one step.
-- **One verify command.** Oxfmt, Oxlint, Astro lint, `astro check`, design and docs lint, registry and
-  skills checks, tests, the build and checks on the built HTML.
+- **One verify command.** Oxfmt, Oxlint, Astro lint, `astro check`, Fallow, design and docs lint, registry
+  checks, tests, the build and checks on the built HTML.
 - **vibe2prod bundled.** Production-readiness audit with a READY / NOT YET / BLOCKED verdict.
 - **The usual Astro basics.** Dark mode, sitemap, RSS, Open Graph and structured data, a blog
   with content collections and tags, `llms.txt`.
@@ -207,13 +207,20 @@ The cleanup is one-shot: once the `starter/` folder is gone, a second run does n
 pnpm run verify            # all checks; ends with VERIFY PASSED
 pnpm run verify --starter  # also fails on demo leftovers (after cleanup)
 pnpm run validate          # verify without build (fast)
+pnpm run check:fallow      # run the strict static analysis on its own
 ```
 
 `verify` runs Oxfmt, Oxlint, Astro lint (directives, exports, styles and deprecated APIs),
-`astro check`, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
-registry check, skills mirror check, tests, the build and checks on the built HTML (one `h1`,
+`astro check`, Fallow, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
+registry check, tests, the build and checks on the built HTML (one `h1`,
 unique titles, meta descriptions, internal links, alt text). It runs offline and says which
 step failed.
+
+Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
+complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured
+minimum size. Registry components are intentional entry points; when adding a public UI export,
+keep its Fallow entry in sync with the catalog. The clean starter without a blog uses the same
+checks with an allowance for the three RSS packages kept in the lockfile.
 
 **vibe2prod** ships in `.agents/skills/vibe2prod/` (MIT, license included). Ask your agent to
 "run the vibe2prod audit": it builds the project and audits a local production server for

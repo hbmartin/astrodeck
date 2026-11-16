@@ -43,7 +43,7 @@ function fail(message) {
 }
 
 /** Highest semver tag from `git ls-remote --tags` output. */
-export function highestTag(lsRemote) {
+function highestTag(lsRemote) {
   const tags = [...lsRemote.matchAll(/refs\/tags\/(v\d+\.\d+\.\d+)$/gm)].map((m) => m[1]);
   const key = (t) => t.slice(1).split('.').map(Number);
   tags.sort((a, b) => {
@@ -54,7 +54,7 @@ export function highestTag(lsRemote) {
 }
 
 /** Relative paths of every symlink below dir. */
-export function findSymlinks(dir, base = dir) {
+function findSymlinks(dir, base = dir) {
   const found = [];
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
@@ -65,28 +65,36 @@ export function findSymlinks(dir, base = dir) {
   return found;
 }
 
-function main() {
-  const { values } = parseArgs({ options: { tag: { type: 'string' } } });
-  const tag = values.tag ?? highestTag(git(['ls-remote', '--tags', REPO_URL]));
-  if (!tag) fail('no semver tags found upstream');
+function copySkill(clone, tag) {
+  const commit = git(['-C', clone, 'rev-parse', 'HEAD']);
+  const skill = join(clone, 'skills', 'vibe2prod');
+  if (!existsSync(join(skill, 'SKILL.md'))) fail(`skills/vibe2prod/SKILL.md missing in ${tag}`);
+  rmSync(DEST, { recursive: true, force: true });
+  cpSync(skill, DEST, { recursive: true, dereference: true });
+  copyFileSync(join(clone, 'LICENSE'), join(DEST, 'LICENSE'));
+  const date = new Date().toISOString().slice(0, 10);
+  writeFileSync(join(DEST, 'VERSION'), `tag=${tag}\ncommit=${commit}\ndate=${date}\n`);
+  const links = findSymlinks(DEST);
+  if (links.length) fail(`symlinks found in vendored skill: ${links.join(', ')}`);
+  console.log(`vendored vibe2prod ${tag} (${commit.slice(0, 7)}) into .agents/skills/vibe2prod/`);
+}
+
+function installSkill(tag) {
   const tmp = mkdtempSync(join(tmpdir(), 'vibe2prod-'));
   try {
     const clone = join(tmp, 'src');
     git(['clone', '--depth', '1', '--branch', tag, REPO_URL, clone]);
-    const commit = git(['-C', clone, 'rev-parse', 'HEAD']);
-    const skill = join(clone, 'skills', 'vibe2prod');
-    if (!existsSync(join(skill, 'SKILL.md'))) fail(`skills/vibe2prod/SKILL.md missing in ${tag}`);
-    rmSync(DEST, { recursive: true, force: true });
-    cpSync(skill, DEST, { recursive: true, dereference: true });
-    copyFileSync(join(clone, 'LICENSE'), join(DEST, 'LICENSE'));
-    const date = new Date().toISOString().slice(0, 10);
-    writeFileSync(join(DEST, 'VERSION'), `tag=${tag}\ncommit=${commit}\ndate=${date}\n`);
-    const links = findSymlinks(DEST);
-    if (links.length) fail(`symlinks found in vendored skill: ${links.join(', ')}`);
-    console.log(`vendored vibe2prod ${tag} (${commit.slice(0, 7)}) into .agents/skills/vibe2prod/`);
+    copySkill(clone, tag);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }
+}
+
+function main() {
+  const { values } = parseArgs({ options: { tag: { type: 'string' } } });
+  const tag = values.tag ?? highestTag(git(['ls-remote', '--tags', REPO_URL]));
+  if (!tag) fail('no semver tags found upstream');
+  installSkill(tag);
   const r = spawnSync(process.execPath, [join(ROOT, 'scripts', 'sync-agents.mjs')], {
     stdio: 'inherit',
   });

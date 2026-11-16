@@ -17,7 +17,7 @@ It contains a conflict between two sources (opening hours and cake notice time: 
 - [ ] No invented facts: no awards, no ingredient claims beyond the briefing, no team members other than Sabine and Jonas Brandt, no "thousands of customers".
 - [ ] Contact data on the site equals the briefing (address, phone, email, Instagram); the fictional address is not "corrected" or replaced.
 - [ ] Missing photos are not replaced by stock photos presented as real; no placeholder image services.
-- [ ] `npm run verify -- --starter` passes.
+- [ ] `pnpm run verify --starter` passes.
 - [ ] vibe2prod local audit verdict is READY. Imprint and privacy are not fabricated; missing legal text is listed as a TODO in `PROJECT.md` Open questions and in the handover.
 - [ ] `grep -rn "TODO(brief)" src` returns nothing.
 - [ ] No demo leftovers: no `data-demo` in built HTML, no `/templates/*` pages, no sample blog posts.

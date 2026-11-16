@@ -1,0 +1,23 @@
+---
+interface Props {
+  items: { id: string; label: string; count?: number }[];
+  linkClass: string;
+}
+const { items, linkClass } = Astro.props;
+---
+
+{items.map(({ id, label, count }) => (
+  <a
+    href={`#${id}`}
+    data-section={id}
+    data-nav-label={label}
+    class:list={['nav-link px-3 text-sm transition-colors', linkClass]}
+  >
+    <span>{label}</span>
+    {count !== undefined && (
+      <span data-nav-count class="text-xs text-muted-foreground">
+        ({count})
+      </span>
+    )}
+  </a>
+))}

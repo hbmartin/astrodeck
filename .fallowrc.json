@@ -1,0 +1,152 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "minimumVersion": "3.43.1",
+  "sealed": true,
+  "failOnParseError": true,
+  "includeEntryExports": true,
+  "ignorePatterns": [
+    "starter/**",
+    "tests/fixtures/**",
+    "brief/**",
+    "evals/**",
+    "!.claude/hooks/**"
+  ],
+  "supportEntry": [".claude/hooks/guard-conventions.mjs"],
+  "framework": [
+    {
+      "name": "astrodeck-catalog",
+      "enablers": ["astro"],
+      "entryPointRole": "runtime",
+      "entryPoints": [
+        "src/components/sections/*.astro",
+        "src/components/ui/*.tsx",
+        "src/layouts/*.astro"
+      ],
+      "usedExports": [
+        {
+          "pattern": "src/components/ui/button.tsx",
+          "exports": ["Button", "buttonVariants"]
+        },
+        {
+          "pattern": "src/components/ui/card.tsx",
+          "exports": [
+            "Card",
+            "CardHeader",
+            "CardFooter",
+            "CardTitle",
+            "CardDescription",
+            "CardContent"
+          ]
+        },
+        {
+          "pattern": "src/components/ui/badge.tsx",
+          "exports": ["Badge", "badgeVariants"]
+        },
+        {
+          "pattern": "src/components/ui/input.tsx",
+          "exports": ["Input"]
+        },
+        {
+          "pattern": "src/components/ui/label.tsx",
+          "exports": ["Label"]
+        },
+        {
+          "pattern": "src/components/ui/accordion.tsx",
+          "exports": ["Accordion", "AccordionItem", "AccordionTrigger", "AccordionContent"]
+        },
+        {
+          "pattern": "src/components/ui/dialog.tsx",
+          "exports": [
+            "Dialog",
+            "DialogPortal",
+            "DialogOverlay",
+            "DialogTrigger",
+            "DialogClose",
+            "DialogContent",
+            "DialogHeader",
+            "DialogFooter",
+            "DialogTitle",
+            "DialogDescription"
+          ]
+        },
+        {
+          "pattern": "src/components/ui/dropdown-menu.tsx",
+          "exports": [
+            "DropdownMenu",
+            "DropdownMenuTrigger",
+            "DropdownMenuContent",
+            "DropdownMenuItem",
+            "DropdownMenuCheckboxItem",
+            "DropdownMenuRadioItem",
+            "DropdownMenuLabel",
+            "DropdownMenuSeparator",
+            "DropdownMenuShortcut",
+            "DropdownMenuGroup",
+            "DropdownMenuPortal",
+            "DropdownMenuSub",
+            "DropdownMenuSubContent",
+            "DropdownMenuSubTrigger",
+            "DropdownMenuRadioGroup"
+          ]
+        },
+        {
+          "pattern": "src/components/ui/select.tsx",
+          "exports": [
+            "Select",
+            "SelectGroup",
+            "SelectValue",
+            "SelectTrigger",
+            "SelectContent",
+            "SelectLabel",
+            "SelectItem",
+            "SelectSeparator",
+            "SelectScrollUpButton",
+            "SelectScrollDownButton"
+          ]
+        },
+        {
+          "pattern": "src/components/ui/tabs.tsx",
+          "exports": ["Tabs", "TabsList", "TabsTrigger", "TabsContent"]
+        },
+        {
+          "pattern": "src/components/ui/tooltip.tsx",
+          "exports": ["Tooltip", "TooltipTrigger", "TooltipContent", "TooltipProvider"]
+        }
+      ]
+    }
+  ],
+  "rules": {
+    "unused-files": "error",
+    "unused-exports": "error",
+    "unused-types": "error",
+    "unused-dependencies": "error",
+    "unused-dev-dependencies": "error",
+    "unused-optional-dependencies": "error",
+    "unresolved-imports": "error",
+    "unlisted-dependencies": "error",
+    "unlisted-binaries": "error",
+    "circular-dependencies": "error",
+    "re-export-cycle": "error",
+    "package-cycle": "error",
+    "stale-suppressions": "error",
+    "complexity-cyclomatic": "error",
+    "complexity-cognitive": "error",
+    "complexity-crap": "error",
+    "complexity-file-lines": "error"
+  },
+  "health": {
+    "maxCyclomatic": 15,
+    "maxCognitive": 15,
+    "maxCrap": 30,
+    "maxFileLines": 650,
+    "suggestInlineSuppression": false
+  },
+  "duplicates": {
+    "enabled": true,
+    "mode": "mild",
+    "minTokens": 50,
+    "minLines": 5,
+    "minOccurrences": 2,
+    "threshold": 0
+  }
+}

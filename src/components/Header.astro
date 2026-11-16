@@ -1,4 +1,5 @@
 ---
+import HeaderNavLinks from '@/components/HeaderNavLinks.astro';
 /**
  * Header Component
  *
@@ -23,10 +24,7 @@ interface Props {
 
 const { variant = 'boxed' } = Astro.props;
 
-const navItems = site.nav;
 const cta = site.headerCta;
-
-const currentPath = Astro.url.pathname;
 
 const containerClass =
   variant === 'fullWidth' ? 'w-full px-4' : 'container max-w-5xl mx-auto px-4 sm:px-6';
@@ -41,24 +39,7 @@ const containerClass =
 
     <!-- Desktop Navigation (hidden on mobile) -->
     <nav class="hidden md:flex items-center gap-6 text-sm">
-      {navItems.map((item) => {
-        const isActive =
-          item.href === '/' ? currentPath === '/' : currentPath.startsWith(item.href);
-        return (
-          <a
-            href={item.href}
-            class:list={[
-              'inline-block py-2 transition-colors',
-              isActive
-                ? 'text-foreground font-medium'
-                : 'text-foreground/60 hover:text-foreground/80',
-            ]}
-            aria-current={isActive ? 'page' : undefined}
-          >
-            {item.label}
-          </a>
-        );
-      })}
+      <HeaderNavLinks />
     </nav>
 
     <!-- Desktop Actions (hidden on mobile) -->
@@ -127,24 +108,7 @@ const containerClass =
         'py-4 space-y-3',
       ]}
     >
-      {navItems.map((item) => {
-        const isActive =
-          item.href === '/' ? currentPath === '/' : currentPath.startsWith(item.href);
-        return (
-          <a
-            href={item.href}
-            class:list={[
-              'block px-3 py-2 rounded-md text-base font-medium transition-colors',
-              isActive
-                ? 'bg-accent text-accent-foreground'
-                : 'hover:bg-accent hover:text-accent-foreground',
-            ]}
-            aria-current={isActive ? 'page' : undefined}
-          >
-            {item.label}
-          </a>
-        );
-      })}
+      <HeaderNavLinks mobile />
       {cta && (
         <a
           href={cta.href}

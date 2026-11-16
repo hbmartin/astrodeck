@@ -1,0 +1,312 @@
+---
+import RegistryUsage from './RegistryUsage.astro';
+import { groupComponents } from './section-groups';
+import Icon from '@/components/Icon.astro';
+---
+
+<!-- Pricing -->
+<section id="pricing" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Pricing Tables</h2>
+    <p class="text-muted-foreground">Clear pricing that converts.</p>
+  </div>
+
+  <RegistryUsage names={groupComponents.pricing} />
+
+  <div class="space-y-12">
+    <!-- Pricing 0: Open Source -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Open Source Tiers</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold mb-2">Free forever. Open source.</h3>
+          <p class="text-muted-foreground">All features included. No hidden costs.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="rounded-lg border p-6 space-y-4">
+            <div>
+              <h3 class="font-bold text-xl">Landing Page</h3>
+              <p class="text-sm text-muted-foreground mt-1">
+                Everything you need for a stunning landing page.
+              </p>
+            </div>
+            <div>
+              <span class="text-4xl font-bold">Free</span>
+            </div>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Hero & CTA sections
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Logo cloud
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Responsive design
+              </li>
+            </ul>
+            <a
+              href="https://github.com/holger1411/astrodeck"
+              class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
+            >
+              View on GitHub
+            </a>
+          </div>
+          <div class="rounded-lg border-2 border-primary p-6 space-y-4 relative">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+              Recommended
+            </div>
+            <div>
+              <h3 class="font-bold text-xl">Full SaaS</h3>
+              <p class="text-sm text-muted-foreground mt-1">
+                Complete boilerplate for your SaaS product.
+              </p>
+            </div>
+            <div>
+              <span class="text-4xl font-bold">Free</span>
+            </div>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                All landing page features
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Authentication layouts
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                TypeScript & shadcn/ui
+              </li>
+            </ul>
+            <a
+              href="/docs"
+              class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 leading-10"
+            >
+              Get Started
+            </a>
+          </div>
+          <div class="rounded-lg border p-6 space-y-4">
+            <div>
+              <h3 class="font-bold text-xl">Open Source</h3>
+              <p class="text-sm text-muted-foreground mt-1">
+                MIT licensed and open for contributions.
+              </p>
+            </div>
+            <div>
+              <span class="text-4xl font-bold">Free</span>
+            </div>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Full source code access
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Regular updates
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Commercial use allowed
+              </li>
+            </ul>
+            <a
+              href="https://github.com/holger1411/astrodeck"
+              class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
+            >
+              Star on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing 1: Three Column -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Three Column Layout</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="rounded-lg border p-6 space-y-4">
+            <div>
+              <h3 class="font-bold text-xl">Starter</h3>
+              <p class="text-sm text-muted-foreground mt-1">For small projects</p>
+            </div>
+            <div>
+              <span class="text-4xl font-bold">$9</span>
+              <span class="text-muted-foreground">/month</span>
+            </div>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />5 Projects
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Basic Support
+              </li>
+            </ul>
+            <a
+              href="/docs"
+              class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
+            >
+              Get Started
+            </a>
+          </div>
+          <div class="rounded-lg border-2 border-primary p-6 space-y-4 relative">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+              Popular
+            </div>
+            <div>
+              <h3 class="font-bold text-xl">Pro</h3>
+              <p class="text-sm text-muted-foreground mt-1">For growing teams</p>
+            </div>
+            <div>
+              <span class="text-4xl font-bold">$29</span>
+              <span class="text-muted-foreground">/month</span>
+            </div>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Unlimited Projects
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Priority Support
+              </li>
+            </ul>
+            <a
+              href="/docs"
+              class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 leading-10"
+            >
+              Get Started
+            </a>
+          </div>
+          <div class="rounded-lg border p-6 space-y-4">
+            <div>
+              <h3 class="font-bold text-xl">Enterprise</h3>
+              <p class="text-sm text-muted-foreground mt-1">For large organizations</p>
+            </div>
+            <div>
+              <span class="text-4xl font-bold">Custom</span>
+            </div>
+            <ul class="space-y-2 text-sm">
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                Everything in Pro
+              </li>
+              <li class="flex items-center gap-2">
+                <Icon name="check" class="h-4 w-4 text-primary" />
+                24/7 Support
+              </li>
+            </ul>
+            <a
+              href="/templates/contact"
+              class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
+            >
+              Contact Sales
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing 2: Comparison Table -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Comparison Table</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-bold mb-2">Choose your plan</h3>
+          <p class="text-muted-foreground">Simple, transparent pricing</p>
+        </div>
+        <div class="border rounded-lg overflow-x-auto" tabindex="0">
+          <table class="w-full">
+            <thead class="bg-muted/50">
+              <tr>
+                <th class="text-left p-4 font-semibold">Features</th>
+                <th class="text-center p-4 font-semibold">Free</th>
+                <th class="text-center p-4 font-semibold">Pro</th>
+                <th class="text-center p-4 font-semibold">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <tr>
+                <td class="p-4 text-sm">Projects</td>
+                <td class="text-center p-4 text-sm">3</td>
+                <td class="text-center p-4 text-sm">Unlimited</td>
+                <td class="text-center p-4 text-sm">Unlimited</td>
+              </tr>
+              <tr>
+                <td class="p-4 text-sm">Storage</td>
+                <td class="text-center p-4 text-sm">1 GB</td>
+                <td class="text-center p-4 text-sm">100 GB</td>
+                <td class="text-center p-4 text-sm">Unlimited</td>
+              </tr>
+              <tr>
+                <td class="p-4 text-sm">Support</td>
+                <td class="text-center p-4 text-sm">Community</td>
+                <td class="text-center p-4 text-sm">Email</td>
+                <td class="text-center p-4 text-sm">24/7</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing 3: Toggle -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Monthly/Yearly Toggle</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="text-center space-y-6">
+          <div>
+            <h3 class="text-2xl font-bold mb-2">Flexible pricing</h3>
+            <p class="text-muted-foreground">Save 20% with annual billing</p>
+          </div>
+          <div class="inline-flex items-center gap-3 bg-muted p-1 rounded-lg">
+            <button class="px-4 py-2 rounded-md bg-background text-sm font-medium">Monthly</button>
+            <button class="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground">
+              Yearly
+            </button>
+          </div>
+          <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mt-8">
+            <div class="border rounded-lg p-6 text-left space-y-4">
+              <h4 class="font-bold text-lg">Basic</h4>
+              <div>
+                <span class="text-3xl font-bold">$19</span>
+                <span class="text-muted-foreground">/month</span>
+              </div>
+              <a
+                href="#pricing"
+                class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
+              >
+                Choose Plan
+              </a>
+            </div>
+            <div class="border-2 border-primary rounded-lg p-6 text-left space-y-4">
+              <h4 class="font-bold text-lg">Professional</h4>
+              <div>
+                <span class="text-3xl font-bold">$49</span>
+                <span class="text-muted-foreground">/month</span>
+              </div>
+              <a
+                href="#pricing"
+                class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 leading-10"
+              >
+                Choose Plan
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

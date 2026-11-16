@@ -4,8 +4,8 @@ End-to-end cases that check the agent-first workflow: a coding agent receives a 
 prompt (and optionally a `brief/` folder), follows `AGENTS.md` and the `astrodeck-build-site`
 skill, and must produce a verified site.
 
-**Maintainer-run, not part of `npm test`.** The cases need an agent and take minutes each.
-This folder is removed by `npm run starter:clean`, so users never see it.
+**Maintainer-run, not part of `pnpm test`.** The cases need an agent and take minutes each.
+This folder is removed by `pnpm run starter:clean`, so users never see it.
 
 | Case | Tests |
 |------|-------|
@@ -21,7 +21,7 @@ repo's `brief/` folder) and `expected.md` (objective pass criteria).
 1. Make a fresh copy of the repository, without Git history and `node_modules`:
    `git archive --format=tar --prefix=eval/ HEAD | tar -x -C "$(mktemp -d)"` (or unzip a
    release ZIP), then `cd` into the copy.
-2. `npm ci`.
+2. `pnpm install --frozen-lockfile`.
 3. Copy the case's `brief/` files into the copy's `brief/` folder, if the case has them.
 4. Open the copy in the agent under test and give it the text of `prompt.md`.
    Interactive: paste the prompt. Headless, as a starting point (check your CLI's current

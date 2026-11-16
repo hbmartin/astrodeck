@@ -130,7 +130,7 @@ const faqs = [
   {
     question: 'What happens to the demo content?',
     answer:
-      'The download contains this demo site. The workflow removes it early with npm run starter:clean (with a dry run first), so your site keeps only a minimal home page, the 404 page and, if you want one, the blog.',
+      'The download contains this demo site. The workflow removes it early with pnpm run starter:clean (with a dry run first), so your site keeps only a minimal home page, the 404 page and, if you want one, the blog.',
   },
   {
     question: 'Does it support multilingual sites?',
@@ -147,8 +147,8 @@ const faqs = [
   <Hero
     badge={{ label: 'v4.0 — Open Source & MIT', href: '/changelog' }}
     title="Build your website with your coding agent."
-    subtitle="Download AstroDeck, open it in <mark>Claude Code, Codex, Cursor or another coding agent</mark>, and describe your site — in one sentence or with a full brief. The agent follows a <mark>guided workflow</mark> from brief to finished pages, and the result is checked by <mark>npm run verify</mark> and the bundled <mark>vibe2prod</mark> audit."
-    prompt="Clone https://github.com/holger1411/astrodeck into a new folder, run npm install and follow its AGENTS.md. Then build my website for: [your business or project in one sentence]. If I give you a brief or a DESIGN.md, put it in brief/ and use it."
+    subtitle="Download AstroDeck, open it in <mark>Claude Code, Codex, Cursor or another coding agent</mark>, and describe your site — in one sentence or with a full brief. The agent follows a <mark>guided workflow</mark> from brief to finished pages, and the result is checked by <mark>pnpm run verify</mark> and the bundled <mark>vibe2prod</mark> audit."
+    prompt="Clone https://github.com/holger1411/astrodeck into a new folder, run pnpm install --frozen-lockfile and follow its AGENTS.md. Then build my website for: [your business or project in one sentence]. If I give you a brief or a DESIGN.md, put it in brief/ and use it."
     primaryCta={{
       href: 'https://github.com/holger1411/astrodeck/releases/latest',
       label: 'Download AstroDeck',

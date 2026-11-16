@@ -10,22 +10,14 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findOnPath, packageBin } from './lib/executables.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const node = process.execPath;
 const TAIL_LINES = 40;
 
-/** Absolute path of a dependency's bin script, run through `node` (no .cmd shims, no network). */
-function bin(pkg, name = pkg) {
-  const manifest = JSON.parse(
-    readFileSync(join(ROOT, 'node_modules', pkg, 'package.json'), 'utf8')
-  );
-  const rel = typeof manifest.bin === 'string' ? manifest.bin : manifest.bin[name];
-  return join(ROOT, 'node_modules', pkg, rel);
-}
-
 /** Lazy so a missing dependency fails the step it belongs to instead of crashing the module. */
-const viaNode = (pkg, ...args) => ({ cmd: node, args: [bin(pkg), ...args] });
+const viaNode = (pkg, ...args) => [packageBin(pkg), ...args];
 
 /**
  * @typedef {{ id: string; cmd: string; args: string[]; needsBuild?: boolean; shell?: boolean }} Step
@@ -36,14 +28,14 @@ export const STEPS = [
     id: 'format',
     cmd: node,
     get args() {
-      return viaNode('oxfmt', '--check', '.').args;
+      return viaNode('oxfmt', '--check', '.');
     },
   },
   {
     id: 'oxlint',
     cmd: node,
     get args() {
-      return viaNode('oxlint', '.').args;
+      return viaNode('oxlint', '.');
     },
   },
   { id: 'lint-astro', cmd: node, args: ['scripts/lint-astro.mjs'] },
@@ -51,13 +43,13 @@ export const STEPS = [
     id: 'astro-check',
     cmd: node,
     get args() {
-      return viaNode('astro', 'check').args;
+      return viaNode('astro', 'check');
     },
   },
+  { id: 'fallow', cmd: node, args: ['scripts/check-fallow.mjs'] },
   { id: 'lint-design', cmd: node, args: ['scripts/lint-design.mjs'] },
   { id: 'lint-docs', cmd: node, args: ['scripts/lint-docs.mjs'] },
   { id: 'registry', cmd: node, args: ['scripts/check-registry.mjs'] },
-  { id: 'agents-sync', cmd: node, args: ['scripts/sync-agents.mjs', '--check'] },
   { id: 'test', cmd: node, args: ['--test', 'tests/**/*.test.mjs'] },
   {
     id: 'build',
@@ -152,10 +144,17 @@ export function run(steps, log = console.log) {
 
 function main() {
   const argv = process.argv.slice(2);
-  const engines = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')).engines?.node;
-  if (engines && !nodeSatisfies(process.version, engines))
-    console.warn(`WARNING: Node ${process.version} is below the required ${engines}.\n`);
-  process.exit(run(selectSteps(argv)));
+  const { engines, packageManager } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
+  const steps = selectSteps(argv);
+  if (steps.some(({ id }) => id === 'build') && !findOnPath('pnpm')) {
+    console.error(
+      `Full verification requires ${packageManager} on PATH. For checks without a build, run node scripts/verify.mjs --skip-build.`
+    );
+    process.exit(1);
+  }
+  if (engines?.node && !nodeSatisfies(process.version, engines.node))
+    console.warn(`WARNING: Node ${process.version} is below the required ${engines.node}.\n`);
+  process.exit(run(steps));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

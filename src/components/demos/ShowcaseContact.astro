@@ -1,0 +1,140 @@
+---
+import RegistryUsage from './RegistryUsage.astro';
+import { groupComponents } from './section-groups';
+import ContactInfoItem from '@/components/ContactInfoItem.astro';
+---
+
+<!-- Contact -->
+<section id="contact" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Contact</h2>
+    <p class="text-muted-foreground">Let visitors reach you with a clean contact form.</p>
+  </div>
+
+  <RegistryUsage names={groupComponents.contact} />
+
+  <div class="space-y-12">
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Split with Form</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="grid md:grid-cols-2 gap-12 lg:gap-16 items-start">
+          <div>
+            <h2 class="text-3xl font-bold leading-tight md:text-4xl">Get in Touch</h2>
+            <p class="mt-4 text-muted-foreground text-lg leading-relaxed">
+              Have a question or want to contribute? We would love to hear from you.
+            </p>
+            <ul class="mt-8 space-y-5" aria-label="Contact information">
+              <ContactInfoItem icon="mail" label="Email">
+                <a
+                  href="mailto:hello@example.com"
+                  class="text-sm text-foreground hover:text-primary transition-colors"
+                >
+                  hello@example.com
+                </a>
+              </ContactInfoItem>
+              <ContactInfoItem icon="phone" label="Phone">
+                <a
+                  href="tel:+15550001234"
+                  class="text-sm text-foreground hover:text-primary transition-colors"
+                >
+                  +1 (555) 000-1234
+                </a>
+              </ContactInfoItem>
+              <ContactInfoItem icon="map-pin" label="Address">
+                <address class="text-sm text-foreground not-italic">
+                  123 Developer Lane
+                  <br />
+                  San Francisco, CA 94107
+                  <br />
+                  United States
+                </address>
+              </ContactInfoItem>
+            </ul>
+          </div>
+          <div class="rounded-lg border bg-card p-6 md:p-8">
+            <form action="/thanks" method="get">
+              <div class="space-y-5">
+                <div class="space-y-1.5">
+                  <label for="demo-contact-name" class="text-sm font-medium leading-none">
+                    Name{' '}
+                    <span class="text-destructive" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
+                  <input
+                    id="demo-contact-name"
+                    type="text"
+                    name="name"
+                    required
+                    autocomplete="name"
+                    placeholder="Jane Smith"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="demo-contact-email" class="text-sm font-medium leading-none">
+                    Email{' '}
+                    <span class="text-destructive" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
+                  <input
+                    id="demo-contact-email"
+                    type="email"
+                    name="email"
+                    required
+                    autocomplete="email"
+                    placeholder="jane@example.com"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="demo-contact-subject" class="text-sm font-medium leading-none">
+                    Subject
+                  </label>
+                  <input
+                    id="demo-contact-subject"
+                    type="text"
+                    name="subject"
+                    placeholder="How can we help?"
+                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
+                <div class="space-y-1.5">
+                  <label for="demo-contact-message" class="text-sm font-medium leading-none">
+                    Message{' '}
+                    <span class="text-destructive" aria-hidden="true">
+                      *
+                    </span>
+                  </label>
+                  <textarea
+                    id="demo-contact-message"
+                    name="message"
+                    required
+                    rows="4"
+                    placeholder="Tell us more about your project..."
+                    class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y min-h-[100px]"
+                  ></textarea>
+                </div>
+                <p class="text-xs text-muted-foreground">
+                  <span class="text-destructive" aria-hidden="true">
+                    *
+                  </span>{' '}
+                  Required fields
+                </p>
+                <button
+                  type="submit"
+                  class="inline-flex w-full items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  Send Message
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

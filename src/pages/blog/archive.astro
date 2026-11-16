@@ -1,19 +1,10 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import { getPublishedPosts } from '@/lib/blog';
+import { formatDate, getPublishedPosts } from '@/lib/blog';
 
 // Get all blog posts and sort by date (newest first)
 const allPosts = await getPublishedPosts();
 const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-// Format date helper
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 ---
 
 <BaseLayout

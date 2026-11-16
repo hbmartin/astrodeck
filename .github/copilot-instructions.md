@@ -12,4 +12,4 @@ Skills for common tasks are in `.agents/skills/<name>/SKILL.md`:
 
 Key rules (details in `AGENTS.md`): semantic color tokens only, content only from the brief
 (never invented), brand and navigation only in `src/config/site.ts`, and every change ends with
-`npm run verify` printing `VERIFY PASSED`.
+`pnpm run verify` printing `VERIFY PASSED`.

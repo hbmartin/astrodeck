@@ -7,6 +7,7 @@
     "src/pages/changelog.astro",
     "src/pages/content.astro",
     "src/pages/login.astro",
+    "src/components/LoginForm.tsx",
     "src/pages/thanks.astro",
     "src/pages/privacy.astro",
     "src/pages/llms-full.txt.ts",
@@ -38,6 +39,9 @@
     "src/pages/blog/",
     "src/pages/tags/",
     "src/pages/rss.xml.ts",
+    "src/lib/blog.ts",
+    "src/components/PostByline.astro",
+    "src/lib/reading-time.ts",
     "src/content/blog/"
   ],
   "replace": [

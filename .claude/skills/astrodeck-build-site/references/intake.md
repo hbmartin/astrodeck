@@ -62,7 +62,7 @@ Record every source you used; it goes into **Content sources** in the brief.
 
 | Input | Action |
 |-------|--------|
-| `brief/DESIGN.md` (Google Labs DESIGN.md format, YAML front matter) | `npm run theme -- --from brief/DESIGN.md --dry-run` shows what the theme script reads (`colors.primary`, `colors.accent`, `rounded`). Record other tokens (fonts, spacing feel) in **Brand**. |
+| `brief/DESIGN.md` (Google Labs DESIGN.md format, YAML front matter) | `pnpm run theme --from brief/DESIGN.md --dry-run` shows what the theme script reads (`colors.primary`, `colors.accent`, `rounded`). Record other tokens (fonts, spacing feel) in **Brand**. |
 | Link to a design system / brand guide / existing site | Extract: primary and accent color (hex), neutral tone, font families, corner radius, imagery style. Record what you could not find. |
 | Logo file | Record the path. In the configure step it becomes `site.logo.svg` (SVG markup, preferred) or `site.logo.src` (file in `public/`), and the favicon source. |
 | Only words ("calm", "premium", "playful") | Translate into a concrete proposal (one primary color, neutral, radius) and list it under **Decisions & defaults**. |
@@ -85,7 +85,7 @@ The actual theme change happens in the theme step (skill `astrodeck-theme`).
 - Use the structure of `brief-template.md` exactly; keep headings so other agents find things.
 - If the AstroDeck demo is still present (a `starter/` folder exists), run the cleanup step
   first (high input: state the clean start in your question round, or ask once if you have no
-  questions): `npm run starter:clean` replaces `PROJECT.md` with the empty template, so a brief
+  questions): `pnpm run starter:clean` replaces `PROJECT.md` with the empty template, so a brief
   written before cleanup would be lost.
 - Keep it short and factual: bullet points, sources, no marketing copy.
 - Update it whenever a decision is made later (new page, color change, answered question).

@@ -24,14 +24,15 @@ finished site.
 
 ## Quick start for agents
 
-Requires Node >=22.23.4. Always use pnpm to install dependencies, manage the lockfile, and run project scripts. Run `pnpm install` once.
+Requires Node >=22.23.4. Always use pnpm to install dependencies, manage the lockfile, and run project scripts. Run `pnpm install --frozen-lockfile` once.
 
 | Command | What it does |
 |---------|--------------|
 | `pnpm run dev` | Dev server, prints its URL (`http://localhost:4321`, or the next free port). Agents: start it **in the background**, then poll `<url>/_astro/status` until it returns `{"ok":true}`; never block on it. Stop it when you are done if you started it. |
 | `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve the build |
-| `pnpm run verify` | Every check: Oxfmt, Oxlint, Astro lint, astro check, design lint, docs lint, registry, skills mirror, tests, build, built-HTML checks. Must end with `VERIFY PASSED`. |
+| `pnpm run verify` | Every check: Oxfmt, Oxlint, Astro lint, astro check, Fallow, design lint, docs lint, registry, tests, build, built-HTML checks. Must end with `VERIFY PASSED`. |
 | `pnpm run verify --starter` | Same, plus fails on demo leftovers; use after cleanup |
+| `pnpm run check:fallow` | Strict dead code, dependency, complexity and duplication checks (also in verify) |
 | `pnpm run validate` | `verify` without build and built-HTML checks (fast) |
 | `pnpm run theme --primary "<hex>" [--accent] [--neutral] [--radius] [--from brief/DESIGN.md] [--dry-run]` | Brand colors and radius as OKLCH tokens for light and dark mode, with a WCAG contrast gate |
 | `pnpm run icons [--no-og]` | PNG icons and the social image `og.png` in `public/` from `public/favicon.svg` in the brand color |
@@ -39,6 +40,11 @@ Requires Node >=22.23.4. Always use pnpm to install dependencies, manage the loc
 | `pnpm run lint:design` / `pnpm run lint:docs` / `pnpm run check:registry` | Single checks (also part of verify) |
 | `pnpm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
 | `pnpm run format` / `pnpm run lint:fix` | Auto-fix formatting and lint |
+
+Repository-wide formatting, linting, type checking, and link validation exclude `.agents/`
+and `.claude/skills/`. Verify still checks the starter brief and recipe contracts. Run
+`pnpm run sync:agents --check` for on-demand mirror validation. Skills listed in
+`skills-lock.json` belong to the installer.
 
 ## Project map
 
@@ -114,6 +120,8 @@ automatically, open the file and follow it.
   `unified()` from `@astrojs/markdown-remark` set as `markdown.processor`.
 - **Whitespace:** `compressHTML` defaults to `'jsx'`: whitespace and line breaks between elements
   are removed. Write `{" "}` where a space between inline elements on separate lines matters.
+- **Component slots:** Use explicit string expressions such as `{'Label'}` when exact slot text
+  matters. The format command checks slot text before writing Astro source.
 - **`fetch.ts` in `src/` is reserved** as Astro's fetch entrypoint (`fetchFile`). Do not create
   a file with that name for anything else.
 - **No `@astrojs/db`.** Do not add it.

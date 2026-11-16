@@ -52,7 +52,7 @@ Keep it small: a strong one-page site plus a blog beats five thin pages.
 
 ## Blog
 
-Keep the blog system with `npm run starter:clean -- --keep-blog`. Posts live in
+Keep the blog system with `pnpm run starter:clean --keep-blog`. Posts live in
 `src/content/blog/`; the starter's draft welcome post shows the front matter. Set
 `site.features.blog` and `rss` to true (the cleanup does this with `--keep-blog`) and write
 `site.blogIntro`.

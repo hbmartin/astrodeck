@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { extractProps } from '../scripts/lib/astro-props.mjs';
@@ -171,4 +171,15 @@ test('checkRegistry validates recipe references and recipe section names', () =>
 
 test('real repo registry is consistent with the code', () => {
   assert.deepEqual(checkRegistry(REPO), []);
+});
+
+test('Fallow recognizes exactly the UI exports promised by the catalog', () => {
+  const read = (path) => JSON.parse(readFileSync(join(REPO, path), 'utf8'));
+  const { ui } = read('src/registry.json');
+  const { framework } = read('.fallowrc.json');
+  const catalog = framework.find((plugin) => plugin.name === 'astrodeck-catalog');
+  assert.deepEqual(
+    new Map(catalog.usedExports.map(({ pattern, exports }) => [pattern, new Set(exports)])),
+    new Map(ui.map(({ file, exports }) => [file, new Set(exports)]))
+  );
 });

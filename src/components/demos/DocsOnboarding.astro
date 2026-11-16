@@ -1,0 +1,227 @@
+---
+import CodeBlock from './CodeBlock.astro';
+import { kitStats, recipes, skills } from './kit-stats';
+import { ic, pre, card, link } from './docs-styles';
+
+const workflow: { title: string; text: string; cmd?: string }[] = [
+  {
+    title: 'Intake',
+    text: 'The agent inventories your messages, PROJECT.md and brief/. Little input: one message with at most five questions, each with a proposed default. A full briefing: it extracts faithfully, notes sources and lists conflicts and gaps instead of inventing.',
+  },
+  {
+    title: 'Start clean',
+    text: 'The astrodeck-cleanup skill removes the demo before anything is written, after showing the plan.',
+    cmd: 'pnpm run starter:clean --dry-run',
+  },
+  {
+    title: 'Brief and site plan',
+    text: `PROJECT.md is filled, a recipe is chosen (${recipes.join(', ')}) and each page gets a section list from the registry.`,
+  },
+  {
+    title: 'Configure',
+    text: 'src/config/site.ts and SITE_URL from the brief; interface text in src/config/ui.ts for non-English sites; robots.txt, llms.txt and favicon.svg for the real domain and logo.',
+  },
+  {
+    title: 'Theme',
+    text: 'Brand colors, neutral tone and radius as OKLCH tokens with a contrast gate; fonts only on brand input. pnpm run icons renders the PNG icons and the social image in the brand color.',
+    cmd: 'pnpm run theme --primary "<hex>" --dry-run',
+  },
+  {
+    title: 'Build pages',
+    text: 'Home first with an early preview, then the rest, composed from sections in the recipe order. Facts come only from the brief.',
+    cmd: 'pnpm run dev',
+  },
+  {
+    title: 'Verify and audit',
+    text: 'All checks pass, then the vibe2prod audit targets READY, then the manual items of the quality checklist.',
+    cmd: 'pnpm run verify --starter',
+  },
+  {
+    title: 'Handover',
+    text: 'What was built, the defaults it chose, open questions (logo, photos, legal pages, form endpoints, URL), check results and how to deploy.',
+  },
+];
+
+const skillRoutes = [
+  { task: 'A website, or "adapt AstroDeck to my project"', skill: 'astrodeck-build-site' },
+  { task: 'A new page', skill: 'astrodeck-new-page' },
+  { task: 'A section no registry section covers, or a new prop', skill: 'astrodeck-new-section' },
+  { task: 'Colors, fonts, radius, logo, DESIGN.md', skill: 'astrodeck-theme' },
+  { task: 'Remove the demo', skill: 'astrodeck-cleanup' },
+  { task: 'An audit or launch check', skill: 'vibe2prod' },
+];
+---
+
+<!-- Getting Started -->
+<section id="getting-started" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Getting Started</h2>
+    <p class="text-muted-foreground">
+      Download AstroDeck, open it in your coding agent and describe your site. Requires Node.js{' '}
+      <code class={ic}>&gt;=22.23.4</code> and pnpm <code class={ic}>12.21.0</code>. See the{' '}
+      <a class={link} href="https://pnpm.io/installation">
+        pnpm installation guide
+      </a>
+      .
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <h3 class="font-semibold mb-3">No coding experience</h3>
+      <ol class="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
+        <li>
+          Download the ZIP from the{' '}
+          <a
+            class={link}
+            href="https://github.com/holger1411/astrodeck/releases/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            latest release
+          </a>{' '}
+          and unzip it.
+        </li>
+        <li>
+          Optional: put what you already have into the <code class={ic}>brief/</code> folder (texts,
+          PDFs, a logo, a <code class={ic}>DESIGN.md</code>).
+        </li>
+        <li>
+          Open the folder in your coding agent (Claude Code, Codex, Cursor, GitHub Copilot, Gemini
+          CLI, Windsurf) and say what you want:
+        </li>
+      </ol>
+      <div class="bg-muted/50 border border-border rounded-xl p-4 mt-4">
+        <p class="text-sm italic">
+          "Build my website for a physiotherapy practice in Hamburg with online booking."
+        </p>
+      </div>
+      <p class="text-sm text-muted-foreground mt-3">
+        The agent installs everything, asks a few questions in one message (each with a proposed
+        default), shows a preview at <code class={ic}>http://localhost:4321</code> and iterates with
+        you. You do not need to run any command yourself.
+      </p>
+    </div>
+    <div class={card}>
+      <h3 class="font-semibold mb-3">Developers</h3>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`pnpm dlx degit holger1411/astrodeck my-site
+cd my-site
+pnpm install --frozen-lockfile
+pnpm run dev`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        <code class={ic}>git clone</code> or the release ZIP work the same way. Then let your agent
+        run the workflow, or work by hand: set <code class={ic}>src/config/site.ts</code>, run{' '}
+        <code class={ic}>pnpm run theme</code>, compose pages from sections and finish with{' '}
+        <code class={ic}>pnpm run verify</code>.
+      </p>
+      <p class="text-sm text-muted-foreground mt-3">
+        Avoid <code class={ic}>npm create astro -- --template holger1411/astrodeck</code>:
+        create-astro can write its own <code class={ic}>AGENTS.md</code> over the kit's.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Build-site workflow -->
+<section id="workflow" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">The Build-Site Workflow</h2>
+    <p class="text-muted-foreground">
+      "Build my website" routes the agent to the <code class={ic}>astrodeck-build-site</code> skill
+      (<code class={ic}>.agents/skills/astrodeck-build-site/SKILL.md</code>). It works through eight
+      steps and names the command and reference for each.
+    </p>
+  </div>
+  <ol class="space-y-4">
+    {workflow.map((step, i) => (
+      <li class={`${card} flex gap-4`}>
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+          {i + 1}
+        </span>
+        <div>
+          <h3 class="font-semibold">{step.title}</h3>
+          <p class="text-sm text-muted-foreground mt-1">{step.text}</p>
+          {step.cmd && (
+            <p class="mt-2">
+              <code class={ic}>{step.cmd}</code>
+            </p>
+          )}
+        </div>
+      </li>
+    ))}
+  </ol>
+  <div class={`${card} mt-8 overflow-x-auto`}>
+    <h3 class="font-semibold mb-3">Task → skill</h3>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b text-left">
+          <th class="pb-2 pr-4 font-medium text-muted-foreground">The user wants ...</th>
+          <th class="pb-2 font-medium text-muted-foreground">Skill</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {skillRoutes.map((r) => (
+          <tr>
+            <td class="py-2 pr-4">{r.task}</td>
+            <td class="py-2 font-mono text-xs">{r.skill}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="text-sm text-muted-foreground mt-3">
+      Skills live in <code class={ic}>.agents/skills/</code> ({kitStats.skills} skills:{' '}
+      {skills.join(', ')}). <code class={ic}>AGENTS.md</code> names every one, so agents that do not
+      load skills on their own still find them.
+    </p>
+  </div>
+</section>
+
+<!-- Brief -->
+<section id="brief" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Brief Folder &amp; PROJECT.md</h2>
+    <p class="text-muted-foreground">
+      Your input can be one sentence or a full briefing. More material means fewer questions.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <h3 class="font-semibold mb-3">
+        <code class={ic}>brief/</code> — your material
+      </h3>
+      <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+        <li>Texts: about, services, company profile PDF, an old flyer</li>
+        <li>Page content: opening hours, prices, FAQs, quotes you may use</li>
+        <li>
+          Design: a <code class={ic}>DESIGN.md</code> with color tokens, brand guidelines, logo
+          files (SVG preferred)
+        </li>
+        <li>Images you own, and a links list (current site, profiles, sites you like)</li>
+      </ul>
+      <p class="text-sm text-muted-foreground mt-3">
+        Files in <code class={ic}>brief/</code> are inputs, not part of the website. No passwords or
+        keys: in a public repository this folder is public too.
+      </p>
+    </div>
+    <div class={card}>
+      <h3 class="font-semibold mb-3">
+        <code class={ic}>PROJECT.md</code> — the brief
+      </h3>
+      <p class="text-sm text-muted-foreground mb-3">
+        The agent writes a structured brief and keeps it up to date. It overrides the defaults in{' '}
+        <code class={ic}>AGENTS.md</code>, so later sessions and other agents continue from it.
+        Headings:
+      </p>
+      <p class="text-sm">
+        Goal &amp; audience · Offer · Sitemap · Tone &amp; language · Brand · Content sources ·
+        Must-haves / no-gos · Open questions · Decisions &amp; defaults
+      </p>
+      <p class="text-sm text-muted-foreground mt-3">
+        Only real facts go in. Missing facts become open questions and stay off the site.
+      </p>
+    </div>
+  </div>
+</section>

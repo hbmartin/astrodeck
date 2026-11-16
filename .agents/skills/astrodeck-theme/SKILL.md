@@ -1,20 +1,20 @@
 ---
 name: astrodeck-theme
-description: 'Applies a brand to an AstroDeck site: colors, neutral tone, corner radius and fonts, from hex values, a logo, a DESIGN.md file, a brand guide or a design-system link. Uses npm run theme (OKLCH tokens for light and dark mode with a WCAG contrast gate). Use when the user asks to "change the colors", "use our brand color", "rebrand", "apply this DESIGN.md", "match our design system", "make it look like ...", "change the font", "Farben anpassen", "Corporate Design übernehmen".'
+description: 'Applies a brand to an AstroDeck site: colors, neutral tone, corner radius and fonts, from hex values, a logo, a DESIGN.md file, a brand guide or a design-system link. Uses pnpm run theme (OKLCH tokens for light and dark mode with a WCAG contrast gate). Use when the user asks to "change the colors", "use our brand color", "rebrand", "apply this DESIGN.md", "match our design system", "make it look like ...", "change the font", "Farben anpassen", "Corporate Design übernehmen".'
 ---
 
 # AstroDeck: theme and branding
 
 Tokens live in `src/styles/globals.css` (`@theme` and `.dark`, inside the
 `astrodeck-theme:*` marker regions). Never hand-edit those regions and never add
-`tailwind.config.*`; `npm run theme` writes them, derives dark mode and checks contrast.
+`tailwind.config.*`; `pnpm run theme` writes them, derives dark mode and checks contrast.
 
 ## 1. Collect the brand values
 
 | Input | How to get values |
 |-------|-------------------|
 | Hex/RGB/OKLCH from the user | Use as given. |
-| `brief/DESIGN.md` (Google Labs DESIGN.md) | `npm run theme -- --from brief/DESIGN.md --dry-run` reads `colors.primary`, `colors.accent`, `rounded`/`radius`; it warns about keys it ignores (fonts, spacing) — handle those by hand (fonts: step 4). |
+| `brief/DESIGN.md` (Google Labs DESIGN.md) | `pnpm run theme --from brief/DESIGN.md --dry-run` reads `colors.primary`, `colors.accent`, `rounded`/`radius`; it warns about keys it ignores (fonts, spacing) — handle those by hand (fonts: step 4). |
 | Design-system / brand-guide link, existing site | Open it if your tool can browse; extract primary and accent color, neutral feel, radius, font families. If you cannot open it, ask for the values. |
 | Logo only | Sample its main color as primary (ask the user to confirm). |
 | Only words ("warm", "calm", "bold") | Propose concrete values, show them, record under Decisions & defaults in `PROJECT.md`. |
@@ -25,8 +25,8 @@ Record the final values and the exact theme command under **Brand** in `PROJECT.
 ## 2. Run the theme script
 
 ```bash
-npm run theme -- --primary "#0f766e" --accent "#f59e0b" --neutral stone --radius 0.75rem --dry-run
-npm run theme -- --primary "#0f766e" --accent "#f59e0b" --neutral stone --radius 0.75rem
+pnpm run theme --primary "#0f766e" --accent "#f59e0b" --neutral stone --radius 0.75rem --dry-run
+pnpm run theme --primary "#0f766e" --accent "#f59e0b" --neutral stone --radius 0.75rem
 ```
 
 | Flag | Meaning |
@@ -53,7 +53,7 @@ npm run theme -- --primary "#0f766e" --accent "#f59e0b" --neutral stone --radius
 
 - Look at the home page in light and dark mode (toggle in the header), including
   `section-inverted` bands, buttons, links, focus rings, forms.
-- `npm run verify` (design lint catches raw colors and non-OKLCH tokens).
+- `pnpm run verify` (design lint catches raw colors and non-OKLCH tokens).
 - Components keep using semantic utilities (`bg-primary`, `text-muted-foreground`); a brand
   change never needs edits in components.
 
@@ -76,7 +76,7 @@ Only when the brand specifies fonts. Follow
 - Favicons in `public/` (`favicon.svg`, `favicon-32x32.png`, `apple-touch-icon.png`,
   `icon-192.png`, `icon-512.png`) come from the logo; hex colors are fine inside these files.
   Write `favicon.svg` (the mark, or a monogram drawn with `currentColor`), then
-  `npm run icons` renders the PNG icons and the social image `og.png` in `public/` in the brand
+  `pnpm run icons` renders the PNG icons and the social image `og.png` in `public/` in the brand
   color. Rerun it after every color change.
 
 ## Rules

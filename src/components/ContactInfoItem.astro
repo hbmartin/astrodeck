@@ -1,0 +1,24 @@
+---
+import Icon from '@/components/Icon.astro';
+import type { IconName } from '@/lib/icons';
+
+interface Props {
+  icon: IconName;
+  label: string;
+}
+
+const { icon, label } = Astro.props;
+---
+
+<li class="flex items-start gap-3">
+  <span
+    class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-muted"
+    aria-hidden="true"
+  >
+    <Icon name={icon} size={16} class="text-muted-foreground" />
+  </span>
+  <div>
+    <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">{label}</p>
+    <slot />
+  </div>
+</li>

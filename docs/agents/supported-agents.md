@@ -3,7 +3,7 @@
 AstroDeck's agent layer is tool-agnostic: `AGENTS.md` is the always-loaded index and the skills
 in `.agents/skills/` hold the workflows. Claude Code needs two extras, which the repo ships:
 `CLAUDE.md` imports `AGENTS.md` (`@AGENTS.md`), and `.claude/skills/` is a generated copy of
-`.agents/skills/` (`npm run sync:agents`, checked by `npm run verify`). Add your own Claude-only
+`.agents/skills/` (`pnpm run sync:agents`). Add your own Claude-only
 skills directly in `.claude/skills/`: sync never touches folders it does not manage.
 
 ## Support matrix
@@ -11,7 +11,7 @@ skills directly in `.claude/skills/`: sync never touches folders it does not man
 Two statuses, kept honest:
 
 - **tested end to end**: the 4.0 workflow was run with this tool on the eval cases in `evals/`
-  (intake, `PROJECT.md`, cleanup, theme, pages, `npm run verify -- --starter`, vibe2prod) and
+  (intake, `PROJECT.md`, cleanup, theme, pages, `pnpm run verify --starter`, vibe2prod) and
   ended with `VERIFY PASSED` and a vibe2prod Local 2Prod READY verdict (for Codex the
   maintainer ran the audit outside its sandbox, see the note below). Runs, versions and
   findings: `docs/maintainers/dogfood-4.0.md` (in the AstroDeck repository; `starter:clean`
@@ -33,8 +33,8 @@ every skill file and tells the agent to open it.
 
 Codex note: in the `workspace-write` sandbox Codex could not launch Chromium or keep a local
 server running, so it could not run the vibe2prod browser checks itself. It said so and left the
-audit to the owner; run `npm run setup:audit` and the audit outside the sandbox. Everything else,
-including `npm run verify`, ran inside the sandbox.
+audit to the owner; run `pnpm run setup:audit` and the audit outside the sandbox. Everything else,
+including `pnpm run verify`, ran inside the sandbox.
 
 Tools not listed may still work if they read `AGENTS.md`; they are not listed because their
 support is not documented or not verified.

@@ -15,9 +15,7 @@
  * </MinimalLayout>
  * ```
  */
-import '@/styles/globals.css';
-import Head from '@/components/Head.astro';
-import { site } from '@/config/site';
+import PageDocument from '@/components/PageDocument.astro';
 
 interface Props {
   title: string;
@@ -26,17 +24,11 @@ interface Props {
   noindex?: boolean;
 }
 
-const { title, description = site.description, image, noindex = false } = Astro.props;
+const { title, description, image, noindex } = Astro.props;
 ---
 
-<!doctype html>
-<html lang={site.lang}>
-  <head>
-    <Head title={title} description={description} image={image} noindex={noindex} />
-  </head>
-  <body class="min-h-screen antialiased">
-    <main id="main-content" class="min-h-screen">
-      <slot />
-    </main>
-  </body>
-</html>
+<PageDocument {title} {description} {image} {noindex} bodyClass="min-h-screen antialiased">
+  <main id="main-content" class="min-h-screen">
+    <slot />
+  </main>
+</PageDocument>

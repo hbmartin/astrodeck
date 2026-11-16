@@ -1,4 +1,6 @@
 ---
+import HeroBadge from '@/components/HeroBadge.astro';
+import HeroActions from '@/components/HeroActions.astro';
 /**
  * Hero Section Component
  *
@@ -120,28 +122,19 @@ const svgHeight = gridSize * (squareSize + gap);
     class="container max-w-5xl mx-auto flex flex-col items-center gap-6 text-center relative z-10"
     data-animate="fade"
   >
-    {badge &&
-      (badge.href ? (
-        <a
-          href={badge.href}
-          class="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
-        >
-          {badge.label}
-        </a>
-      ) : (
-        <span class="inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium">
-          {badge.label}
-        </span>
-      ))}
+    {badge && <HeroBadge badge={badge} />}
     <h1 class="text-4xl font-bold leading-tight tracking-tight text-balance hyphens-auto md:hyphens-manual break-words sm:text-5xl md:text-7xl lg:text-8xl lg:leading-[1.1] max-w-5xl">
       {title}
     </h1>
     <p class="max-w-[800px] text-xl text-muted-foreground md:text-2xl" set:html={subtitle} />
     {prompt && (
       <div class="w-full max-w-2xl mt-2 px-6 sm:px-0">
-        <div class="flex items-start gap-2 rounded-xl border bg-card p-4 text-left shadow-sm">
+        <div
+          data-hero-prompt
+          class="flex items-start gap-2 rounded-xl border bg-card p-4 text-left shadow-sm"
+        >
           <code
-            id="hero-prompt-text"
+            data-prompt-text
             class="flex-1 min-w-0 break-words font-mono text-sm leading-relaxed text-foreground whitespace-pre-wrap"
           >
             {prompt}
@@ -171,51 +164,44 @@ const svgHeight = gridSize * (squareSize + gap);
         </p>
       </div>
     )}
-    <div class="flex flex-col sm:flex-row gap-4 mt-4">
-      {primaryCta && (
-        <a
-          href={primaryCta.href}
-          class="group relative inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-semibold ring-offset-background transition-[background-color,transform,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 h-12 px-6 sm:px-12 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 overflow-hidden"
-        >
-          {/* Shine effect overlay */}
-          <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-
-          {/* Button text */}
-          <span class="relative z-10 inline-block transition-transform duration-300 group-hover:translate-x-0.5">
-            {primaryCta.label}
-          </span>
-        </a>
-      )}
-      {secondaryCta && (
-        <a
-          href={secondaryCta.href}
-          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-12 px-6 sm:px-8"
-        >
-          {secondaryCta.label}
-        </a>
-      )}
-    </div>
+    <HeroActions
+      {primaryCta}
+      {secondaryCta}
+      primaryPadding="px-6 sm:px-12"
+      secondaryPadding="px-6 sm:px-8"
+      class="mt-4"
+    />
   </div>
 </section>
 
 <script>
-  // Event delegation so the handler survives ClientRouter view transitions
-  document.addEventListener('click', async (event) => {
-    const button = (event.target as HTMLElement).closest('[data-copy-prompt]');
-    if (!button) return;
+  import { copyText } from '@/lib/clipboard';
 
-    const promptEl = document.getElementById('hero-prompt-text');
+  function promptText(button: Element) {
+    const wrapper = button.closest('[data-hero-prompt]');
+    const prompt = wrapper?.querySelector('[data-prompt-text]');
+    return prompt?.textContent?.trim();
+  }
+
+  async function copyPrompt(button: Element) {
     const label = button.querySelector('[data-copy-label]');
-    if (!promptEl || !label) return;
+    const prompt = promptText(button);
+    if (!label || !prompt) return;
+    const copied = await copyText(prompt);
+    showCopyFeedback(label, copied);
+  }
 
-    try {
-      await navigator.clipboard.writeText(promptEl.textContent?.trim() ?? '');
-      label.textContent = 'Copied!';
-      setTimeout(() => {
+  function showCopyFeedback(label: Element, copied: boolean) {
+    label.textContent = copied ? 'Copied!' : 'Press Ctrl+C';
+    if (copied)
+      window.setTimeout(() => {
         label.textContent = 'Copy';
       }, 2000);
-    } catch {
-      label.textContent = 'Press Ctrl+C';
-    }
+  }
+
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const button = event.target.closest('[data-copy-prompt]');
+    if (button) void copyPrompt(button);
   });
 </script>

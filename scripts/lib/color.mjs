@@ -5,8 +5,8 @@ import { parse, converter, formatHex, clampChroma } from 'culori';
 const toOklch = converter('oklch');
 const toRgb = converter('rgb');
 
-export const NEAR_WHITE = 'oklch(98% 0 0)';
-export const NEAR_BLACK = 'oklch(12% 0 0)';
+const NEAR_WHITE = 'oklch(98% 0 0)';
+const NEAR_BLACK = 'oklch(12% 0 0)';
 
 /**
  * Parse a hex / rgb() / oklch() color into OKLCH.

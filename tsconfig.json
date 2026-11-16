@@ -1,15 +1,10 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": [
-    "dist",
-    "starter",
-    "tests/fixtures",
-    "brief",
-    ".agents/skills/vibe2prod",
-    ".claude/skills/vibe2prod"
-  ],
+  "exclude": ["dist", "starter", "tests/fixtures", "brief", ".agents", ".claude/skills"],
   "compilerOptions": {
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "paths": {
       "@/*": ["./src/*"]
     },

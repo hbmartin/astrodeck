@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
 import { STEPS, selectSteps, nodeSatisfies, run } from '../scripts/verify.mjs';
 
 test('STEPS are in the documented order', () => {
@@ -10,15 +12,28 @@ test('STEPS are in the documented order', () => {
       'oxlint',
       'lint-astro',
       'astro-check',
+      'fallow',
       'lint-design',
       'lint-docs',
       'registry',
-      'agents-sync',
       'test',
       'build',
       'dist',
     ]
   );
+});
+
+test('full verification explains the missing pnpm prerequisite before running checks', () => {
+  const script = join(import.meta.dirname, '..', 'scripts', 'verify.mjs');
+  const missing = join(import.meta.dirname, 'nonexistent-bin');
+  const r = spawnSync(process.execPath, [script], {
+    encoding: 'utf8',
+    env: { ...process.env, PATH: missing },
+  });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /requires pnpm@[^ ]+ on PATH/);
+  assert.match(r.stderr, /--skip-build/);
+  assert.doesNotMatch(r.stdout, /running format/);
 });
 
 test('--skip-build drops the build and dist steps only', () => {

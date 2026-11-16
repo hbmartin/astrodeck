@@ -1,0 +1,97 @@
+---
+import RegistryUsage from './RegistryUsage.astro';
+import { groupComponents } from './section-groups';
+import ComparisonValue from '@/components/ComparisonValue.astro';
+
+const comparisonRows = [
+  {
+    name: 'Open source',
+    included: [true, false, false],
+  },
+  {
+    name: 'TypeScript support',
+    included: [true, true, false],
+  },
+  {
+    name: 'Dark mode',
+    included: [true, true, false],
+  },
+  {
+    name: 'Tailwind CSS v4',
+    included: [true, false, false],
+  },
+];
+---
+
+<!-- Comparison -->
+<section id="comparison" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Comparison</h2>
+    <p class="text-muted-foreground">Show how you stack up against the competition.</p>
+  </div>
+
+  <RegistryUsage names={groupComponents.comparison} />
+
+  <div class="space-y-12">
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Feature Comparison Table</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="text-center mb-10">
+          <h2 class="text-3xl font-bold mb-3">How We Compare</h2>
+          <p class="text-muted-foreground">See why teams choose Nebula over the alternatives</p>
+        </div>
+        <div class="overflow-x-auto rounded-xl border shadow-lg" tabindex="0">
+          <table class="w-full min-w-[540px] border-collapse text-sm">
+            <thead>
+              <tr class="border-b border-border">
+                <th
+                  scope="col"
+                  class="sticky left-0 z-10 bg-card w-40 min-w-[10rem] p-4 text-left font-medium text-muted-foreground"
+                >
+                  <span class="sr-only">Feature</span>
+                </th>
+                <th scope="col" class="p-4 text-center font-semibold bg-primary/8 text-foreground">
+                  <span class="inline-flex flex-col items-center gap-1">
+                    Nebula
+                    <span class="text-xs font-normal text-primary border border-primary/30 rounded-full px-2 py-0.5 leading-tight">
+                      Recommended
+                    </span>
+                  </span>
+                </th>
+                <th scope="col" class="p-4 text-center font-semibold bg-card text-foreground">
+                  Competitor A
+                </th>
+                <th scope="col" class="p-4 text-center font-semibold bg-card text-foreground">
+                  Competitor B
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonRows.map(({ name, included }, index) => {
+                const background = index % 2 === 0 ? 'bg-card' : 'bg-muted/40';
+                return (
+                  <tr class:list={['border-b border-border', background]}>
+                    <td class:list={['sticky left-0 z-10 p-4 font-medium', background]}>{name}</td>
+                    {included.map((value, column) => (
+                      <td class:list={['p-4 text-center', column === 0 && 'bg-primary/8']}>
+                        <ComparisonValue included={value} />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+              <tr class="bg-card">
+                <td class="sticky left-0 z-10 p-4 font-medium bg-card">Updates per year</td>
+                <td class="p-4 text-center bg-primary/8 font-medium">Unlimited</td>
+                <td class="p-4 text-center text-muted-foreground">12</td>
+                <td class="p-4 text-center text-muted-foreground">4</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

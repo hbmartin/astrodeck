@@ -87,9 +87,9 @@ Add the page to `src/config/site.ts` unless the user says otherwise:
 
 ## 6. Done when
 
-- [ ] Page renders in the dev server (`npm run dev`, background; poll `/_astro/status`)
+- [ ] Page renders in the dev server (`pnpm run dev`, background; poll `/_astro/status`)
 - [ ] One `h1`, headings in order, works at 375 px and in dark mode
 - [ ] No invented facts, no `href="#"`, no placeholder text
 - [ ] Linked from navigation (or deliberately not)
 - [ ] `PROJECT.md` sitemap updated
-- [ ] `npm run verify` ends with `VERIFY PASSED`
+- [ ] `pnpm run verify` ends with `VERIFY PASSED`

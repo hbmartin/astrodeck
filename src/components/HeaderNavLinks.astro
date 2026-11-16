@@ -1,0 +1,27 @@
+---
+import { site } from '@/config/site';
+
+interface Props {
+  mobile?: boolean;
+}
+const { mobile = false } = Astro.props;
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const base = mobile
+  ? 'block px-3 py-2 rounded-md text-base font-medium transition-colors'
+  : 'inline-block py-2 transition-colors';
+const current = mobile ? 'bg-accent text-accent-foreground' : 'text-foreground font-medium';
+const inactive = mobile
+  ? 'hover:bg-accent hover:text-accent-foreground'
+  : 'text-foreground/60 hover:text-foreground/80';
+---
+
+{site.nav.map(({ href, label }) => (
+  <a
+    href={href}
+    class:list={[base, isCurrent(href) ? current : inactive]}
+    aria-current={isCurrent(href) ? 'page' : undefined}
+  >
+    {label}
+  </a>
+))}

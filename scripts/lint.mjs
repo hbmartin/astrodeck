@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { packageBin } from './lib/executables.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const bin = fileURLToPath(new URL('./bin/oxlint', import.meta.resolve('oxlint/package.json')));
+const bin = packageBin('oxlint');
 
 // Run the Astro checks even when Oxlint reports errors after applying safe fixes.
 for (const args of [[bin, ...process.argv.slice(2), '.'], ['scripts/lint-astro.mjs']]) {

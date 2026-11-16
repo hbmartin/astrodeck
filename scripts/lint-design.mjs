@@ -5,34 +5,25 @@
  * Exit 1 if any error-severity finding exists; warnings are printed only.
  * Usage: node scripts/lint-design.mjs [projectRoot]
  */
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, relative, resolve, sep, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { lintText } from './lib/rules.mjs';
+import { walkFiles } from './lib/walk-files.mjs';
 import { formatFindings } from './lib/findings.mjs';
 
 const EXTS = new Set(['.astro', '.tsx', '.ts', '.css']);
 const GLOBALS = 'src/styles/globals.css';
 
-function walk(dir) {
-  const out = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walk(full));
-    else if (EXTS.has(entry.name.slice(entry.name.lastIndexOf('.')))) out.push(full);
-  }
-  return out;
-}
-
 /**
  * @param {string} root project root
  * @returns {import('./lib/findings.mjs').Finding[]}
  */
-export function lintProject(root) {
+function lintProject(root) {
   const srcDir = join(root, 'src');
   if (!existsSync(srcDir)) return [];
   const findings = [];
-  for (const file of walk(srcDir).sort()) {
+  for (const file of [...walkFiles(srcDir, (name) => EXTS.has(extname(name)))].sort()) {
     const rel = relative(root, file).split(sep).join('/');
     if (rel === GLOBALS) continue;
     findings.push(...lintText(rel, readFileSync(file, 'utf8')));

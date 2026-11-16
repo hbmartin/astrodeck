@@ -19,6 +19,28 @@ test('client:only requires a static renderer hint', () => {
   assert.deepEqual(rules('<Demo client:only="react" /><Demo client:load />'), []);
 });
 
+test('browser programs cannot shadow or write frontmatter bindings', () => {
+  const source = astro(
+    "const renderer = 'react'; let runtime = Astro;",
+    `<Demo client:only={renderer} />
+<p>{runtime.resolve()}</p>
+<script>
+  var renderer = document.documentElement.dataset.renderer;
+  const runtime = { resolve() {} };
+  runtime.resolve();
+</script>
+<script>
+  runtime = { resolve() {} };
+  runtime.resolve();
+  Astro.resolve();
+</script>`
+  );
+  assert.deepEqual(
+    lintAstro(source, component).map(({ line, rule }) => ({ line, rule })),
+    [{ line: 5, rule: 'astro/no-deprecated-astro-resolve' }]
+  );
+});
+
 test('set directives conflict with each other and meaningful children', () => {
   const rule = 'astro/no-conflict-set-directives';
   assert.deepEqual(rules('<p set:text={value} set:html={markup} />'), [rule]);
@@ -54,6 +76,58 @@ test('checks deprecated Astro properties in frontmatter and template expressions
   assert.deepEqual(
     rules(astro('const runtime = { fetchContent() {} }; runtime.fetchContent();')),
     []
+  );
+});
+
+test('invalidates Astro aliases with writes anywhere in their lexical scope', () => {
+  const writes = [
+    'runtime = { resolve() {} };',
+    'runtime ||= { resolve() {} };',
+    'runtime++;',
+    '({ value: runtime = {} } = replacement);',
+    '[runtime] = replacements;',
+    'for (runtime in replacements) {}',
+    'for (runtime of replacements) {}',
+    'function replace() { runtime = {}; }',
+  ];
+  for (const write of writes) {
+    assert.deepEqual(rules(astro(`let runtime = Astro; runtime.resolve(); ${write}`)), [], write);
+  }
+  assert.deepEqual(
+    rules(astro('var runtime = Astro; for (var runtime of replacements) {} runtime.resolve();')),
+    []
+  );
+  assert.deepEqual(
+    rules(astro('var runtime = Astro; runtime.resolve(); var runtime = replacement;')),
+    []
+  );
+  assert.deepEqual(
+    rules(astro('let runtime = Astro;', '<p>{(runtime = replacement, runtime.resolve())}</p>')),
+    []
+  );
+});
+
+test('keeps Astro aliases with no writes to the binding', () => {
+  const resolveRule = 'astro/no-deprecated-astro-resolve';
+  assert.deepEqual(
+    rules(
+      astro(
+        'let runtime = Astro; function unrelated(runtime) { runtime = {}; } runtime.locals = {};',
+        '<p>{runtime.resolve()}</p>'
+      )
+    ),
+    [resolveRule]
+  );
+  assert.deepEqual(rules(astro('var runtime = Astro; var runtime; runtime.resolve();')), [
+    resolveRule,
+  ]);
+  assert.deepEqual(
+    rules(
+      astro(
+        'let runtime = Astro; class Demo { static { var runtime = {}; runtime = {}; } } runtime.resolve();'
+      )
+    ),
+    [resolveRule]
   );
 });
 
@@ -94,6 +168,16 @@ test('prerender exports are limited to pages directories', () => {
   assert.deepEqual(rules(astro('const value = false; export { value as prerender };')), [rule]);
   assert.deepEqual(rules(astro('export const prerender = true;'), page), []);
   assert.deepEqual(rules(astro('const prerender = true;')), []);
+});
+
+test('only frontmatter exports are checked for Astro route restrictions', () => {
+  const script = '<script>export const init = () => {}; export const prerender = true;</script>';
+  assert.deepEqual(rules(script), []);
+  assert.deepEqual(rules(script, page), []);
+  assert.deepEqual(
+    rules(astro('export const feature = true; export const prerender = false;', script)),
+    ['astro/no-exports-from-components', 'astro/no-prerender-export-outside-pages']
+  );
 });
 
 test('define:vars requires a CSS use outside comments', () => {

@@ -128,7 +128,7 @@ Other tasks have their own skill:
   see `brief/README.md`. No passwords or keys: in a public repository this folder is public too.
 - **`PROJECT.md`** is the structured brief the agent writes and keeps up to date: goal and
   audience, offer, sitemap, tone and language, brand, content sources, must-haves and no-gos,
-  open questions, decisions and defaults. It overrides the defaults in `AGENTS.md`.
+  open questions, decisions and defaults. It governs site decisions.
 
 ## Site config and theme
 
@@ -296,7 +296,7 @@ first; canonical URLs, sitemap and RSS use it.
 |------|---------|
 | `AGENTS.md` | Index for every coding agent: rules, commands, task → skill |
 | `CLAUDE.md` | `@AGENTS.md` plus a few Claude Code notes |
-| `PROJECT.md` | Your site brief; overrides `AGENTS.md` |
+| `PROJECT.md` | Your site brief and source of truth for site decisions |
 | `brief/` | Your input material |
 | `.agents/skills/` | Skills (source); `.claude/skills/` is a generated mirror |
 | `src/config/site.ts` | Brand, navigation, footer, SEO defaults, feature flags |

@@ -20,9 +20,18 @@ function checkFormatting(source, printWidth, check) {
       })
     );
     writeFileSync(file, source);
+    const javascript = join(root, 'example.js');
+    writeFileSync(javascript, 'const value="hello"');
     const run = () =>
-      spawnSync(process.execPath, [script, 'example.astro'], { cwd: root, encoding: 'utf8' });
-    check(run, () => readFileSync(file, 'utf8'));
+      spawnSync(process.execPath, [script, 'example.astro', 'example.js'], {
+        cwd: root,
+        encoding: 'utf8',
+      });
+    check(
+      run,
+      () => readFileSync(file, 'utf8'),
+      () => readFileSync(javascript, 'utf8')
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -49,13 +58,14 @@ const unsafe = [
 
 for (const [name, source, slot] of unsafe) {
   test(`unsafe Astro formatting preserves the original ${name}`, () => {
-    checkFormatting(source, 45, (run, read) => {
+    checkFormatting(source, 45, (run, read, readJavaScript) => {
       const result = run();
       assert.equal(result.status, 1, result.stdout + result.stderr);
       assert.match(result.stderr, /example\.astro: Formatting changes rendered Astro slot text/);
       assert.match(result.stderr, slot);
       assert.match(result.stderr, /explicit string expression/);
       assert.equal(read(), source);
+      assert.equal(readJavaScript(), 'const value="hello"');
     });
   });
 }
@@ -73,4 +83,39 @@ test('safe Astro formatting writes the checked output and is idempotent', () => 
     assert.match(second.stdout, /Formatted 0 file/);
     assert.equal(read(), formatted);
   });
+});
+
+test('format ignores excluded paths and only writes changed targets', () => {
+  const root = mkdtempSync(join(tmpdir(), 'format-list-'));
+  try {
+    const run = (...files) =>
+      spawnSync(process.execPath, [script, ...files], { cwd: root, encoding: 'utf8' });
+    const read = (file) => readFileSync(join(root, file), 'utf8');
+    const write = (file, contents) => writeFileSync(join(root, file), contents);
+    write('.oxfmtrc.json', JSON.stringify({ ignorePatterns: ['ignored.js'], singleQuote: true }));
+    write('ignored.js', 'const ignored="value"');
+    write('changed.js', 'const changed="value"');
+
+    const ignored = run('ignored.js');
+    assert.equal(ignored.status, 0, ignored.stderr);
+    assert.match(ignored.stdout, /Formatted 0 file/);
+
+    const mixed = run('ignored.js', 'changed.js');
+    assert.equal(mixed.status, 0, mixed.stderr);
+    assert.match(mixed.stdout, /Formatted 1 file/);
+    assert.equal(read('ignored.js'), 'const ignored="value"');
+    assert.equal(read('changed.js'), "const changed = 'value';\n");
+
+    const unchanged = run('changed.js');
+    assert.equal(unchanged.status, 0, unchanged.stderr);
+    assert.match(unchanged.stdout, /Formatted 0 file/);
+
+    write('.oxfmtrc.json', '{not valid JSON');
+    const invalid = run('changed.js');
+    assert.equal(invalid.status, 1);
+    assert.match(invalid.stderr, /Failed to load configuration file/i);
+    assert.equal(read('changed.js'), "const changed = 'value';\n");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

@@ -43,7 +43,7 @@ event pages and blogs. It is not built for dashboards or app-heavy products.
 
 ## Quick start
 
-Requires **Node.js >= 22.23.4** and **pnpm 12.21.0**.
+Requires **macOS or Linux**, **Node.js >= 22.23.4**, and **pnpm 12.21.0**.
 
 ### No coding experience
 
@@ -128,7 +128,7 @@ Other tasks have their own skill:
   see `brief/README.md`. No passwords or keys: in a public repository this folder is public too.
 - **`PROJECT.md`** is the structured brief the agent writes and keeps up to date: goal and
   audience, offer, sitemap, tone and language, brand, content sources, must-haves and no-gos,
-  open questions, decisions and defaults. It overrides the defaults in `AGENTS.md`.
+  open questions, decisions and defaults. It governs site decisions.
 
 ## Site config and theme
 
@@ -200,6 +200,8 @@ It keeps a minimal home page, the 404 page, all sections, layouts, scripts and s
 `src/config/site-url.mjs`, the home page, `robots.txt` and `llms.txt` with starter versions.
 The cleanup is one-shot: once the `starter/` folder is gone, a second run does nothing (it prints
 "Already cleaned"), so it never deletes files you created later.
+If a replacement cannot be formatted safely, cleanup keeps the file as written and reports
+which files need attention.
 
 ## Verify and vibe2prod
 
@@ -213,8 +215,8 @@ pnpm run check:fallow      # run the strict static analysis on its own
 `verify` runs Oxfmt, Oxlint, Astro lint (directives, exports, styles and deprecated APIs),
 `astro check`, Fallow, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
 registry check, tests, the build and checks on the built HTML (one `h1`,
-unique titles, meta descriptions, internal links, alt text). It runs offline and says which
-step failed.
+unique titles, meta descriptions, internal links, alt text). Images with empty alt need an explicit
+decorative marker such as `aria-hidden="true"`. Verify runs offline and reports which step failed.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured
@@ -294,7 +296,7 @@ first; canonical URLs, sitemap and RSS use it.
 |------|---------|
 | `AGENTS.md` | Index for every coding agent: rules, commands, task → skill |
 | `CLAUDE.md` | `@AGENTS.md` plus a few Claude Code notes |
-| `PROJECT.md` | Your site brief; overrides `AGENTS.md` |
+| `PROJECT.md` | Your site brief and source of truth for site decisions |
 | `brief/` | Your input material |
 | `.agents/skills/` | Skills (source); `.claude/skills/` is a generated mirror |
 | `src/config/site.ts` | Brand, navigation, footer, SEO defaults, feature flags |

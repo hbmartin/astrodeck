@@ -21,7 +21,6 @@ import { findOnPath } from './lib/executables.mjs';
 
 const MIN_NODE = '22.19.0';
 const node = process.execPath;
-const isWin = process.platform === 'win32';
 
 function runtimeDir(env = process.env) {
   return env.VIBE2PROD_RUNTIME || join(homedir(), '.cache', 'vibe2prod', 'runtime');
@@ -30,17 +29,8 @@ function runtimeDir(env = process.env) {
 function browserCacheDir(env) {
   const override = env.PLAYWRIGHT_BROWSERS_PATH;
   if (override && override !== '0') return override;
-  return platformBrowserCache(env);
-}
-
-function platformBrowserCache(env) {
   if (process.platform === 'darwin') return join(homedir(), 'Library', 'Caches', 'ms-playwright');
-  if (isWin) return windowsBrowserCache(env);
   return join(homedir(), '.cache', 'ms-playwright');
-}
-
-function windowsBrowserCache(env) {
-  return join(env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'), 'ms-playwright');
 }
 
 function hasChromium(env = process.env) {
@@ -68,7 +58,7 @@ function detectMissing(env = process.env) {
 }
 
 function npm(args, cwd) {
-  return run('npm', args, { cwd, shell: isWin });
+  return run('npm', args, { cwd });
 }
 
 function exitFailure(status) {

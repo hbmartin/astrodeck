@@ -12,7 +12,7 @@
  * Exit codes follow the Claude Code hook contract: 0 = OK, 2 = block / feed
  * stderr back to the assistant.
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -57,9 +57,14 @@ function reportFindings(event, path, findings, formatFindings) {
 }
 
 function inputText(event, file, input) {
-  return event === 'PostToolUse' && existsSync(file.absolute)
-    ? readFileSync(file.absolute, 'utf8')
-    : proposedText(input);
+  if (event === 'PostToolUse') {
+    try {
+      return readFileSync(file.absolute, 'utf8');
+    } catch {
+      // The file may have moved or become unreadable since the edit.
+    }
+  }
+  return proposedText(input);
 }
 
 async function checkPayload({ hook_event_name: event = '', tool_input: input = {} }) {

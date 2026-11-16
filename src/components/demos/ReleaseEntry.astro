@@ -1,6 +1,7 @@
 ---
-import ReleaseBreaking from './ReleaseBreaking.astro';
-import ReleaseItems from './ReleaseItems.astro';
+import ReleaseBreaking from '@/components/demos/ReleaseBreaking.astro';
+import ReleaseItems from '@/components/demos/ReleaseItems.astro';
+import { formatReleaseDate } from '@/components/demos/release-text';
 
 interface Props {
   release: {
@@ -66,11 +67,7 @@ const tagStyles: Record<string, { bg: string; text: string; label: string }> = {
     </span>
     {release.date && (
       <time datetime={release.date} class="text-sm text-muted-foreground">
-        {new Date(release.date).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })}
+        {formatReleaseDate(release.date)}
       </time>
     )}
   </div>
@@ -78,7 +75,7 @@ const tagStyles: Record<string, { bg: string; text: string; label: string }> = {
   {/* Title */}
   <p class="text-lg font-medium text-foreground/80 mb-4">{release.title}</p>
 
-  {release.breaking?.length && (
+  {release.breaking && release.breaking.length > 0 && (
     <ReleaseBreaking
       items={release.breaking}
       title={release.breakingTitle}

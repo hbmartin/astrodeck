@@ -1,6 +1,6 @@
 ---
 name: astrodeck-build-site
-description: 'Builds a complete, production-ready website from AstroDeck for the user''s own project, from a one-sentence idea or a full briefing. Use when the user says "build a website", "new website", "create a site for ...", "make me a homepage", "Website erstellen", "Webseite für meine Firma bauen", "adapt AstroDeck to my project", "turn this brief into a site", or drops PDFs, Markdown notes, a DESIGN.md or a design-system link into brief/. Runs the whole workflow: adaptive intake, structured brief in PROJECT.md, sitemap from recipes, site config, theme, pages composed from registry sections, demo cleanup, pnpm run verify, the vibe2prod audit and a handover summary.'
+description: 'Builds a complete website when the user asks to create a site or adapt the AstroDeck starter to their project. Use for requests such as "build a website", "make me a homepage", "Website erstellen", "adapt AstroDeck to my project" or "turn this brief into a site". Inputs can include a one-sentence idea, PDFs, Markdown notes, a DESIGN.md or a design-system link. Covers intake, the site brief in PROJECT.md, demo cleanup, site config, theme, pages composed from registry sections, pnpm run verify, vibe2prod and handover.'
 ---
 
 # AstroDeck: build a website
@@ -10,7 +10,7 @@ steps in order. Copy the checklist into your todo/plan tool if you have one and 
 Every step names the command to run and the reference to read. References live in
 `.agents/skills/astrodeck-build-site/references/`.
 
-Before step 1: read `AGENTS.md` (golden rules) and `PROJECT.md`. Check whether a `starter/`
+Before step 1, read `AGENTS.md` and `PROJECT.md`. Check whether a `starter/`
 folder exists: if yes, the AstroDeck demo (astrodeck.dev content) is still in the project.
 
 ## Checklist
@@ -137,7 +137,7 @@ registry section fits.
   run `pnpm run setup:audit`; if it still cannot run, report exactly which checks were skipped.
   No verdict without tools. A sandbox that blocks Chromium or localhost (for example Codex's
   default `workspace-write`) cannot run it: ask the user to allow the audit outside the sandbox.
-- Run `pnpm run verify --starter` again after the audit fixes; it ignores `.vibe2prod/`.
+- Rerun the same verification command after applying audit fixes.
 - Apply technical fixes; propose content changes to the user before making them.
 - Work through the manual items of `references/quality-checklist.md` (widths 375/768/1024/1280,
   dark mode, keyboard, reduced motion).
@@ -151,7 +151,7 @@ Tell the user, short and in plain language:
 2. Decisions & defaults you took (from `PROJECT.md`), so they can overrule them.
 3. Open questions and missing content, and who has to supply what (logo, photos, legal pages,
    production URL, form endpoints).
-4. Results: `pnpm run verify` and the vibe2prod verdict/score, plus anything you could not check.
+4. The exact verification command, its result, the vibe2prod verdict and score, and any skipped checks.
 5. How to deploy: `pnpm run build` produces static files in `dist/` for any static host
    (Vercel, Netlify, Cloudflare Pages, GitHub Pages, your own server). Set `SITE_URL` first.
    `vercel.json` adds security headers on Vercel; on other hosts configure equivalent headers.

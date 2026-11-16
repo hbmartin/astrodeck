@@ -1,6 +1,6 @@
 ---
 import Icon from '@/components/Icon.astro';
-import DemoNavLinks from './DemoNavLinks.astro';
+import DemoNavLinks from '@/components/demos/DemoNavLinks.astro';
 
 interface Props {
   items: { id: string; label: string; count?: number }[];
@@ -51,7 +51,7 @@ const { items, navId, label, heading, linkClass, mobile = false } = Astro.props;
 )}
 
 <script>
-  import { initDemoNavigation } from './demo-navigation';
+  import { initDemoNavigation } from '@/components/demos/demo-navigation';
   initDemoNavigation();
   document.addEventListener('astro:page-load', initDemoNavigation);
 </script>

@@ -7,7 +7,7 @@ Please be respectful and constructive in all interactions.
 
 ## Setup
 
-Requires Node.js >= 22.23.4, npm and Git.
+Requires macOS or Linux, Node.js >= 22.23.4, Git, and [pnpm](https://pnpm.io/installation) 12.21.0 (pinned in `package.json`).
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/astrodeck.git   # your fork
@@ -54,14 +54,14 @@ logos or numbers, one `h1` per page, light and dark mode, mobile first.
   `allowed-tools`; folder name equals `name`; body under 500 lines.
 - `.agents/skills/vibe2prod/` is vendored from upstream; never edit it by hand
   (`pnpm run sync:vibe2prod --tag vX.Y.Z` updates it).
-- No symlinks anywhere: they do not survive ZIP extraction on Windows.
+- Use regular files so the agent layer stays intact in ZIP downloads.
 - How the layers fit together: `docs/maintainers/agent-layer.md`.
 
 ### Scripts
 
 Scripts are ES modules in `scripts/` (shared helpers in `scripts/lib/`) with tests in `tests/`
-(`node --test`). They use `node:path` APIs, work on Windows, and need no network access, except
-`sync-vibe2prod.mjs` and `setup-audit.mjs`.
+(`node --test`). CI runs on Ubuntu. The scripts need no network access except for
+`sync-vibe2prod.mjs` and the install mode of `setup-audit.mjs`.
 
 `pnpm test` also runs inside every user's project (it is part of `pnpm run verify`), so tests must
 hold for any site built from the kit: never assert on the user's palette, copy or config values.

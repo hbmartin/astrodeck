@@ -42,7 +42,8 @@ Ask whether they want a blog if that is not decided (default: no blog).
 ## 4. Run
 
 ```bash
-pnpm run starter:clean --yes               # or: -- --yes --keep-blog
+pnpm run starter:clean --yes             # remove the demo
+pnpm run starter:clean --yes --keep-blog # keep the blog
 ```
 
 `--yes` is needed in agent shells (no interactive prompt). The script also prunes

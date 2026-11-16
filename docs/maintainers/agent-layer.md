@@ -26,8 +26,8 @@ the skill for each task and carry the golden rules.
   lines; detail in `references/`.
 - Front matter: only `name`, `description`, `license`, `compatibility`, `metadata`,
   `allowed-tools` (agentskills.io). Tool-specific fields break portability.
-- Apply these rules when authoring first-party skills.
-  plus dead paths, version and count drift in every doc.
+- Apply these rules when authoring first-party skills. The docs lint checks project
+  documentation for missing paths, version drift, and count drift.
 - Current set: `astrodeck-build-site` (references: intake, brief-template, content-rules,
   design-system, quality-checklist, recipes), `astrodeck-new-page`, `astrodeck-new-section`,
   `astrodeck-theme` (references: fonts), `astrodeck-cleanup`.
@@ -36,7 +36,7 @@ the skill for each task and carry the golden rules.
 
 Claude Code reads skills only from `.claude/skills/`; Codex, Cursor, Copilot, Gemini CLI and
 Windsurf read `.agents/skills/`. AstroDeck's mirrors use regular files so they survive ZIP
-extraction on Windows.
+extraction.
 
 - Edit `.agents/skills/`, then run `pnpm run sync:agents` to copy the managed skills, remove
   their stale mirror files, and regenerate `.claude/skills/README.md`. Claude-only skills and

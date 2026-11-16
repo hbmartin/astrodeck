@@ -4,6 +4,11 @@ All notable changes to AstroDeck are documented in this file.
 
 ## [Unreleased]
 
+- AstroDeck development and verification now support macOS and Linux. Demo and starter CI jobs run on Ubuntu.
+- Starter cleanup warns when a replacement cannot be formatted safely and continues formatting the other files. Astro lint accepts type-only overload declarations, and the Claude hook checks the edit payload when it cannot read the file.
+
+- Fixed ignored-only format requests, stale demo copy feedback and timezone-dependent release dates. Verification reports complete test failures and requires an explicit decorative marker on images with empty alt text.
+
 - Added strict Fallow checks for dead code, imports, dependencies, complexity, and duplication to `pnpm run verify` and `pnpm run validate`.
 
 ## [4.0.1] - 2026-11-06 — Accessibility and canonical URL fixes
@@ -54,7 +59,7 @@ All notable changes to AstroDeck are documented in this file.
 - Contact section without a form no longer leaves an empty column; IntegrationGrid opens only external links in a new tab and renders items without `href` as plain cards
 - RSS language is derived from `site.locale` instead of a hardcoded `-us` suffix
 - Footer renders `site.social` and `site.contact` (email, phone) when set, as documented
-- `npm run theme` also checks the primary color as text on the background (WCAG AA 4.5:1) and suggests a darker shade when it fails; `npm run theme` and `npm run icons` accept a `globals.css` with Windows (CRLF) line endings
+- `npm run theme` also checks the primary color as text on the background (WCAG AA 4.5:1) and suggests a darker shade when it fails; `npm run theme` and `npm run icons` accept a `globals.css` with CRLF line endings
 - `npm run sync:agents` no longer deletes your own skills in `.claude/skills/`; it only mirrors the skills that exist in `.agents/skills/`
 - Contact and Newsletter forms use native browser validation (no `novalidate`), so required fields cannot be sent empty
 

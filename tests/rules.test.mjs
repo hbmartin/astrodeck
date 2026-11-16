@@ -284,6 +284,19 @@ test('bare hex reports the line of the hex, not the attribute start', () => {
   );
 });
 
+test('hook: PostToolUse falls back to the edit if the file cannot be read', (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'hook-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, 'src', 'components', 'Unreadable.astro');
+  mkdirSync(file, { recursive: true });
+  const result = runHook({
+    hook_event_name: 'PostToolUse',
+    tool_input: { file_path: file, new_string: '<div class="bg-red-500">' },
+  });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /raw-palette-color/);
+});
+
 test('hook: PostToolUse checks the full file on disk', () => {
   const dir = mkdtempSync(join(tmpdir(), 'hook-'));
   try {

@@ -57,7 +57,12 @@ const withText = showText && logo.text.trim() !== '';
     />
   ) : (
     logo.src && (
-      <img src={logo.src} alt={withText ? '' : label} class:list={['w-auto', sizeClasses[size]]} />
+      <img
+        src={logo.src}
+        alt={withText ? '' : label}
+        aria-hidden={withText ? 'true' : undefined}
+        class:list={['w-auto', sizeClasses[size]]}
+      />
     )
   )}
   {withText && <span class:list={['font-bold', textSizeClasses[size]]}>{logo.text}</span>}

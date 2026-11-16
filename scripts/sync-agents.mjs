@@ -2,7 +2,7 @@
 /**
  * sync:agents — mirrors the canonical skills in .agents/skills/ to .claude/skills/
  * (Claude Code only reads .claude/skills). The mirror holds regular files, never symlinks,
- * so it survives ZIP extraction on Windows.
+ * so it survives ZIP extraction.
  *
  * Installer-managed skills in skills-lock.json and Claude-only skills retain their own files.
  *
@@ -35,12 +35,11 @@ Add Claude-only skills directly in \`.claude/skills/\`. Sync preserves them and 
 in \`skills-lock.json\`.
 
 Why a copy: Claude Code reads skills only from \`.claude/skills/\`, most other agents read
-\`.agents/skills/\`. Real files instead of symlinks keep the mirror intact after ZIP extraction
-on Windows.
+\`.agents/skills/\`. Real files instead of symlinks keep the mirror intact after ZIP extraction.
 `;
 
 /** OS metadata files that are never mirrored and never count as drift. */
-const IGNORED = new Set(['.DS_Store', 'Thumbs.db']);
+const IGNORED = new Set(['.DS_Store']);
 
 /**
  * Walk dir without following symlinks; skips IGNORED files.

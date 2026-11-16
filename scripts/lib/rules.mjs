@@ -211,8 +211,20 @@ export const RULES = [
   },
 ];
 
-function isIgnoredLine(inBlock, inFence, skipNext, endsBlock, skipsNext) {
-  return inBlock || inFence || skipNext || endsBlock || skipsNext;
+function ignoreMarkdownFences(lines, ignored) {
+  const delimiters = new Set();
+  let inFence = false;
+  lines.forEach((line, index) => {
+    const number = index + 1;
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence;
+      delimiters.add(number);
+      ignored.add(number);
+    } else if (inFence) {
+      ignored.add(number);
+    }
+  });
+  return delimiters;
 }
 
 /**
@@ -223,24 +235,21 @@ function isIgnoredLine(inBlock, inFence, skipNext, endsBlock, skipsNext) {
  */
 function ignoredLines(path, text) {
   const ignored = new Set();
-  const isMd = ['md', 'mdx'].includes(ext(path));
+  const lines = text.split('\n');
+  const isMarkdown = ['md', 'mdx'].includes(ext(path));
+  const delimiters = isMarkdown ? ignoreMarkdownFences(lines, ignored) : new Set();
   let inBlock = false;
-  let inFence = false;
   let skipNext = false;
-  text.split('\n').forEach((line, i) => {
-    const n = i + 1;
-    if (isMd && /^\s*(```|~~~)/.test(line)) {
-      inFence = !inFence;
-      ignored.add(n);
-      return;
-    }
-    const start = line.includes('lint-design-ignore-start');
-    const end = line.includes('lint-design-ignore-end');
-    if (start) inBlock = true;
-    const next = line.includes('lint-design-ignore-next-line');
-    if (isIgnoredLine(inBlock, inFence, skipNext, end, next)) ignored.add(n);
-    skipNext = next;
-    if (end) inBlock = false;
+  lines.forEach((line, index) => {
+    const number = index + 1;
+    if (delimiters.has(number)) return;
+    const startsBlock = line.includes('lint-design-ignore-start');
+    const endsBlock = line.includes('lint-design-ignore-end');
+    const skipsNext = line.includes('lint-design-ignore-next-line');
+    if (startsBlock) inBlock = true;
+    if (inBlock || endsBlock || skipNext || skipsNext) ignored.add(number);
+    if (endsBlock) inBlock = false;
+    skipNext = skipsNext;
   });
   return ignored;
 }

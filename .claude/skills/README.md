@@ -7,5 +7,4 @@ Add Claude-only skills directly in `.claude/skills/`. Sync preserves them and an
 in `skills-lock.json`.
 
 Why a copy: Claude Code reads skills only from `.claude/skills/`, most other agents read
-`.agents/skills/`. Real files instead of symlinks keep the mirror intact after ZIP extraction
-on Windows.
+`.agents/skills/`. Real files instead of symlinks keep the mirror intact after ZIP extraction.

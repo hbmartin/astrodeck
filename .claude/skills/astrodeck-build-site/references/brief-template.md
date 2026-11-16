@@ -1,6 +1,6 @@
 # PROJECT.md — Site brief
 
-> The brief for this website. It overrides the defaults in `AGENTS.md`.
+> The source of truth for this website's audience, brand, content and sitemap.
 > Your coding agent fills it from your answers and the files you put in `brief/`
 > (workflow: `.agents/skills/astrodeck-build-site/SKILL.md`). You can edit it any time.
 > Only real facts go here. Anything unknown is listed under "Open questions", never invented.

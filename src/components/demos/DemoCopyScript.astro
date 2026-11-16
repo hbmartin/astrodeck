@@ -1,51 +1,17 @@
 <script>
+  import { createDemoCopyToggle } from '@/components/demos/demo-copy-toggle';
   import { copyText } from '@/lib/clipboard';
 
-  const pending = new WeakMap<HTMLButtonElement, number>();
-
-  function hideCode(button: HTMLButtonElement, panel: HTMLElement) {
-    window.clearTimeout(pending.get(button));
-    panel.hidden = true;
-    button.setAttribute('aria-expanded', 'false');
-    button.textContent = 'Copy Code';
-    button.classList.remove('bg-primary', 'text-primary-foreground');
-  }
-
-  async function showCode(button: HTMLButtonElement, panel: HTMLElement) {
-    panel.hidden = false;
-    button.setAttribute('aria-expanded', 'true');
-    button.textContent = 'Hide Code';
-    await copyVisibleCode(button, panel);
-  }
-
-  async function copyVisibleCode(button: HTMLButtonElement, panel: HTMLElement) {
-    const copied = await copyText(codeText(panel));
-    if (!copied || panel.hidden) return;
-    button.textContent = 'Copied!';
-    button.classList.add('bg-primary', 'text-primary-foreground');
-    pending.set(
-      button,
-      window.setTimeout(() => {
-        button.textContent = 'Hide Code';
-        button.classList.remove('bg-primary', 'text-primary-foreground');
-      }, 1500)
-    );
-  }
-
-  function codeText(panel: HTMLElement) {
-    return panel.querySelector('code')?.textContent ?? '';
-  }
-
-  function toggleCode(button: HTMLButtonElement) {
-    const panel = document.getElementById(`code-${button.dataset.code}`);
-    if (!panel) return;
-    if (panel.hidden) void showCode(button, panel);
-    else hideCode(button, panel);
-  }
+  const toggleCode = createDemoCopyToggle(copyText, {
+    setTimeout: (callback, delay) => window.setTimeout(callback, delay),
+    clearTimeout: (timer) => window.clearTimeout(timer),
+  });
 
   document.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;
     const button = event.target.closest<HTMLButtonElement>('button.copy-btn[data-code]');
-    if (button) toggleCode(button);
+    if (!button) return;
+    const panel = document.getElementById(`code-${button.dataset.code}`);
+    if (panel) void toggleCode(button, panel);
   });
 </script>

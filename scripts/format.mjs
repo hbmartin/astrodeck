@@ -11,10 +11,9 @@ function oxfmt(args, { input, allowDifferences = false } = {}) {
   });
   if (result.error) throw result.error;
   const { status, stdout, stderr } = result;
-  const differences = allowDifferences && status === 1 && !stderr.trim();
-  if (status !== 0 && !differences)
-    throw new Error(stderr.trim() || stdout.trim() || 'Oxfmt failed.');
-  return stdout;
+  if (status === 0) return allowDifferences ? '' : stdout;
+  if (allowDifferences && status === 1 && !stderr.trim()) return stdout;
+  throw new Error(stderr.trim() || stdout.trim() || 'Oxfmt failed.');
 }
 
 function astroProposal(file) {

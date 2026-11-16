@@ -20,7 +20,7 @@ const TAIL_LINES = 40;
 const viaNode = (pkg, ...args) => [packageBin(pkg), ...args];
 
 /**
- * @typedef {{ id: string; cmd: string; args: string[]; needsBuild?: boolean; shell?: boolean }} Step
+ * @typedef {{ id: string; cmd: string; args: string[]; needsBuild?: boolean }} Step
  * @type {Step[]}
  */
 export const STEPS = [
@@ -56,7 +56,6 @@ export const STEPS = [
     cmd: 'pnpm',
     args: ['run', 'build'],
     needsBuild: true,
-    shell: process.platform === 'win32',
   },
   { id: 'dist', cmd: node, args: ['scripts/check-dist.mjs'], needsBuild: true },
 ];
@@ -93,7 +92,6 @@ function runStep(step) {
       cwd: ROOT,
       encoding: 'utf8',
       maxBuffer: 64 * 1024 * 1024,
-      shell: step.shell ?? false,
     });
     output = `${r.stdout ?? ''}${r.stderr ?? ''}`;
     if (r.error) output += `\n${r.error.message}`;
@@ -135,8 +133,13 @@ export function run(steps, log = console.log) {
   const failed = results.filter((r) => !r.ok);
   for (const r of failed) {
     const lines = r.output.trimEnd().split('\n');
-    log(`\n--- ${r.id} (last ${Math.min(TAIL_LINES, lines.length)} lines) ---`);
-    log(lines.slice(-TAIL_LINES).join('\n'));
+    if (r.id === 'test') {
+      log(`\n--- ${r.id} (full output) ---`);
+      log(lines.join('\n'));
+    } else {
+      log(`\n--- ${r.id} (last ${Math.min(TAIL_LINES, lines.length)} lines) ---`);
+      log(lines.slice(-TAIL_LINES).join('\n'));
+    }
   }
   log(failed.length ? `\nVERIFY FAILED (${failed.length})` : '\nVERIFY PASSED');
   return failed.length ? 1 : 0;

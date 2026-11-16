@@ -75,7 +75,7 @@ Rules:
 - Mobile-first grid (`grid gap-6 md:grid-cols-2 lg:grid-cols-3`); works in light and dark mode.
 - Static `.astro`. If it needs interactivity, put the interactive part in a small React island
   (`client:visible`) and keep the section shell static.
-- Inside `.map()` use `{/* */}` comments; Prettier cannot parse `<!-- -->` there.
+- Use `{/* */}` comments inside `.map()` expressions.
 
 ## 4. Register it
 

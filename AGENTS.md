@@ -8,7 +8,7 @@ Windsurf and others). Read this file completely, then `PROJECT.md`, then the ski
 AstroDeck is a starter kit for building production-ready websites with a coding agent:
 Astro 7, Tailwind CSS 4, TypeScript, React 19 islands and shadcn/ui (Radix) primitives. It ships
 sections, layouts and UI components (catalog: `src/registry.json`), a central site config, a
-theme script, checks (`npm run verify`) and skills that walk you from a user's idea to a
+theme script, checks (`pnpm run verify`) and skills that walk you from a user's idea to a
 finished site.
 
 - `PROJECT.md` is the site brief. It **overrides** the defaults in this file. If it is empty,
@@ -16,7 +16,7 @@ finished site.
 - Two states of this repository:
   - **Demo present** (a `starter/` folder exists): the project still contains the astrodeck.dev
     demo (docs, showcases, demo templates, sample blog). To build the user's own site, follow
-    `astrodeck-build-site`; it removes the demo with `npm run starter:clean` early on.
+    `astrodeck-build-site`; it removes the demo with `pnpm run starter:clean` early on.
   - **Clean starter** (no `starter/` folder): only a minimal home page, 404 and optionally the
     blog remain. Build on it.
 - Workflow for a new site: **intake → brief (`PROJECT.md`) → build → verify → vibe2prod →
@@ -24,21 +24,21 @@ finished site.
 
 ## Quick start for agents
 
-Requires Node >=22.23.4. Run `npm install` once.
+Requires Node >=22.23.4. Always use pnpm to install dependencies, manage the lockfile, and run project scripts. Run `pnpm install` once.
 
 | Command | What it does |
 |---------|--------------|
-| `npm run dev` | Dev server, prints its URL (`http://localhost:4321`, or the next free port). Agents: start it **in the background**, then poll `<url>/_astro/status` until it returns `{"ok":true}`; never block on it. Stop it when you are done if you started it. |
-| `npm run build` / `npm run preview` | Production build to `dist/` / serve the build |
-| `npm run verify` | Every check: format, eslint, astro check, design lint, docs lint, registry, skills mirror, tests, build, built-HTML checks. Must end with `VERIFY PASSED`. |
-| `npm run verify -- --starter` | Same, plus fails on demo leftovers; use after cleanup |
-| `npm run validate` | `verify` without build and built-HTML checks (fast) |
-| `npm run theme -- --primary "<hex>" [--accent] [--neutral] [--radius] [--from brief/DESIGN.md] [--dry-run]` | Brand colors and radius as OKLCH tokens for light and dark mode, with a WCAG contrast gate |
-| `npm run icons [-- --no-og]` | PNG icons and the social image `og.png` in `public/` from `public/favicon.svg` in the brand color |
-| `npm run starter:clean -- --dry-run` / `-- --yes [--keep-blog]` | Remove the demo (one-shot) |
-| `npm run lint:design` / `npm run lint:docs` / `npm run check:registry` | Single checks (also part of verify) |
-| `npm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
-| `npm run format` / `npm run lint:fix` | Auto-fix formatting and lint |
+| `pnpm run dev` | Dev server, prints its URL (`http://localhost:4321`, or the next free port). Agents: start it **in the background**, then poll `<url>/_astro/status` until it returns `{"ok":true}`; never block on it. Stop it when you are done if you started it. |
+| `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve the build |
+| `pnpm run verify` | Every check: Oxfmt, Oxlint, Astro lint, astro check, design lint, docs lint, registry, skills mirror, tests, build, built-HTML checks. Must end with `VERIFY PASSED`. |
+| `pnpm run verify --starter` | Same, plus fails on demo leftovers; use after cleanup |
+| `pnpm run validate` | `verify` without build and built-HTML checks (fast) |
+| `pnpm run theme --primary "<hex>" [--accent] [--neutral] [--radius] [--from brief/DESIGN.md] [--dry-run]` | Brand colors and radius as OKLCH tokens for light and dark mode, with a WCAG contrast gate |
+| `pnpm run icons [--no-og]` | PNG icons and the social image `og.png` in `public/` from `public/favicon.svg` in the brand color |
+| `pnpm run starter:clean --dry-run` / `pnpm run starter:clean --yes [--keep-blog]` | Remove the demo (one-shot) |
+| `pnpm run lint:design` / `pnpm run lint:docs` / `pnpm run check:registry` | Single checks (also part of verify) |
+| `pnpm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
+| `pnpm run format` / `pnpm run lint:fix` | Auto-fix formatting and lint |
 
 ## Project map
 
@@ -49,7 +49,7 @@ Requires Node >=22.23.4. Run `npm install` once.
 | `src/config/site.ts` | Name, description, language, title template, logo, nav, footer, social, contact, OG image, feature flags |
 | `src/config/site-url.mjs` | Production URL (`SITE_URL`), used by `astro.config.mjs` and `site.ts` |
 | `src/config/ui.ts` | Built-in interface text (skip link, menu/theme buttons, contact labels, 404); translate for non-English sites |
-| `src/styles/globals.css` | Fonts and design tokens (`@theme` + `.dark`); colors are written by `npm run theme` |
+| `src/styles/globals.css` | Fonts and design tokens (`@theme` + `.dark`); colors are written by `pnpm run theme` |
 | `src/registry.json` | Catalog of sections, layouts, UI components: props, `useWhen`, example |
 | `src/components/sections/` | Page sections (Hero, Features, Pricing, FAQ, Contact, ...) |
 | `src/components/ui/` | shadcn/ui React primitives (Button, Card, Dialog, ...) |
@@ -74,7 +74,7 @@ Requires Node >=22.23.4. Run `npm install` once.
    `src/config/site-url.mjs`. Pages pass plain titles ("Pricing"); the layout adds the brand.
 4. Colors only through semantic tokens (`bg-background`, `text-muted-foreground`,
    `bg-primary`). No raw palette classes, hex, arbitrary colors, `text-white`, `dark:` color
-   overrides, inline `style`. Change the palette with `npm run theme`.
+   overrides, inline `style`. Change the palette with `pnpm run theme`.
 5. Compose pages from registry sections with props. Never copy a section to change its content;
    add a prop or, only if nothing fits, a new registered section.
 6. Icons only from `IconName` in `src/lib/icons.ts`; add missing ones there.
@@ -84,8 +84,8 @@ Requires Node >=22.23.4. Run `npm install` once.
 9. One `h1` per page, headings in order, meaningful `alt`, mobile-first, readable in light and
    dark mode.
 10. Tailwind 4 is CSS-first: no `tailwind.config.*`, no `@astrojs/tailwind`.
-11. Edit skills in `.agents/skills/`, then `npm run sync:agents`. Never edit mirrored skills in `.claude/skills/`; add your own Claude-only skills directly in `.claude/skills/` (sync never touches folders it does not manage).
-12. Done means `npm run verify` ends with `VERIFY PASSED`. Do not push, publish or deploy unless
+11. Edit skills in `.agents/skills/`, then `pnpm run sync:agents`. Never edit mirrored skills in `.claude/skills/`; add your own Claude-only skills directly in `.claude/skills/` (sync never touches folders it does not manage).
+12. Done means `pnpm run verify` ends with `VERIFY PASSED`. Do not push, publish or deploy unless
     the user asks.
 
 ## Task → skill
@@ -123,7 +123,7 @@ automatically, open the file and follow it.
 - **Tailwind 4:** configured in CSS (`@import 'tailwindcss'`, `@theme`) via the
   `@tailwindcss/vite` plugin; there is no `tailwind.config`. `container` has no padding: put
   `px-6` on the `<section>`. Dark mode is the `.dark` class (custom variant in `globals.css`).
-- Prettier cannot parse `<!-- -->` comments inside `.map()` expressions; use `{/* */}`.
+- Use `{/* */}` comments inside `.map()` expressions.
 - Check Astro APIs against current docs (Astro Docs MCP in `.mcp.json`, see
   `docs/agents/mcp-setup.md`), not memory.
 
@@ -136,11 +136,11 @@ automatically, open the file and follow it.
 | Site types: sitemap and section order | `.agents/skills/astrodeck-build-site/references/recipes/` |
 | Pre-handover checklist | `.agents/skills/astrodeck-build-site/references/quality-checklist.md` |
 | Which section to use | `src/registry.json` (`useWhen`, props, `example`) |
-| Machine-enforced rules | `npm run lint:design` (shared with the Claude Code hook) |
+| Machine-enforced rules | `pnpm run lint:design` (shared with the Claude Code hook) |
 
 ## Verify before done
 
-1. `npm run verify` (or `npm run verify -- --starter` once the demo is removed) ends with
+1. `pnpm run verify` (or `pnpm run verify --starter` once the demo is removed) ends with
    `VERIFY PASSED`. Fix the cause of a failure; never add ignore markers, delete rules or tests,
    or edit generated output to get green.
 2. If a check could not run (missing tool, no network), say exactly which one.

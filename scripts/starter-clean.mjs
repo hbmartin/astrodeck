@@ -5,7 +5,7 @@
  * starter/, then prunes src/registry.json entries whose files are gone.
  * Never touches paths outside the manifest.
  *
- * Usage: npm run starter:clean -- [--dry-run] [--keep-blog] [--yes]
+ * Usage: pnpm run starter:clean [--dry-run] [--keep-blog] [--yes]
  *   --dry-run    print the plan and exit 0
  *   --keep-blog  keep the blog system (pages, tags, RSS), replace demo posts with one draft post
  *   --root <dir> run against another project directory (default: this repository)
@@ -16,6 +16,7 @@ import { existsSync, readFileSync, writeFileSync, rmSync, mkdirSync, copyFileSyn
 import { join, dirname, resolve, relative, isAbsolute, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
+import { spawnSync } from 'node:child_process';
 
 const BLOG_NAV_MARKER = /^[ \t]*\/\/ starter:blog-nav[ \t]*\r?\n/m;
 
@@ -92,36 +93,22 @@ function pruneRegistry(root) {
 }
 
 /**
- * Best-effort: format the files starter:clean wrote with the project's Prettier config, so a
- * cleaned project passes `prettier --check` (prettier may be absent; files stay valid unformatted).
- * Files Prettier ignores or cannot parse are left as written.
+ * Best-effort: format the files starter:clean wrote with the target project's Oxfmt config.
+ * If Oxfmt is unavailable, the replacement files stay valid as written.
  * @param {string} root project root
  * @param {string[]} files paths relative to root
  */
-export async function formatWritten(root, files) {
-  let prettier;
+export function formatWritten(root, files) {
   try {
-    prettier = await import('prettier');
-  } catch {
-    return;
-  }
-  const ignorePath = join(root, '.prettierignore');
-  for (const rel of new Set(files)) {
-    const path = join(root, rel);
-    if (!existsSync(path)) continue;
-    try {
-      const info = await prettier.getFileInfo(path, {
-        ignorePath: existsSync(ignorePath) ? ignorePath : undefined,
-        resolveConfig: true,
+    const manifest = import.meta.resolve('oxfmt/package.json');
+    const bin = fileURLToPath(new URL('./bin/oxfmt', manifest));
+    const paths = [...new Set(files)].filter((file) => existsSync(inside(root, file)));
+    if (paths.length)
+      spawnSync(process.execPath, [bin, '--write', '--no-error-on-unmatched-pattern', ...paths], {
+        cwd: root,
       });
-      if (info.ignored || !info.inferredParser) continue;
-      const config = (await prettier.resolveConfig(path)) ?? {};
-      const text = readFileSync(path, 'utf8');
-      const out = await prettier.format(text, { ...config, filepath: path });
-      if (out !== text) writeFileSync(path, out);
-    } catch {
-      // keep the file as written
-    }
+  } catch {
+    // Keep the replacement files as written.
   }
 }
 
@@ -202,8 +189,8 @@ async function main() {
     }
   }
   applyClean(root, plan);
-  await formatWritten(root, writtenFiles(plan));
-  console.log('Done. Run `npm run build` to verify the clean starter.');
+  formatWritten(root, writtenFiles(plan));
+  console.log('Done. Run `pnpm run build` to verify the clean starter.');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

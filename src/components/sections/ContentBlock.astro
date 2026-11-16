@@ -29,66 +29,56 @@ const imageLeft = !!image && imageSide === 'left';
       ]}
     >
       <div class:list={['space-y-6', imageLeft && 'lg:col-start-2']}>
-        {
-          tagline && (
-            <p class="text-sm font-semibold text-primary uppercase tracking-wide">{tagline}</p>
-          )
-        }
-        <h2 class="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-4xl">
-          {title}
-        </h2>
-        <p class="text-lg text-muted-foreground leading-relaxed">
-          {description}
-        </p>
-        {
-          features && features.length > 0 && (
-            <ul class="space-y-3 pt-2">
-              {features.map((feature) => (
-                <li class="flex items-start gap-3">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                  <span class="text-muted-foreground">{feature}</span>
-                </li>
-              ))}
-            </ul>
-          )
-        }
+        {tagline && (
+          <p class="text-sm font-semibold text-primary uppercase tracking-wide">{tagline}</p>
+        )}
+        <h2 class="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-4xl">{title}</h2>
+        <p class="text-lg text-muted-foreground leading-relaxed">{description}</p>
+        {features && features.length > 0 && (
+          <ul class="space-y-3 pt-2">
+            {features.map((feature) => (
+              <li class="flex items-start gap-3">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
+                >
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                <span class="text-muted-foreground">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      {
-        image && (
-          <div class:list={['overflow-hidden rounded-lg', imageLeft && 'lg:col-start-1']}>
-            {typeof image.src === 'string' ? (
-              <img
-                src={image.src}
-                alt={image.alt}
-                width="800"
-                height="600"
-                loading="lazy"
-                decoding="async"
-                class="aspect-[4/3] w-full object-cover"
-              />
-            ) : (
-              <Image
-                src={image.src}
-                alt={image.alt}
-                widths={[480, 800, 1200]}
-                sizes="(min-width: 1024px) 480px, 100vw"
-                class="aspect-[4/3] w-full object-cover"
-              />
-            )}
-          </div>
-        )
-      }
+      {image && (
+        <div class:list={['overflow-hidden rounded-lg', imageLeft && 'lg:col-start-1']}>
+          {typeof image.src === 'string' ? (
+            <img
+              src={image.src}
+              alt={image.alt}
+              width="800"
+              height="600"
+              loading="lazy"
+              decoding="async"
+              class="aspect-[4/3] w-full object-cover"
+            />
+          ) : (
+            <Image
+              src={image.src}
+              alt={image.alt}
+              widths={[480, 800, 1200]}
+              sizes="(min-width: 1024px) 480px, 100vw"
+              class="aspect-[4/3] w-full object-cover"
+            />
+          )}
+        </div>
+      )}
     </div>
   </div>
 </section>

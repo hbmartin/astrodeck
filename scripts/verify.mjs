@@ -36,16 +36,17 @@ export const STEPS = [
     id: 'format',
     cmd: node,
     get args() {
-      return viaNode('prettier', '--check', '.').args;
+      return viaNode('oxfmt', '--check', '.').args;
     },
   },
   {
-    id: 'eslint',
+    id: 'oxlint',
     cmd: node,
     get args() {
-      return viaNode('eslint', '.').args;
+      return viaNode('oxlint', '.').args;
     },
   },
+  { id: 'lint-astro', cmd: node, args: ['scripts/lint-astro.mjs'] },
   {
     id: 'astro-check',
     cmd: node,
@@ -58,7 +59,13 @@ export const STEPS = [
   { id: 'registry', cmd: node, args: ['scripts/check-registry.mjs'] },
   { id: 'agents-sync', cmd: node, args: ['scripts/sync-agents.mjs', '--check'] },
   { id: 'test', cmd: node, args: ['--test', 'tests/**/*.test.mjs'] },
-  buildStep(),
+  {
+    id: 'build',
+    cmd: 'pnpm',
+    args: ['run', 'build'],
+    needsBuild: true,
+    shell: process.platform === 'win32',
+  },
   { id: 'dist', cmd: node, args: ['scripts/check-dist.mjs'], needsBuild: true },
 ];
 
@@ -85,26 +92,9 @@ export function nodeSatisfies(version, range) {
   return true;
 }
 
-/**
- * Build step: run npm's CLI through node when invoked via `npm run` (no shim, no shell).
- * Otherwise fall back to the `npm` command, through a shell only on Windows (npm.cmd).
- */
-function buildStep() {
-  const npmCli = process.env.npm_execpath;
-  if (npmCli && /\.c?js$/.test(npmCli))
-    return { id: 'build', cmd: node, args: [npmCli, 'run', 'build'], needsBuild: true };
-  return {
-    id: 'build',
-    cmd: 'npm',
-    args: ['run', 'build'],
-    needsBuild: true,
-    shell: process.platform === 'win32',
-  };
-}
-
 function runStep(step) {
   const start = Date.now();
-  let output = '';
+  let output;
   let ok = false;
   try {
     const r = spawnSync(step.cmd, step.args, {

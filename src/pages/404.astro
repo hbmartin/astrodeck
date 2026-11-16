@@ -21,9 +21,7 @@ import { ui } from '@/config/ui';
       </div>
 
       <!-- 404 Number with gradient -->
-      <h1
-        class="text-9xl font-bold bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent"
-      >
+      <h1 class="text-9xl font-bold bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
         404
       </h1>
 
@@ -54,45 +52,41 @@ import { ui } from '@/config/ui';
             {ui.notFound.home}
           </a>
         </Button>
-        {
-          site.features.blog && (
-            <Button variant="outline" asChild>
-              <a href="/blog">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 mr-2"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
-                </svg>
-                {ui.notFound.blog}
-              </a>
-            </Button>
-          )
-        }
+        {site.features.blog && (
+          <Button variant="outline" asChild>
+            <a href="/blog">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 mr-2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              </svg>
+              {ui.notFound.blog}
+            </a>
+          </Button>
+        )}
       </div>
 
       <!-- Help text -->
-      {
-        (site.support || site.contact.email) && (
-          <p class="text-sm text-muted-foreground pt-4">
-            {ui.notFound.help}{' '}
-            <a
-              href={site.support?.href ?? `mailto:${site.contact.email}`}
-              class="text-primary underline underline-offset-4 hover:no-underline"
-            >
-              {site.support?.label ?? ui.notFound.contactUs}
-            </a>
-            .
-          </p>
-        )
-      }
+      {(site.support || site.contact.email) && (
+        <p class="text-sm text-muted-foreground pt-4">
+          {ui.notFound.help}{' '}
+          <a
+            href={site.support?.href ?? `mailto:${site.contact.email}`}
+            class="text-primary underline underline-offset-4 hover:no-underline"
+          >
+            {site.support?.label ?? ui.notFound.contactUs}
+          </a>
+          .
+        </p>
+      )}
     </div>
   </div>
 </MinimalLayout>

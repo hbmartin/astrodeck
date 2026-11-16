@@ -68,7 +68,7 @@ https://github.com/holger1411/vibe2prod). Never edit it by hand.
   Without `--tag` the highest semver git tag is used. The script copies `skills/vibe2prod/`
   with symlinks resolved, adds the upstream `LICENSE`, writes `VERSION` (tag, commit, date) and
   runs `npm run sync:agents`.
-- The vendored folder is excluded from Prettier, ESLint, TypeScript and the docs lint.
+- The vendored folder is excluded from Oxfmt, Oxlint, TypeScript and the docs lint.
 - License: the upstream `LICENSE` ships inside the folder and must stay there.
 - Audit runtime: `npm run setup:audit -- --check` reports what is missing (exit 2), and
   `npm run setup:audit` installs only the missing pieces.

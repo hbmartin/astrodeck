@@ -2,6 +2,7 @@
   "name": "astrodeck",
   "type": "module",
   "version": "4.0.1",
+  "packageManager": "pnpm@12.21.0",
   "engines": {
     "node": ">=22.23.4"
   },
@@ -12,10 +13,10 @@
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "node scripts/lint.mjs",
+    "lint:fix": "node scripts/lint.mjs --fix",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "lint:docs": "node scripts/lint-docs.mjs",
     "check:dist": "node scripts/check-dist.mjs",
     "lint:design": "node scripts/lint-design.mjs",
@@ -31,7 +32,7 @@
     "validate": "node scripts/verify.mjs --skip-build"
   },
   "dependencies": {
-    "@astrojs/react": "^6.0.6",
+    "@astrojs/react": "^7.1.9",
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -56,25 +57,17 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@eslint/js": "^9.39.2",
+    "@astrojs/compiler-rs": "0.5.3",
     "@types/markdown-it": "^14.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@types/sanitize-html": "^2.16.1",
     "culori": "^4.0.2",
-    "eslint": "^9.39.2",
-    "eslint-plugin-astro": "^1.5.0",
-    "globals": "^17.6.0",
     "node-html-parser": "^9.0.7",
-    "prettier": "^3.7.4",
-    "prettier-plugin-astro": "^0.14.1",
+    "oxfmt": "0.79.0",
+    "oxlint": "1.94.0",
+    "sharp": "^0.35.4",
     "tailwindcss": "^4.3.4",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.1"
-  },
-  "overrides": {
-    "@tailwindcss/typography": {
-      "postcss-selector-parser": "^6.1.5"
-    }
+    "typescript": "~6.0.3"
   }
 }

@@ -7,8 +7,8 @@
  *   public/icon-512.png          512 x 512, brand-color tile with the mark
  *   public/og.png               1200 x 630, brand-color card with the mark (skip with --no-og)
  * `currentColor` in the SVG becomes the brand primary (32 px icon) or the primary foreground
- * (tiles, card). Colors are the light-mode tokens in src/styles/globals.css (`npm run theme`).
- * Uses sharp, which Astro installs. No network access.
+ * (tiles, card). Colors are the light-mode tokens in src/styles/globals.css (`pnpm run theme`).
+ * Uses sharp. No network access.
  *
  * Usage: node scripts/icons.mjs [--no-og]
  */
@@ -69,14 +69,14 @@ export async function main(argv, root) {
   try {
     sharp = (await import('sharp')).default;
   } catch {
-    console.error('error: sharp is not installed (it comes with Astro). Run `npm install`.');
+    console.error('error: sharp could not be loaded. Run `pnpm install`.');
     return 1;
   }
   const svg = readFileSync(faviconPath, 'utf8');
   const { light } = readTokens(readFileSync(join(root, GLOBALS), 'utf8'));
   if (!light.primary || !light['primary-foreground']) {
     console.error(
-      `error: no theme tokens found in ${GLOBALS} (expected the astrodeck-theme:light region with --color-primary). Restore the markers or run \`npm run theme\`.`
+      `error: no theme tokens found in ${GLOBALS} (expected the astrodeck-theme:light region with --color-primary). Restore the markers or run \`pnpm run theme\`.`
     );
     return 1;
   }

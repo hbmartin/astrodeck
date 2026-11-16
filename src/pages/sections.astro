@@ -76,9 +76,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
     </div>
 
     <!-- Mobile Sub-Navigation -->
-    <div
-      class="sticky top-14 z-30 lg:hidden border-b border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 md:px-12"
-    >
+    <div class="sticky top-14 z-30 lg:hidden border-b border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 md:px-12">
       <button
         id="mobile-subnav-toggle"
         class="flex items-center justify-between w-full py-3 text-sm"
@@ -87,7 +85,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
       >
         <span class="flex items-center gap-2 text-muted-foreground">
           <span>On this page:</span>
-          <span id="mobile-subnav-current" class="font-medium text-foreground">Heroes</span>
+          <span id="mobile-subnav-current" class="font-medium text-foreground">
+            Heroes
+          </span>
         </span>
         <svg
           id="mobile-subnav-chevron"
@@ -102,20 +102,18 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
         </svg>
       </button>
       <nav id="mobile-subnav-menu" class="hidden pb-3 space-y-1" aria-label="Section navigation">
-        {
-          sections.map((section) => (
-            <a
-              href={`#${section.id}`}
-              data-section={section.id}
-              class="nav-link flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors"
-            >
-              <span>{section.label}</span>
-              <span class="text-xs text-muted-foreground">
-                ({groupComponents[section.id].length})
-              </span>
-            </a>
-          ))
-        }
+        {sections.map((section) => (
+          <a
+            href={`#${section.id}`}
+            data-section={section.id}
+            class="nav-link flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors"
+          >
+            <span>{section.label}</span>
+            <span class="text-xs text-muted-foreground">
+              ({groupComponents[section.id].length})
+            </span>
+          </a>
+        ))}
       </nav>
     </div>
 
@@ -128,20 +126,18 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
             <p class="text-sm font-semibold mb-4 text-muted-foreground" aria-hidden="true">
               Sections
             </p>
-            {
-              sections.map((section) => (
-                <a
-                  href={`#${section.id}`}
-                  data-section={section.id}
-                  class="nav-link flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors"
-                >
-                  <span>{section.label}</span>
-                  <span class="text-xs text-muted-foreground">
-                    ({groupComponents[section.id].length})
-                  </span>
-                </a>
-              ))
-            }
+            {sections.map((section) => (
+              <a
+                href={`#${section.id}`}
+                data-section={section.id}
+                class="nav-link flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors"
+              >
+                <span>{section.label}</span>
+                <span class="text-xs text-muted-foreground">
+                  ({groupComponents[section.id].length})
+                </span>
+              </a>
+            ))}
           </nav>
         </div>
       </aside>
@@ -168,18 +164,13 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
               <div class="border-t pt-6">
                 <div class="min-h-[400px] flex items-center">
                   <div class="w-full flex flex-col items-center gap-6 text-center">
-                    <div
-                      class="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium"
-                    >
-                      <span
-                        class="bg-foreground text-background px-2 py-0.5 rounded-md font-semibold text-xs"
-                        >NEW</span
-                      >
+                    <div class="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
+                      <span class="bg-foreground text-background px-2 py-0.5 rounded-md font-semibold text-xs">
+                        NEW
+                      </span>
                       <span>Introducing our latest feature</span>
                     </div>
-                    <h3
-                      class="text-4xl font-bold leading-tight tracking-tight md:text-6xl max-w-3xl"
-                    >
+                    <h3 class="text-4xl font-bold leading-tight tracking-tight md:text-6xl max-w-3xl">
                       Build amazing products faster
                     </h3>
                     <p class="max-w-[600px] text-lg text-muted-foreground">
@@ -190,13 +181,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       <a
                         href="/docs"
                         class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8"
-                        >Get Started</a
                       >
+                        Get Started
+                      </a>
                       <a
                         href="/docs"
                         class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent h-12 px-8"
-                        >Learn More</a
                       >
+                        Learn More
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -211,9 +204,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
               <div class="border-t pt-6">
                 <div class="min-h-[400px] grid lg:grid-cols-2 gap-12 items-center">
                   <div class="space-y-6">
-                    <div
-                      class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full"
-                    >
+                    <div class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
                       Now in beta
                     </div>
                     <h3 class="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
@@ -227,13 +218,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       <a
                         href="/docs"
                         class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
-                        >Start Building</a
                       >
+                        Start Building
+                      </a>
                       <a
                         href="/templates/saas"
                         class="inline-flex items-center justify-center rounded-md text-sm font-medium border h-11 px-8"
-                        >View Demo</a
                       >
+                        View Demo
+                      </a>
                     </div>
                   </div>
                   <img
@@ -460,8 +453,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                   <a
                     href="/docs"
                     class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
-                    >Get Started</a
                   >
+                    Get Started
+                  </a>
                 </div>
               </div>
             </div>
@@ -483,12 +477,14 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            ><path
+                          >
+                            <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               stroke-width="2"
-                              d="M5 13l4 4L19 7"></path></svg
-                          >
+                              d="M5 13l4 4L19 7"
+                            ></path>
+                          </svg>
                           <span>Pre-built components</span>
                         </li>
                         <li class="flex items-center gap-2">
@@ -497,12 +493,14 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            ><path
+                          >
+                            <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               stroke-width="2"
-                              d="M5 13l4 4L19 7"></path></svg
-                          >
+                              d="M5 13l4 4L19 7"
+                            ></path>
+                          </svg>
                           <span>Full TypeScript support</span>
                         </li>
                         <li class="flex items-center gap-2">
@@ -511,12 +509,14 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            ><path
+                          >
+                            <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               stroke-width="2"
-                              d="M5 13l4 4L19 7"></path></svg
-                          >
+                              d="M5 13l4 4L19 7"
+                            ></path>
+                          </svg>
                           <span>Dark mode ready</span>
                         </li>
                       </ul>
@@ -525,13 +525,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       <a
                         href="/docs"
                         class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 leading-[44px]"
-                        >Get Started</a
                       >
+                        Get Started
+                      </a>
                       <a
                         href="/docs"
                         class="block w-full text-center rounded-md text-sm font-medium border h-11 leading-[44px]"
-                        >View Documentation</a
                       >
+                        View Documentation
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -554,13 +556,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       <a
                         href="/templates/saas#pricing-heading"
                         class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-background text-foreground hover:bg-background/90 h-10 px-6"
-                        >See pricing</a
                       >
+                        See pricing
+                      </a>
                       <a
                         href="/templates/contact"
                         class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-background/20 hover:bg-background/10 h-10 px-6"
-                        >Talk to sales</a
                       >
+                        Talk to sales
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -597,7 +601,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         Everything you need for a stunning landing page.
                       </p>
                     </div>
-                    <div><span class="text-4xl font-bold">Free</span></div>
+                    <div>
+                      <span class="text-4xl font-bold">Free</span>
+                    </div>
                     <ul class="space-y-2 text-sm">
                       <li class="flex items-center gap-2">
                         <svg
@@ -605,12 +611,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Hero & CTA sections
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Hero & CTA sections
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -618,12 +627,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Logo cloud
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Logo cloud
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -631,24 +643,26 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Responsive design
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Responsive design
                       </li>
                     </ul>
                     <a
                       href="https://github.com/holger1411/astrodeck"
                       class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
-                      >View on GitHub</a
                     >
+                      View on GitHub
+                    </a>
                   </div>
                   <div class="rounded-lg border-2 border-primary p-6 space-y-4 relative">
-                    <div
-                      class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full"
-                    >
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                       Recommended
                     </div>
                     <div>
@@ -657,7 +671,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         Complete boilerplate for your SaaS product.
                       </p>
                     </div>
-                    <div><span class="text-4xl font-bold">Free</span></div>
+                    <div>
+                      <span class="text-4xl font-bold">Free</span>
+                    </div>
                     <ul class="space-y-2 text-sm">
                       <li class="flex items-center gap-2">
                         <svg
@@ -665,12 +681,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >All landing page features
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        All landing page features
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -678,12 +697,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Authentication layouts
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Authentication layouts
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -691,19 +713,23 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >TypeScript & shadcn/ui
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        TypeScript & shadcn/ui
                       </li>
                     </ul>
                     <a
                       href="/docs"
                       class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 leading-10"
-                      >Get Started</a
                     >
+                      Get Started
+                    </a>
                   </div>
                   <div class="rounded-lg border p-6 space-y-4">
                     <div>
@@ -712,7 +738,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         MIT licensed and open for contributions.
                       </p>
                     </div>
-                    <div><span class="text-4xl font-bold">Free</span></div>
+                    <div>
+                      <span class="text-4xl font-bold">Free</span>
+                    </div>
                     <ul class="space-y-2 text-sm">
                       <li class="flex items-center gap-2">
                         <svg
@@ -720,12 +748,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Full source code access
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Full source code access
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -733,12 +764,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Regular updates
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Regular updates
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -746,19 +780,23 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Commercial use allowed
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Commercial use allowed
                       </li>
                     </ul>
                     <a
                       href="https://github.com/holger1411/astrodeck"
                       class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
-                      >Star on GitHub</a
                     >
+                      Star on GitHub
+                    </a>
                   </div>
                 </div>
               </div>
@@ -773,16 +811,12 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                 <div class="grid md:grid-cols-3 gap-6">
                   <div class="rounded-lg border p-6 space-y-4">
                     <div>
-                      <h3 class="font-bold text-xl">Starter</h3><p
-                        class="text-sm text-muted-foreground mt-1"
-                      >
-                        For small projects
-                      </p>
+                      <h3 class="font-bold text-xl">Starter</h3>
+                      <p class="text-sm text-muted-foreground mt-1">For small projects</p>
                     </div>
                     <div>
-                      <span class="text-4xl font-bold">$9</span><span class="text-muted-foreground"
-                        >/month</span
-                      >
+                      <span class="text-4xl font-bold">$9</span>
+                      <span class="text-muted-foreground">/month</span>
                     </div>
                     <ul class="space-y-2 text-sm">
                       <li class="flex items-center gap-2">
@@ -791,12 +825,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >5 Projects
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        5 Projects
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -804,37 +841,35 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Basic Support
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Basic Support
                       </li>
                     </ul>
                     <a
                       href="/docs"
                       class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
-                      >Get Started</a
                     >
+                      Get Started
+                    </a>
                   </div>
                   <div class="rounded-lg border-2 border-primary p-6 space-y-4 relative">
-                    <div
-                      class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full"
-                    >
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                       Popular
                     </div>
                     <div>
-                      <h3 class="font-bold text-xl">Pro</h3><p
-                        class="text-sm text-muted-foreground mt-1"
-                      >
-                        For growing teams
-                      </p>
+                      <h3 class="font-bold text-xl">Pro</h3>
+                      <p class="text-sm text-muted-foreground mt-1">For growing teams</p>
                     </div>
                     <div>
-                      <span class="text-4xl font-bold">$29</span><span class="text-muted-foreground"
-                        >/month</span
-                      >
+                      <span class="text-4xl font-bold">$29</span>
+                      <span class="text-muted-foreground">/month</span>
                     </div>
                     <ul class="space-y-2 text-sm">
                       <li class="flex items-center gap-2">
@@ -843,12 +878,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Unlimited Projects
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Unlimited Projects
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -856,29 +894,32 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Priority Support
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Priority Support
                       </li>
                     </ul>
                     <a
                       href="/docs"
                       class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 leading-10"
-                      >Get Started</a
                     >
+                      Get Started
+                    </a>
                   </div>
                   <div class="rounded-lg border p-6 space-y-4">
                     <div>
-                      <h3 class="font-bold text-xl">Enterprise</h3><p
-                        class="text-sm text-muted-foreground mt-1"
-                      >
-                        For large organizations
-                      </p>
+                      <h3 class="font-bold text-xl">Enterprise</h3>
+                      <p class="text-sm text-muted-foreground mt-1">For large organizations</p>
                     </div>
-                    <div><span class="text-4xl font-bold">Custom</span></div>
+                    <div>
+                      <span class="text-4xl font-bold">Custom</span>
+                    </div>
                     <ul class="space-y-2 text-sm">
                       <li class="flex items-center gap-2">
                         <svg
@@ -886,12 +927,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >Everything in Pro
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        Everything in Pro
                       </li>
                       <li class="flex items-center gap-2">
                         <svg
@@ -899,19 +943,23 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
-                          ><path
+                        >
+                          <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M5 13l4 4L19 7"></path></svg
-                        >24/7 Support
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                        24/7 Support
                       </li>
                     </ul>
                     <a
                       href="/templates/contact"
                       class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
-                      >Contact Sales</a
                     >
+                      Contact Sales
+                    </a>
                   </div>
                 </div>
               </div>
@@ -938,27 +986,24 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       </tr>
                     </thead>
                     <tbody class="divide-y">
-                      <tr
-                        ><td class="p-4 text-sm">Projects</td><td class="text-center p-4 text-sm"
-                          >3</td
-                        ><td class="text-center p-4 text-sm">Unlimited</td><td
-                          class="text-center p-4 text-sm">Unlimited</td
-                        ></tr
-                      >
-                      <tr
-                        ><td class="p-4 text-sm">Storage</td><td class="text-center p-4 text-sm"
-                          >1 GB</td
-                        ><td class="text-center p-4 text-sm">100 GB</td><td
-                          class="text-center p-4 text-sm">Unlimited</td
-                        ></tr
-                      >
-                      <tr
-                        ><td class="p-4 text-sm">Support</td><td class="text-center p-4 text-sm"
-                          >Community</td
-                        ><td class="text-center p-4 text-sm">Email</td><td
-                          class="text-center p-4 text-sm">24/7</td
-                        ></tr
-                      >
+                      <tr>
+                        <td class="p-4 text-sm">Projects</td>
+                        <td class="text-center p-4 text-sm">3</td>
+                        <td class="text-center p-4 text-sm">Unlimited</td>
+                        <td class="text-center p-4 text-sm">Unlimited</td>
+                      </tr>
+                      <tr>
+                        <td class="p-4 text-sm">Storage</td>
+                        <td class="text-center p-4 text-sm">1 GB</td>
+                        <td class="text-center p-4 text-sm">100 GB</td>
+                        <td class="text-center p-4 text-sm">Unlimited</td>
+                      </tr>
+                      <tr>
+                        <td class="p-4 text-sm">Support</td>
+                        <td class="text-center p-4 text-sm">Community</td>
+                        <td class="text-center p-4 text-sm">Email</td>
+                        <td class="text-center p-4 text-sm">24/7</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -977,39 +1022,39 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                     <p class="text-muted-foreground">Save 20% with annual billing</p>
                   </div>
                   <div class="inline-flex items-center gap-3 bg-muted p-1 rounded-lg">
-                    <button class="px-4 py-2 rounded-md bg-background text-sm font-medium"
-                      >Monthly</button
-                    >
-                    <button class="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground"
-                      >Yearly</button
-                    >
+                    <button class="px-4 py-2 rounded-md bg-background text-sm font-medium">
+                      Monthly
+                    </button>
+                    <button class="px-4 py-2 rounded-md text-sm font-medium text-muted-foreground">
+                      Yearly
+                    </button>
                   </div>
                   <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto mt-8">
                     <div class="border rounded-lg p-6 text-left space-y-4">
                       <h4 class="font-bold text-lg">Basic</h4>
                       <div>
-                        <span class="text-3xl font-bold">$19</span><span
-                          class="text-muted-foreground">/month</span
-                        >
+                        <span class="text-3xl font-bold">$19</span>
+                        <span class="text-muted-foreground">/month</span>
                       </div>
                       <a
                         href="#pricing"
                         class="block w-full text-center rounded-md text-sm font-medium border h-10 leading-10"
-                        >Choose Plan</a
                       >
+                        Choose Plan
+                      </a>
                     </div>
                     <div class="border-2 border-primary rounded-lg p-6 text-left space-y-4">
                       <h4 class="font-bold text-lg">Professional</h4>
                       <div>
-                        <span class="text-3xl font-bold">$49</span><span
-                          class="text-muted-foreground">/month</span
-                        >
+                        <span class="text-3xl font-bold">$49</span>
+                        <span class="text-muted-foreground">/month</span>
                       </div>
                       <a
                         href="#pricing"
                         class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 leading-10"
-                        >Choose Plan</a
                       >
+                        Choose Plan
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -1045,11 +1090,8 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         <span class="text-sm font-medium">SC</span>
                       </div>
                       <div>
-                        <p class="text-sm font-medium">Sarah Chen</p><p
-                          class="text-xs text-muted-foreground"
-                        >
-                          CEO, TechCorp
-                        </p>
+                        <p class="text-sm font-medium">Sarah Chen</p>
+                        <p class="text-xs text-muted-foreground">CEO, TechCorp</p>
                       </div>
                     </div>
                   </div>
@@ -1063,11 +1105,8 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         <span class="text-sm font-medium">MJ</span>
                       </div>
                       <div>
-                        <p class="text-sm font-medium">Marcus Johnson</p><p
-                          class="text-xs text-muted-foreground"
-                        >
-                          Developer
-                        </p>
+                        <p class="text-sm font-medium">Marcus Johnson</p>
+                        <p class="text-xs text-muted-foreground">Developer</p>
                       </div>
                     </div>
                   </div>
@@ -1081,11 +1120,8 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         <span class="text-sm font-medium">ER</span>
                       </div>
                       <div>
-                        <p class="text-sm font-medium">Emily Rodriguez</p><p
-                          class="text-xs text-muted-foreground"
-                        >
-                          Product Manager
-                        </p>
+                        <p class="text-sm font-medium">Emily Rodriguez</p>
+                        <p class="text-xs text-muted-foreground">Product Manager</p>
                       </div>
                     </div>
                   </div>
@@ -1104,25 +1140,21 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                     class="h-8 w-8 text-primary mx-auto mb-6"
                     fill="currentColor"
                     viewBox="0 0 24 24"
-                    ><path
-                      d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"
-                    ></path></svg
                   >
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"></path>
+                  </svg>
                   <p class="text-lg leading-relaxed mb-6">
                     Nebula has completely transformed how we build landing pages. The quality of the
                     components and attention to detail is exceptional. Our development time has been
                     cut in half.
                   </p>
                   <div class="flex items-center justify-center gap-4">
-                    <div
-                      class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center"
-                    >
+                    <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                       <span class="font-medium text-primary">AK</span>
                     </div>
                     <div class="text-left">
-                      <p class="font-semibold">Alex Kim</p><p class="text-sm text-muted-foreground">
-                        CTO, StartupCo
-                      </p>
+                      <p class="font-semibold">Alex Kim</p>
+                      <p class="text-sm text-muted-foreground">CTO, StartupCo</p>
                     </div>
                   </div>
                 </div>
@@ -1139,45 +1171,36 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                   <div class="min-w-[300px] rounded-lg border bg-card p-6 space-y-4">
                     <p class="text-sm">"Game changer for our team!"</p>
                     <div class="flex items-center gap-2">
-                      <div
-                        class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs"
-                      >
+                      <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs">
                         JD
                       </div>
                       <div class="text-xs">
-                        <p class="font-medium">Jane Doe</p><p class="text-muted-foreground">
-                          Designer
-                        </p>
+                        <p class="font-medium">Jane Doe</p>
+                        <p class="text-muted-foreground">Designer</p>
                       </div>
                     </div>
                   </div>
                   <div class="min-w-[300px] rounded-lg border bg-card p-6 space-y-4">
                     <p class="text-sm">"Excellent components and documentation."</p>
                     <div class="flex items-center gap-2">
-                      <div
-                        class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs"
-                      >
+                      <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs">
                         TP
                       </div>
                       <div class="text-xs">
-                        <p class="font-medium">Tom Peters</p><p class="text-muted-foreground">
-                          Engineer
-                        </p>
+                        <p class="font-medium">Tom Peters</p>
+                        <p class="text-muted-foreground">Engineer</p>
                       </div>
                     </div>
                   </div>
                   <div class="min-w-[300px] rounded-lg border bg-card p-6 space-y-4">
                     <p class="text-sm">"Best boilerplate for Astro projects."</p>
                     <div class="flex items-center gap-2">
-                      <div
-                        class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs"
-                      >
+                      <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs">
                         LW
                       </div>
                       <div class="text-xs">
-                        <p class="font-medium">Lisa Wang</p><p class="text-muted-foreground">
-                          Founder
-                        </p>
+                        <p class="font-medium">Lisa Wang</p>
+                        <p class="text-muted-foreground">Founder</p>
                       </div>
                     </div>
                   </div>
@@ -1216,10 +1239,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       placeholder="Enter your email"
                       class="flex-1 min-w-0 h-10 rounded-md border px-3 text-sm"
                     />
-                    <button
-                      class="px-6 h-10 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
-                      >Subscribe</button
-                    >
+                    <button class="px-6 h-10 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90">
+                      Subscribe
+                    </button>
                   </div>
                   <p class="text-xs text-muted-foreground text-center mt-4">
                     We respect your privacy. Unsubscribe at any time.
@@ -1252,10 +1274,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         placeholder="Your email address"
                         class="w-full h-10 rounded-md border px-3 text-sm"
                       />
-                      <button
-                        class="w-full h-10 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90"
-                        >Get Started</button
-                      >
+                      <button class="w-full h-10 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90">
+                        Get Started
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1269,9 +1290,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
               </div>
               <div class="border-t pt-6">
                 <div class="border-t bg-muted/30 p-6">
-                  <div
-                    class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4"
-                  >
+                  <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
                       <h4 class="font-semibold mb-1">Get product updates</h4>
                       <p class="text-sm text-muted-foreground">Join 10,000+ subscribers</p>
@@ -1282,10 +1301,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         placeholder="you@example.com"
                         class="flex-1 md:w-64 h-9 rounded-md border px-3 text-sm"
                       />
-                      <button
-                        class="px-4 h-9 bg-foreground text-background rounded-md text-sm font-medium hover:bg-foreground/90 whitespace-nowrap"
-                        >Sign Up</button
-                      >
+                      <button class="px-4 h-9 bg-foreground text-background rounded-md text-sm font-medium hover:bg-foreground/90 whitespace-nowrap">
+                        Sign Up
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1318,9 +1336,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                   </div>
                   <div class="divide-y divide-border border-y border-border">
                     <details class="group" name="faq-demo">
-                      <summary
-                        class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors"
-                      >
+                      <summary class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors">
                         <span>What is AstroDeck?</span>
                         <svg
                           class="shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-45"
@@ -1334,12 +1350,10 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           aria-hidden="true"
-                          ><line x1="12" y1="5" x2="12" y2="19"></line><line
-                            x1="5"
-                            y1="12"
-                            x2="19"
-                            y2="12"></line></svg
                         >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                       </summary>
                       <p class="pb-5 text-sm text-muted-foreground leading-relaxed">
                         AstroDeck is a free, open-source starter kit for building websites with a
@@ -1348,9 +1362,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       </p>
                     </details>
                     <details class="group" name="faq-demo">
-                      <summary
-                        class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors"
-                      >
+                      <summary class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors">
                         <span>Is AstroDeck free to use?</span>
                         <svg
                           class="shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-45"
@@ -1364,12 +1376,10 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           aria-hidden="true"
-                          ><line x1="12" y1="5" x2="12" y2="19"></line><line
-                            x1="5"
-                            y1="12"
-                            x2="19"
-                            y2="12"></line></svg
                         >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                       </summary>
                       <p class="pb-5 text-sm text-muted-foreground leading-relaxed">
                         Yes, AstroDeck is completely free and open-source under the MIT license. You
@@ -1378,9 +1388,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       </p>
                     </details>
                     <details class="group" name="faq-demo">
-                      <summary
-                        class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors"
-                      >
+                      <summary class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors">
                         <span>Does AstroDeck support dark mode?</span>
                         <svg
                           class="shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-45"
@@ -1394,12 +1402,10 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           aria-hidden="true"
-                          ><line x1="12" y1="5" x2="12" y2="19"></line><line
-                            x1="5"
-                            y1="12"
-                            x2="19"
-                            y2="12"></line></svg
                         >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                       </summary>
                       <p class="pb-5 text-sm text-muted-foreground leading-relaxed">
                         Absolutely. Every component is built with CSS variables and Tailwind CSS, so
@@ -1408,9 +1414,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                       </p>
                     </details>
                     <details class="group" name="faq-demo">
-                      <summary
-                        class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors"
-                      >
+                      <summary class="flex cursor-pointer items-center justify-between gap-4 py-5 font-medium text-foreground hover:text-muted-foreground transition-colors">
                         <span>Can I use AstroDeck with an existing Astro project?</span>
                         <svg
                           class="shrink-0 text-muted-foreground transition-transform duration-300 group-open:rotate-45"
@@ -1424,12 +1428,10 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           stroke-linecap="round"
                           stroke-linejoin="round"
                           aria-hidden="true"
-                          ><line x1="12" y1="5" x2="12" y2="19"></line><line
-                            x1="5"
-                            y1="12"
-                            x2="19"
-                            y2="12"></line></svg
                         >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
                       </summary>
                       <p class="pb-5 text-sm text-muted-foreground leading-relaxed">
                         Yes. You can copy individual components into any Astro project. Make sure
@@ -1463,9 +1465,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                   <h2 class="text-3xl font-bold mb-3">Nebula in numbers</h2>
                   <p class="text-muted-foreground">Numbers that speak for themselves</p>
                 </div>
-                <dl
-                  class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border border-y"
-                >
+                <dl class="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-border border-y">
                   <div class="flex flex-col items-center text-center px-6 py-8">
                     <dt class="order-2 mt-2 text-sm font-semibold">Teams</dt>
                     <dd class="order-1 text-4xl font-bold tracking-tight">12K+</dd>
@@ -1518,12 +1518,8 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                   <p class="text-muted-foreground">The people building Nebula</p>
                 </div>
                 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  <div
-                    class="flex flex-col items-center text-center rounded-xl border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-                  >
-                    <div
-                      class="h-20 w-20 rounded-full bg-muted flex items-center justify-center ring-2 ring-border mb-4"
-                    >
+                  <div class="flex flex-col items-center text-center rounded-xl border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="h-20 w-20 rounded-full bg-muted flex items-center justify-center ring-2 ring-border mb-4">
                       <span class="text-xl font-semibold text-muted-foreground">AR</span>
                     </div>
                     <p class="font-semibold text-base leading-tight">Alex Rivera</p>
@@ -1531,9 +1527,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                     <p class="text-sm text-muted-foreground mt-3 leading-relaxed">
                       Passionate about developer experience and open source.
                     </p>
-                    <div
-                      class="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center"
-                    >
+                    <div class="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center">
                       <span class="text-muted-foreground" aria-hidden="true">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1541,10 +1535,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="currentColor"
                           class="h-4 w-4"
                           aria-hidden="true"
-                          ><path
-                            d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"
-                          ></path></svg
                         >
+                          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"></path>
+                        </svg>
                       </span>
                       <span class="text-muted-foreground" aria-hidden="true">
                         <svg
@@ -1553,19 +1546,14 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="currentColor"
                           class="h-4 w-4"
                           aria-hidden="true"
-                          ><path
-                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-                          ></path></svg
                         >
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                        </svg>
                       </span>
                     </div>
                   </div>
-                  <div
-                    class="flex flex-col items-center text-center rounded-xl border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-                  >
-                    <div
-                      class="h-20 w-20 rounded-full bg-muted flex items-center justify-center ring-2 ring-border mb-4"
-                    >
+                  <div class="flex flex-col items-center text-center rounded-xl border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="h-20 w-20 rounded-full bg-muted flex items-center justify-center ring-2 ring-border mb-4">
                       <span class="text-xl font-semibold text-muted-foreground">SC</span>
                     </div>
                     <p class="font-semibold text-base leading-tight">Sam Chen</p>
@@ -1573,9 +1561,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                     <p class="text-sm text-muted-foreground mt-3 leading-relaxed">
                       TypeScript enthusiast and Astro core contributor.
                     </p>
-                    <div
-                      class="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center"
-                    >
+                    <div class="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center">
                       <span class="text-muted-foreground" aria-hidden="true">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1583,10 +1569,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="currentColor"
                           class="h-4 w-4"
                           aria-hidden="true"
-                          ><path
-                            d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"
-                          ></path></svg
                         >
+                          <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.154-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"></path>
+                        </svg>
                       </span>
                       <span class="text-muted-foreground" aria-hidden="true">
                         <svg
@@ -1595,19 +1580,14 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="currentColor"
                           class="h-4 w-4"
                           aria-hidden="true"
-                          ><path
-                            d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-                          ></path></svg
                         >
+                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"></path>
+                        </svg>
                       </span>
                     </div>
                   </div>
-                  <div
-                    class="flex flex-col items-center text-center rounded-xl border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-                  >
-                    <div
-                      class="h-20 w-20 rounded-full bg-muted flex items-center justify-center ring-2 ring-border mb-4"
-                    >
+                  <div class="flex flex-col items-center text-center rounded-xl border bg-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+                    <div class="h-20 w-20 rounded-full bg-muted flex items-center justify-center ring-2 ring-border mb-4">
                       <span class="text-xl font-semibold text-muted-foreground">JL</span>
                     </div>
                     <p class="font-semibold text-base leading-tight">Jordan Lee</p>
@@ -1615,9 +1595,7 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                     <p class="text-sm text-muted-foreground mt-3 leading-relaxed">
                       Crafting accessible interfaces with Tailwind and shadcn/ui.
                     </p>
-                    <div
-                      class="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center"
-                    >
+                    <div class="flex items-center gap-3 mt-4 pt-4 border-t border-border w-full justify-center">
                       <span class="text-muted-foreground" aria-hidden="true">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -1625,10 +1603,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="currentColor"
                           class="h-4 w-4"
                           aria-hidden="true"
-                          ><path
-                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"
-                          ></path></svg
                         >
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                        </svg>
                       </span>
                       <span class="text-muted-foreground" aria-hidden="true">
                         <svg
@@ -1637,10 +1614,9 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           fill="currentColor"
                           class="h-4 w-4"
                           aria-hidden="true"
-                          ><path
-                            d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"
-                          ></path></svg
                         >
+                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"></path>
+                        </svg>
                       </span>
                     </div>
                   </div>
@@ -1687,33 +1663,35 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                         >
                           <span class="inline-flex flex-col items-center gap-1">
                             Nebula
-                            <span
-                              class="text-xs font-normal text-primary border border-primary/30 rounded-full px-2 py-0.5 leading-tight"
-                              >Recommended</span
-                            >
+                            <span class="text-xs font-normal text-primary border border-primary/30 rounded-full px-2 py-0.5 leading-tight">
+                              Recommended
+                            </span>
                           </span>
                         </th>
                         <th
                           scope="col"
                           class="p-4 text-center font-semibold bg-card text-foreground"
-                          >Competitor A</th
                         >
+                          Competitor A
+                        </th>
                         <th
                           scope="col"
                           class="p-4 text-center font-semibold bg-card text-foreground"
-                          >Competitor B</th
                         >
+                          Competitor B
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr class="border-b border-border bg-card">
                         <td class="sticky left-0 z-10 p-4 font-medium bg-card">Open source</td>
-                        <td class="p-4 text-center bg-primary/8"
-                          ><span
+                        <td class="p-4 text-center bg-primary/8">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="Yes"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1722,16 +1700,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-primary"
-                              aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="No"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1740,16 +1721,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-muted-foreground"
-                              aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="No"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1758,21 +1742,24 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-muted-foreground"
-                              aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-                            ></span
-                          ></td
-                        >
+                              aria-hidden="true"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </span>
+                        </td>
                       </tr>
                       <tr class="border-b border-border bg-muted/40">
-                        <td class="sticky left-0 z-10 p-4 font-medium bg-muted/40"
-                          >TypeScript support</td
-                        >
-                        <td class="p-4 text-center bg-primary/8"
-                          ><span
+                        <td class="sticky left-0 z-10 p-4 font-medium bg-muted/40">
+                          TypeScript support
+                        </td>
+                        <td class="p-4 text-center bg-primary/8">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="Yes"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1781,16 +1768,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-primary"
-                              aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="Yes"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1799,16 +1789,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-primary"
-                              aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="No"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1817,19 +1810,22 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-muted-foreground"
-                              aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-                            ></span
-                          ></td
-                        >
+                              aria-hidden="true"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </span>
+                        </td>
                       </tr>
                       <tr class="border-b border-border bg-card">
                         <td class="sticky left-0 z-10 p-4 font-medium bg-card">Dark mode</td>
-                        <td class="p-4 text-center bg-primary/8"
-                          ><span
+                        <td class="p-4 text-center bg-primary/8">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="Yes"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1838,16 +1834,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-primary"
-                              aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="Yes"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1856,16 +1855,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-primary"
-                              aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="No"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1874,21 +1876,24 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-muted-foreground"
-                              aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-                            ></span
-                          ></td
-                        >
+                              aria-hidden="true"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </span>
+                        </td>
                       </tr>
                       <tr class="border-b border-border bg-muted/40">
-                        <td class="sticky left-0 z-10 p-4 font-medium bg-muted/40"
-                          >Tailwind CSS v4</td
-                        >
-                        <td class="p-4 text-center bg-primary/8"
-                          ><span
+                        <td class="sticky left-0 z-10 p-4 font-medium bg-muted/40">
+                          Tailwind CSS v4
+                        </td>
+                        <td class="p-4 text-center bg-primary/8">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="Yes"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1897,16 +1902,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-primary"
-                              aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="No"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1915,16 +1923,19 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-muted-foreground"
-                              aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-                            ></span
-                          ></td
-                        >
-                        <td class="p-4 text-center"
-                          ><span
+                              aria-hidden="true"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </span>
+                        </td>
+                        <td class="p-4 text-center">
+                          <span
                             class="inline-flex items-center justify-center"
                             role="img"
                             aria-label="No"
-                            ><svg
+                          >
+                            <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
                               fill="none"
@@ -1933,10 +1944,12 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                               stroke-linecap="round"
                               stroke-linejoin="round"
                               class="h-5 w-5 text-muted-foreground"
-                              aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-                            ></span
-                          ></td
-                        >
+                              aria-hidden="true"
+                            >
+                              <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                          </span>
+                        </td>
                       </tr>
                       <tr class="bg-card">
                         <td class="sticky left-0 z-10 p-4 font-medium bg-card">Updates per year</td>
@@ -1990,21 +2003,21 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             class="text-muted-foreground"
-                            ><rect width="20" height="16" x="2" y="4" rx="2"></rect><path
-                              d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg
                           >
+                            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                          </svg>
                         </span>
                         <div>
-                          <p
-                            class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5"
-                          >
+                          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
                             Email
                           </p>
                           <a
                             href="mailto:hello@example.com"
                             class="text-sm text-foreground hover:text-primary transition-colors"
-                            >hello@example.com</a
                           >
+                            hello@example.com
+                          </a>
                         </div>
                       </li>
                       <li class="flex items-start gap-3">
@@ -2023,22 +2036,20 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             class="text-muted-foreground"
-                            ><path
-                              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.58 5.08 2 2 0 0 1 3.54 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.6a16 16 0 0 0 5.67 5.67l1.06-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.28 18z"
-                            ></path></svg
                           >
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.6 19.79 19.79 0 0 1 1.58 5.08 2 2 0 0 1 3.54 3h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.6a16 16 0 0 0 5.67 5.67l1.06-.87a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.28 18z"></path>
+                          </svg>
                         </span>
                         <div>
-                          <p
-                            class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5"
-                          >
+                          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
                             Phone
                           </p>
                           <a
                             href="tel:+15550001234"
                             class="text-sm text-foreground hover:text-primary transition-colors"
-                            >+1 (555) 000-1234</a
                           >
+                            +1 (555) 000-1234
+                          </a>
                         </div>
                       </li>
                       <li class="flex items-start gap-3">
@@ -2057,19 +2068,21 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             class="text-muted-foreground"
-                            ><path
-                              d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"
-                            ></path><circle cx="12" cy="10" r="3"></circle></svg
                           >
+                            <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                          </svg>
                         </span>
                         <div>
-                          <p
-                            class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5"
-                          >
+                          <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-0.5">
                             Address
                           </p>
                           <address class="text-sm text-foreground not-italic">
-                            123 Developer Lane<br />San Francisco, CA 94107<br />United States
+                            123 Developer Lane
+                            <br />
+                            San Francisco, CA 94107
+                            <br />
+                            United States
                           </address>
                         </div>
                       </li>
@@ -2079,9 +2092,12 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                     <form action="/thanks" method="get">
                       <div class="space-y-5">
                         <div class="space-y-1.5">
-                          <label for="demo-contact-name" class="text-sm font-medium leading-none"
-                            >Name <span class="text-destructive" aria-hidden="true">*</span></label
-                          >
+                          <label for="demo-contact-name" class="text-sm font-medium leading-none">
+                            Name{' '}
+                            <span class="text-destructive" aria-hidden="true">
+                              *
+                            </span>
+                          </label>
                           <input
                             id="demo-contact-name"
                             type="text"
@@ -2093,9 +2109,12 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           />
                         </div>
                         <div class="space-y-1.5">
-                          <label for="demo-contact-email" class="text-sm font-medium leading-none"
-                            >Email <span class="text-destructive" aria-hidden="true">*</span></label
-                          >
+                          <label for="demo-contact-email" class="text-sm font-medium leading-none">
+                            Email{' '}
+                            <span class="text-destructive" aria-hidden="true">
+                              *
+                            </span>
+                          </label>
                           <input
                             id="demo-contact-email"
                             type="email"
@@ -2107,9 +2126,12 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           />
                         </div>
                         <div class="space-y-1.5">
-                          <label for="demo-contact-subject" class="text-sm font-medium leading-none"
-                            >Subject</label
+                          <label
+                            for="demo-contact-subject"
+                            class="text-sm font-medium leading-none"
                           >
+                            Subject
+                          </label>
                           <input
                             id="demo-contact-subject"
                             type="text"
@@ -2119,10 +2141,15 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           />
                         </div>
                         <div class="space-y-1.5">
-                          <label for="demo-contact-message" class="text-sm font-medium leading-none"
-                            >Message <span class="text-destructive" aria-hidden="true">*</span
-                            ></label
+                          <label
+                            for="demo-contact-message"
+                            class="text-sm font-medium leading-none"
                           >
+                            Message{' '}
+                            <span class="text-destructive" aria-hidden="true">
+                              *
+                            </span>
+                          </label>
                           <textarea
                             id="demo-contact-message"
                             name="message"
@@ -2133,7 +2160,10 @@ if (missing.length) throw new Error(`sections.astro: no group for ${missing.join
                           ></textarea>
                         </div>
                         <p class="text-xs text-muted-foreground">
-                          <span class="text-destructive" aria-hidden="true">*</span> Required fields
+                          <span class="text-destructive" aria-hidden="true">
+                            *
+                          </span>{' '}
+                          Required fields
                         </p>
                         <button
                           type="submit"

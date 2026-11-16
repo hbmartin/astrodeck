@@ -1,0 +1,24 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "sortPackageJson": false,
+  "astro": {
+    "compressHTML": "jsx"
+  },
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    ".astro",
+    "*.md",
+    "tests/fixtures",
+    "brief",
+    "evals/cases/*/brief",
+    ".agents/skills/vibe2prod",
+    ".claude/skills/vibe2prod",
+    ".vibe2prod/**"
+  ]
+}

@@ -52,16 +52,12 @@ const { title, subtitle, features, columns = 3 } = Astro.props;
 <section class="py-16 md:py-24 px-6">
   <div class="container max-w-5xl mx-auto">
     <div class="flex flex-col items-center space-y-4 text-center" data-animate>
-      <h2 class="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">
-        {title}
-      </h2>
-      {
-        subtitle && (
-          <p class="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-            {subtitle}
-          </p>
-        )
-      }
+      <h2 class="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{title}</h2>
+      {subtitle && (
+        <p class="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
+          {subtitle}
+        </p>
+      )}
     </div>
     <div
       class:list={[
@@ -69,32 +65,30 @@ const { title, subtitle, features, columns = 3 } = Astro.props;
         columns === 3 && 'md:grid-cols-3',
       ]}
     >
-      {
-        features.map((feature, index) => (
-          <div
-            class="relative overflow-hidden bg-card px-6 py-12 sm:px-10"
-            data-animate
-            data-delay={String(Math.min(index + 1, 5))}
-          >
-            <div class="inline-flex p-1.5 border border-foreground rounded-xl mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="h-5 w-5"
-              >
-                <path d={icons[feature.icon]} />
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2 hyphens-auto break-words">{feature.title}</h3>
-            <p class="text-base sm:text-sm text-muted-foreground">{feature.description}</p>
+      {features.map((feature, index) => (
+        <div
+          class="relative overflow-hidden bg-card px-6 py-12 sm:px-10"
+          data-animate
+          data-delay={String(Math.min(index + 1, 5))}
+        >
+          <div class="inline-flex p-1.5 border border-foreground rounded-xl mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="h-5 w-5"
+            >
+              <path d={icons[feature.icon]} />
+            </svg>
           </div>
-        ))
-      }
+          <h3 class="text-xl font-semibold mb-2 hyphens-auto break-words">{feature.title}</h3>
+          <p class="text-base sm:text-sm text-muted-foreground">{feature.description}</p>
+        </div>
+      ))}
     </div>
   </div>
 </section>

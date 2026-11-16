@@ -23,34 +23,30 @@ const entries = names.map((name) => {
 
 <div class="mb-8 rounded-lg border bg-muted/30 p-4 space-y-3">
   <p class="text-sm text-muted-foreground">
-    {
-      live
-        ? 'The previews below render the registry component itself with sample props. Copy the component usage, or ask your agent to add a prop for a variation.'
-        : 'The previews below are layout ideas built with the same design tokens; they can differ from the default rendering of the registry component. Copy the component usage, or ask your agent to add a prop for a variation.'
-    }
+    {live
+      ? 'The previews below render the registry component itself with sample props. Copy the component usage, or ask your agent to add a prop for a variation.'
+      : 'The previews below are layout ideas built with the same design tokens; they can differ from the default rendering of the registry component. Copy the component usage, or ask your agent to add a prop for a variation.'}
   </p>
-  {
-    entries.map((entry) => (
-      <div>
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <p class="text-sm">
-            Registry component: <code class="font-mono font-medium">{entry.name}</code>
-            <span class="text-muted-foreground"> ({entry.file})</span>
-          </p>
-          <button
-            type="button"
-            class="copy-btn text-sm px-3 py-1 border rounded-md bg-background hover:bg-muted transition-colors"
-            data-code={entry.name}
-          >
-            Copy Code
-          </button>
-        </div>
-        <div class="code-block" id={`code-${entry.name}`}>
-          <CodeBlock code={entry.example} />
-        </div>
+  {entries.map((entry) => (
+    <div>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm">
+          Registry component: <code class="font-mono font-medium">{entry.name}</code>
+          <span class="text-muted-foreground"> ({entry.file})</span>
+        </p>
+        <button
+          type="button"
+          class="copy-btn text-sm px-3 py-1 border rounded-md bg-background hover:bg-muted transition-colors"
+          data-code={entry.name}
+        >
+          Copy Code
+        </button>
       </div>
-    ))
-  }
+      <div class="code-block" id={`code-${entry.name}`}>
+        <CodeBlock code={entry.example} />
+      </div>
+    </div>
+  ))}
 </div>
 
 <style>

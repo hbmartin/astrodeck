@@ -28,6 +28,7 @@
     "src/content/blog/yeti-ski-instructor.md",
     "src/content/blog/zombie-corporate-job.md",
     "src/components/demos/",
+    "tests/demo-interactions.test.mjs",
     "public/screenshots/",
     "public/cover.png",
     "cover.png",

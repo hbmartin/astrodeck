@@ -1,157 +1,74 @@
 # AGENTS.md — AstroDeck
 
-Instructions for coding agents (Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI,
-Windsurf and others). Read this file completely, then `PROJECT.md`, then the skill for the task.
+AstroDeck is a website starter built with Astro 7, Tailwind CSS 4, TypeScript and React islands.
 
-## What this is
+## Site brief
 
-AstroDeck is a starter kit for building production-ready websites with a coding agent:
-Astro 7, Tailwind CSS 4, TypeScript, React 19 islands and shadcn/ui (Radix) primitives. It ships
-sections, layouts and UI components (catalog: `src/registry.json`), a central site config, a
-theme script, checks (`pnpm run verify`) and skills that walk you from a user's idea to a
-finished site.
+Before changing the site, read [PROJECT.md](PROJECT.md). It takes precedence for site decisions
+such as audience, brand, content and sitemap. Record new site decisions there and use `brief/`
+for source material.
 
-- `PROJECT.md` is the site brief. It **overrides** the defaults in this file. If it is empty,
-  the site has not been planned yet.
-- Two states of this repository:
-  - **Demo present** (a `starter/` folder exists): the project still contains the astrodeck.dev
-    demo (docs, showcases, demo templates, sample blog). To build the user's own site, follow
-    `astrodeck-build-site`; it removes the demo with `pnpm run starter:clean` early on.
-  - **Clean starter** (no `starter/` folder): only a minimal home page, 404 and optionally the
-    blog remain. Build on it.
-- Workflow for a new site: **intake → brief (`PROJECT.md`) → build → verify → vibe2prod →
-  handover**, step by step in `.agents/skills/astrodeck-build-site/SKILL.md`.
+## Choose the workflow
 
-## Quick start for agents
+Open the matching skill from `.agents/skills/<name>/SKILL.md` if it was not loaded automatically.
 
-Requires macOS or Linux and Node >=22.23.4. Always use pnpm to install dependencies, manage the lockfile, and run project scripts. Run `pnpm install --frozen-lockfile` once.
+| Requested change | Skill or reference |
+| --- | --- |
+| Create a whole site or adapt the starter to a project | `astrodeck-build-site` |
+| Add a page | `astrodeck-new-page` |
+| Add a section or extend a registered section's props | `astrodeck-new-section` |
+| Apply a brand, logo, palette, fonts or `DESIGN.md` to an existing site | `astrodeck-theme` |
+| Remove the demo | `astrodeck-cleanup` |
+| Edit copy, alt text or metadata | [Content rules](.agents/skills/astrodeck-build-site/references/content-rules.md) |
+| Audit a site for launch | `vibe2prod` and the [quality checklist](.agents/skills/astrodeck-build-site/references/quality-checklist.md) |
 
-| Command | What it does |
-|---------|--------------|
-| `pnpm run dev` | Dev server, prints its URL (`http://localhost:4321`, or the next free port). Agents: start it **in the background**, then poll `<url>/_astro/status` until it returns `{"ok":true}`; never block on it. Stop it when you are done if you started it. |
-| `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve the build |
-| `pnpm run verify` | Every check: Oxfmt, Oxlint, Astro lint, astro check, Fallow, design lint, docs lint, registry, tests, build, built-HTML checks. Must end with `VERIFY PASSED`. |
-| `pnpm run verify --starter` | Same, plus fails on demo leftovers; use after cleanup |
-| `pnpm run check:fallow` | Strict dead code, dependency, complexity and duplication checks (also in verify) |
-| `pnpm run validate` | `verify` without build and built-HTML checks (fast) |
-| `pnpm run theme --primary "<hex>" [--accent] [--neutral] [--radius] [--from brief/DESIGN.md] [--dry-run]` | Brand colors and radius as OKLCH tokens for light and dark mode, with a WCAG contrast gate |
-| `pnpm run icons [--no-og]` | PNG icons and the social image `og.png` in `public/` from `public/favicon.svg` in the brand color |
-| `pnpm run starter:clean --dry-run` / `pnpm run starter:clean --yes [--keep-blog]` | Remove the demo (one-shot) |
-| `pnpm run lint:design` / `pnpm run lint:docs` / `pnpm run check:registry` | Single checks (also part of verify) |
-| `pnpm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
-| `pnpm run format` / `pnpm run lint:fix` | Auto-fix formatting and lint |
+For a whole-site build or requested demo removal, use the cleanup skill while `starter/` exists.
+Cleanup replaces `PROJECT.md` and the site config, so preserve user edits before running it.
 
-Repository-wide formatting, linting, type checking, and link validation exclude `.agents/`
-and `.claude/skills/`. Verify still checks the starter brief and recipe contracts. Run
-`pnpm run sync:agents --check` for on-demand mirror validation. Skills listed in
-`skills-lock.json` belong to the installer.
+## Implementation rules
 
-## Project map
+- Store brand, navigation, footer, social links and contact details in `src/config/site.ts`.
+  Set the production URL in `src/config/site-url.mjs` and translate UI text in
+  `src/config/ui.ts`. Pass a plain page title to the layout, which adds the brand.
+- Compose pages from `src/registry.json` sections. Reuse a section through props, extending them
+  as needed. Create and register a section only when the existing ones cannot serve the use case.
+- Use semantic color tokens and change the palette with `pnpm run theme`. Use Tailwind's
+  CSS-first setup in `src/styles/globals.css`. Keep raw palette classes, arbitrary colors,
+  `text-white`, dark-mode color overrides and inline styles out of components.
+- Import through `@/` and use `IconName` from `src/lib/icons.ts`. Render static content in
+  `.astro` files. Hydrate React islands only for interactivity, using `client:visible` or
+  `client:idle`. Reserve `client:load` for above-the-fold interactivity.
+- Use supplied facts for copy and claims. Ask for missing testimonials, statistics, prices or
+  contact details, or omit the affected content and record the gap under Open questions in
+  `PROJECT.md`. Ship real content and working link and form destinations.
+- Use one `h1` per page, ordered headings and meaningful alt text. Check phone layouts and
+  readability in light and dark mode.
 
-| Path | Purpose |
-|------|---------|
-| `PROJECT.md` | Site brief and decisions (overrides this file) |
-| `brief/` | User inputs: PDFs, Markdown, `DESIGN.md`, images, links (see `brief/README.md`) |
-| `src/config/site.ts` | Name, description, language, title template, logo, nav, footer, social, contact, OG image, feature flags |
-| `src/config/site-url.mjs` | Production URL (`SITE_URL`), used by `astro.config.mjs` and `site.ts` |
-| `src/config/ui.ts` | Built-in interface text (skip link, menu/theme buttons, contact labels, 404); translate for non-English sites |
-| `src/styles/globals.css` | Fonts and design tokens (`@theme` + `.dark`); colors are written by `pnpm run theme` |
-| `src/registry.json` | Catalog of sections, layouts, UI components: props, `useWhen`, example |
-| `src/components/sections/` | Page sections (Hero, Features, Pricing, FAQ, Contact, ...) |
-| `src/components/ui/` | shadcn/ui React primitives (Button, Card, Dialog, ...) |
-| `src/components/` | Header, Footer, Logo, SEO/Head, ThemeToggle, AnimationObserver |
-| `src/layouts/` | BaseLayout, FullWidthLayout, MinimalLayout, AuthLayout, ArticleLayout |
-| `src/pages/` | File-based routes (`about.astro` → `/about`) |
-| `src/content/blog/`, `src/content.config.ts` | Blog posts (content collection) |
-| `src/lib/icons.ts` | Icon set (`IconName`) for sections |
-| `public/` | Static files: favicons, fonts, OG image, `robots.txt`, `llms.txt` |
-| `.agents/skills/` | Skills (canonical source) |
-| `.claude/skills/` | Mirror of `.agents/skills/` for Claude Code; do not edit mirrored skills (own Claude-only skills are fine) |
-| `scripts/`, `tests/` | Check, theme, cleanup and sync scripts with their tests |
-| `docs/agents/` | Supported agents, MCP setup |
+Read the [design system](.agents/skills/astrodeck-build-site/references/design-system.md)
+before visual work. Consult the [Astro conventions](docs/agents/astro-conventions.md) when
+changing Astro templates, configuration, content collections or Tailwind setup.
 
-## Golden rules
+## Commands
 
-1. Read `PROJECT.md` first; it overrides this file. Record new decisions there.
-2. **Honest content.** Never invent testimonials, quotes, customer logos, statistics, awards,
-   team members, prices or contact details. Ask, or list the gap under Open questions in
-   `PROJECT.md` and leave the element out. Placeholders never reach shipped HTML.
-3. Brand, URL, nav, footer, social links and contact data live only in `src/config/site.ts` and
-   `src/config/site-url.mjs`. Pages pass plain titles ("Pricing"); the layout adds the brand.
-4. Colors only through semantic tokens (`bg-background`, `text-muted-foreground`,
-   `bg-primary`). No raw palette classes, hex, arbitrary colors, `text-white`, `dark:` color
-   overrides, inline `style`. Change the palette with `pnpm run theme`.
-5. Compose pages from registry sections with props. Never copy a section to change its content;
-   add a prop or, only if nothing fits, a new registered section.
-6. Icons only from `IconName` in `src/lib/icons.ts`; add missing ones there.
-7. Import with the `@/` alias. Static content is `.astro`; React `.tsx` islands only for real
-   interactivity, with `client:visible` or `client:idle` (`client:load` only above the fold).
-8. Every link and form goes somewhere real: no `href="#"`, no `action="#"`.
-9. One `h1` per page, headings in order, meaningful `alt`, mobile-first, readable in light and
-   dark mode.
-10. Tailwind 4 is CSS-first: no `tailwind.config.*`, no `@astrojs/tailwind`.
-11. Edit skills in `.agents/skills/`, then `pnpm run sync:agents`. Never edit mirrored skills in `.claude/skills/`; add your own Claude-only skills directly in `.claude/skills/` (sync never touches folders it does not manage).
-12. Done means `pnpm run verify` ends with `VERIFY PASSED`. Do not push, publish or deploy unless
-    the user asks.
+Use macOS or Linux and pnpm for installs, lockfile updates and scripts. See `engines` and
+`packageManager` in [package.json](package.json) for the required Node and pnpm versions.
 
-## Task → skill
+- Run `pnpm install --frozen-lockfile` to set up dependencies.
+- Start `pnpm run dev` in the background. Poll `/_astro/status` on the reported URL until it
+  returns `{"ok":true}`. Stop the server when finished if you started it.
+- Edit skill sources in `.agents/skills/`, then run `pnpm run sync:agents` to regenerate the
+  mirror. Check drift with `pnpm run sync:agents --check`. The installer owns skills listed
+  in `skills-lock.json`. Put Claude-only skills in their own folders under `.claude/skills/`.
 
-Skills live in `.agents/skills/<name>/SKILL.md`. If your tool does not load skills
-automatically, open the file and follow it.
+See the [README command reference](README.md#commands) for other scripts.
 
-| The user wants ... | Follow |
-|--------------------|--------|
-| A website for their project, a new site, to adapt AstroDeck, or gives a brief / PDFs / DESIGN.md | `astrodeck-build-site` |
-| A new page (about, pricing, services, contact, ...) | `astrodeck-new-page` |
-| A section no registry section covers, or a new prop on a section | `astrodeck-new-section` |
-| Colors, fonts, radius, logo, rebrand, DESIGN.md, design-system link | `astrodeck-theme` |
-| To remove the demo / start clean | `astrodeck-cleanup` |
-| Copy, headlines, alt text, meta descriptions | `.agents/skills/astrodeck-build-site/references/content-rules.md` |
-| An audit, "is it ready to ship?", a launch check | the vibe2prod skill (bundled in `.agents/skills/vibe2prod/`), plus `.agents/skills/astrodeck-build-site/references/quality-checklist.md` |
-| A review of a change (Claude Code, optional) | subagent `astrodeck-reviewer` |
+## Verification and handover
 
-## Astro 7 / Tailwind 4 gotchas
-
-- **Dev server for agents:** run `astro dev` in the background and poll `/_astro/status`
-  (`{"ok":true}` when ready) instead of waiting on the process.
-- **Stricter compiler:** malformed markup (unclosed or misnested tags) fails the build. Fix the
-  HTML; do not work around it.
-- **Markdown:** Sätteri is the default Markdown processor. remark/rehype plugins only work with
-  `unified()` from `@astrojs/markdown-remark` set as `markdown.processor`.
-- **Whitespace:** `compressHTML` defaults to `'jsx'`: whitespace and line breaks between elements
-  are removed. Write `{" "}` where a space between inline elements on separate lines matters.
-- **Component slots:** Use explicit string expressions such as `{'Label'}` when exact slot text
-  matters. The format command checks slot text before writing Astro source.
-- **`fetch.ts` in `src/` is reserved** as Astro's fetch entrypoint (`fetchFile`). Do not create
-  a file with that name for anything else.
-- **No `@astrojs/db`.** Do not add it.
-- `ClientRouter` from `astro:transitions`, never `ViewTransitions`. `z` from `astro/zod`, never
-  from `astro:content` or `astro:schema`.
-- Content collections: `src/content.config.ts` with the `glob()` loader; entries have `id`.
-- **Tailwind 4:** configured in CSS (`@import 'tailwindcss'`, `@theme`) via the
-  `@tailwindcss/vite` plugin; there is no `tailwind.config`. `container` has no padding: put
-  `px-6` on the `<section>`. Dark mode is the `.dark` class (custom variant in `globals.css`).
-- Use `{/* */}` comments inside `.map()` expressions.
-- Check Astro APIs against current docs (Astro Docs MCP in `.mcp.json`, see
-  `docs/agents/mcp-setup.md`), not memory.
-
-## Where design rules live
-
-| Topic | File |
-|-------|------|
-| Tokens, typography, spacing, radius, motion, imagery, accessibility | `.agents/skills/astrodeck-build-site/references/design-system.md` (read before visual work) |
-| Honest content, links, alt text, metadata, "AI default" look | `.agents/skills/astrodeck-build-site/references/content-rules.md` |
-| Site types: sitemap and section order | `.agents/skills/astrodeck-build-site/references/recipes/` |
-| Pre-handover checklist | `.agents/skills/astrodeck-build-site/references/quality-checklist.md` |
-| Which section to use | `src/registry.json` (`useWhen`, props, `example`) |
-| Machine-enforced rules | `pnpm run lint:design` (shared with the Claude Code hook) |
-
-## Verify before done
-
-1. `pnpm run verify` (or `pnpm run verify --starter` once the demo is removed) ends with
-   `VERIFY PASSED`. Fix the cause of a failure; never add ignore markers, delete rules or tests,
-   or edit generated output to get green.
-2. If a check could not run (missing tool, no network), say exactly which one.
-3. Before launch or handover of a whole site: run the vibe2prod audit and work through the
-   manual items of the quality checklist.
-4. Tell the user what you checked, what passed and what is still open.
+- Run `pnpm run verify` for changes. After demo cleanup, use `pnpm run verify --starter` to
+  also check for demo leftovers. The selected command must exit successfully and print
+  `VERIFY PASSED`. The faster `pnpm run validate` skips the build and built-HTML checks.
+- Fix failures at their source. Keep tests, rules and generated output intact.
+- For launch or whole-site handover, run vibe2prod and the manual items in the
+  [quality checklist](.agents/skills/astrodeck-build-site/references/quality-checklist.md).
+- Report the exact verification command, its result, and any checks that could not run.
+  Push, publish or deploy only when the user asks.

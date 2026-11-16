@@ -7,13 +7,15 @@
  * Usage: node scripts/lint-docs.mjs [projectRoot]   (exit 1 on any finding)
  */
 import { readFileSync, existsSync } from 'node:fs';
-import { join, relative, resolve, sep } from 'node:path';
+import { basename, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { formatFindings } from './lib/findings.mjs';
 import { walkFiles } from './lib/walk-files.mjs';
+import { markdownFences } from './lib/markdown-fences.mjs';
 
 const ROOT_DOCS = [
   'AGENTS.md',
+  'GLOSSARY.md',
   'CLAUDE.md',
   'PROJECT.md',
   'README.md',
@@ -28,34 +30,16 @@ const PATH_ROOTS = ['src', 'scripts', 'public', 'docs', 'tests', '.claude', '.gi
 function listDocs(root) {
   const files = new Set();
   for (const f of ROOT_DOCS) if (existsSync(join(root, f))) files.add(join(root, f));
-  const skills = join(root, CLAUDE_SKILLS);
+  const claudeExcluded = new Set([join(root, CLAUDE_SKILLS), join(root, '.claude/worktrees')]);
+  const skipDirectory = (path) => basename(path) === 'node_modules' || claudeExcluded.has(path);
   const isMarkdown = (name) => name.endsWith('.md');
   for (const dir of SCAN_DIRS.map((name) => join(root, name))) {
     if (!existsSync(dir)) continue;
-    for (const file of walkFiles(dir, isMarkdown, (path) => path === skills)) files.add(file);
+    for (const file of walkFiles(dir, isMarkdown, skipDirectory)) files.add(file);
   }
   return [...files]
     .map((f) => ({ abs: f, rel: relative(root, f).split(sep).join('/') }))
     .sort((a, b) => a.rel.localeCompare(b.rel));
-}
-
-/** Mark lines inside fenced code blocks. @param {string[]} lines */
-function fenceMask(lines) {
-  let fence = null;
-  return lines.map((l) => {
-    const m = l.match(/^\s*(`{3,}|~{3,})/);
-    if (m) {
-      if (!fence) {
-        fence = m[1][0];
-        return true;
-      }
-      if (m[1][0] === fence) {
-        fence = null;
-        return true;
-      }
-    }
-    return fence !== null;
-  });
 }
 
 function readJson(path) {
@@ -122,7 +106,7 @@ export function lintDocs(root) {
 
   for (const { abs, rel } of listDocs(root)) {
     const lines = readFileSync(abs, 'utf8').split(/\r?\n/);
-    const inFence = fenceMask(lines);
+    const inFence = markdownFences(lines);
     const isChangelog = /(^|\/)CHANGELOG\.md$/.test(rel);
     lines.forEach((line, i) => {
       if (inFence[i]) return;

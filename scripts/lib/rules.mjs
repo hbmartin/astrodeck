@@ -8,6 +8,8 @@
  * Markdown fenced code blocks are always ignored.
  */
 
+import { markdownFences } from './markdown-fences.mjs';
+
 /** @typedef {import('./findings.mjs').Finding} Finding */
 /**
  * @typedef {{ line: number; message: string; suggestion?: string }} RuleHit
@@ -211,22 +213,6 @@ export const RULES = [
   },
 ];
 
-function ignoreMarkdownFences(lines, ignored) {
-  const delimiters = new Set();
-  let inFence = false;
-  lines.forEach((line, index) => {
-    const number = index + 1;
-    if (/^\s*(```|~~~)/.test(line)) {
-      inFence = !inFence;
-      delimiters.add(number);
-      ignored.add(number);
-    } else if (inFence) {
-      ignored.add(number);
-    }
-  });
-  return delimiters;
-}
-
 /**
  * Lines (1-based) suppressed by ignore markers and Markdown code fences.
  * @param {string} path
@@ -237,12 +223,13 @@ function ignoredLines(path, text) {
   const ignored = new Set();
   const lines = text.split('\n');
   const isMarkdown = ['md', 'mdx'].includes(ext(path));
-  const delimiters = isMarkdown ? ignoreMarkdownFences(lines, ignored) : new Set();
+  const fences = isMarkdown ? markdownFences(lines) : [];
   let inBlock = false;
   let skipNext = false;
   lines.forEach((line, index) => {
     const number = index + 1;
-    if (delimiters.has(number)) return;
+    if (fences[index]) ignored.add(number);
+    if (fences[index] === 'delimiter') return;
     const startsBlock = line.includes('lint-design-ignore-start');
     const endsBlock = line.includes('lint-design-ignore-end');
     const skipsNext = line.includes('lint-design-ignore-next-line');

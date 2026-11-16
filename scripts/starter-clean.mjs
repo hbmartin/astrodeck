@@ -96,33 +96,29 @@ function pruneRegistry(root) {
 }
 
 function formatGroup(root, paths) {
-  if (!paths.length) return;
+  if (!paths.length) return true;
   const formatter = fileURLToPath(new URL('./format.mjs', import.meta.url));
   const { status, error } = spawnSync(process.execPath, [formatter, ...paths], {
     cwd: root,
     stdio: ['ignore', 'ignore', 'inherit'],
   });
-  if (status === 0) return;
+  if (status === 0) return true;
   if (error) console.warn(error.message);
   console.warn(
-    `Warning: starter cleanup completed, but formatting failed for ${paths.join(', ')}. ` +
-      'Resolve the formatter error, then run `pnpm run format`.'
+    'Warning: starter cleanup completed with formatting errors. ' +
+      'Resolve the reported errors, then run `pnpm run format`.'
   );
+  return false;
 }
 
 /**
  * Format the files starter:clean wrote with the target project's Oxfmt config.
- * Format Astro files independently so a slot text change only blocks that file.
  * @param {string} root project root
  * @param {string[]} files paths relative to root
  */
 function formatWritten(root, files) {
   const paths = [...new Set(files)].filter((file) => existsSync(inside(root, file)));
-  formatGroup(
-    root,
-    paths.filter((file) => !file.endsWith('.astro'))
-  );
-  for (const file of paths.filter((file) => file.endsWith('.astro'))) formatGroup(root, [file]);
+  return formatGroup(root, paths);
 }
 
 /** Every file applyClean writes, relative to root. */
@@ -213,8 +209,9 @@ async function main() {
   if (dryRun) return;
   if (!confirmed) await confirmClean();
   applyClean(root, plan);
-  formatWritten(root, writtenFiles(plan));
-  console.log('Done. Run `pnpm run build` to verify the clean starter.');
+  const formatted = formatWritten(root, writtenFiles(plan));
+  const result = formatted ? 'Done.' : 'Done with formatting warnings.';
+  console.log(result + ' Run `pnpm run verify --starter` to verify the clean starter.');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -15,14 +15,14 @@ AstroDeck is an Astro 7 + Tailwind CSS 4 + React 19 + shadcn/ui project. Agents 
 - [Sections](https://www.astrodeck.dev/sections): Page sections (Hero, HeroGradient, HeroSplit, Features, Pricing, Testimonials, CTA, ContentBlock, LogoCloud, IntegrationGrid, FAQ, Stats, Team, Comparison, Newsletter, Contact) with registry usage snippets
 - [Components](https://www.astrodeck.dev/components): shadcn/ui React components (Button, Card, Badge, Input, Label, Accordion, Dialog, DropdownMenu, Select, Tabs, Tooltip)
 - [Pages](https://www.astrodeck.dev/pages): Demo pages (SaaS, startup, portfolio, contact, blog, docs, login, sections, changelog, content)
-- [Component registry](https://github.com/holger1411/astrodeck/blob/main/src/registry.json): Machine-readable catalog of every section, layout and UI component with props, use-when hints and examples
+- [Component registry](https://github.com/hbmartin/astrodeck/blob/main/src/registry.json): Machine-readable catalog of every section, layout and UI component with props, use-when hints and examples
 
 ## Source
 
-- [GitHub repository](https://github.com/holger1411/astrodeck): Source code, issues, releases
-- [AGENTS.md](https://github.com/holger1411/astrodeck/blob/main/AGENTS.md): Index for coding agents (rules, commands, task to skill)
-- [Skills](https://github.com/holger1411/astrodeck/tree/main/.agents/skills): astrodeck-build-site, astrodeck-new-page, astrodeck-new-section, astrodeck-theme, astrodeck-cleanup, vibe2prod
-- [Latest release](https://github.com/holger1411/astrodeck/releases/latest): Download
+- [GitHub repository](https://github.com/hbmartin/astrodeck): Source code and issues
+- [AGENTS.md](https://github.com/hbmartin/astrodeck/blob/main/AGENTS.md): Index for coding agents (rules, commands, task to skill)
+- [Skills](https://github.com/hbmartin/astrodeck/tree/main/.agents/skills): astrodeck-build-site, astrodeck-new-page, astrodeck-new-section, astrodeck-theme, astrodeck-cleanup, vibe2prod
+- [Main branch source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip): Download
 
 ## Optional
 

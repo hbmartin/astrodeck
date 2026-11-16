@@ -2,7 +2,7 @@
 /**
  * Built-HTML check: scans every .html file in a build output directory.
  * Rules: h1-count, title-empty, title-unique, meta-description, meta-length, internal-link,
- * link-scheme, alt-quality, form-novalidate, demo-leftover (starter mode only).
+ * link-scheme, alt-quality, image-link-name, form-novalidate, demo-leftover (starter mode only).
  * meta-length mirrors the vibe2prod gates S1/S2: the home page title has 30-60 characters and
  * its description at least 50; no description is longer than 160 characters.
  * Usage: node scripts/check-dist.mjs [--starter] [dir=dist]   (exit 1 on any finding)
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'node-html-parser';
 import { walkFiles } from './lib/walk-files.mjs';
 import { formatFindings } from './lib/findings.mjs';
+import { checkImageLinks } from './lib/image-links.mjs';
 
 const BAD_ALT = [
   /\.(png|jpe?g|webp|avif|gif|svg)$/i,
@@ -36,10 +37,6 @@ function resolves(dir, urlPath) {
   return isFile(base) || isFile(join(base, 'index.html')) || isFile(`${base}.html`);
 }
 
-function emptyAltIsValid(img) {
-  return img.getAttribute('aria-hidden') === 'true' || img.getAttribute('role') === 'presentation';
-}
-
 function isGenericAlt(text, src) {
   if (BAD_ALT.some((re) => re.test(text))) return true;
   const name = basename(src.split(/[?#]/)[0]);
@@ -52,15 +49,9 @@ function checkImg(img, add) {
   const src = img.getAttribute('src') ?? '';
   if (alt === undefined) return add('alt-quality', `<img src="${src}"> has no alt attribute`);
   const text = alt.trim();
-  if (text === '') {
-    if (!emptyAltIsValid(img))
-      add(
-        'alt-quality',
-        `<img src="${src}"> has empty alt without aria-hidden/role="presentation"`
-      );
-  } else if (isGenericAlt(text, src)) {
+  if (alt && !text) add('alt-quality', `whitespace-only alt (src ${src})`);
+  if (text && isGenericAlt(text, src))
     add('alt-quality', `generic or filename-like alt "${text}" (src ${src})`);
-  }
 }
 
 function checkMetadata(root, rel, titles, add) {
@@ -124,6 +115,7 @@ function checkPage(html, dir, rel, opts, titles, add) {
   checkMetadata(root, rel, titles, add);
   checkLinks(root, dir, add);
   for (const img of root.querySelectorAll('img')) checkImg(img, add);
+  checkImageLinks(root, add);
   checkForms(root, add);
   if (opts.starter) checkDemoLeftovers(html, add);
 }

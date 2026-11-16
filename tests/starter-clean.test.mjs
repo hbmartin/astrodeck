@@ -224,10 +224,8 @@ test('starter cleanup warns about unsafe formatting and formats the other replac
     result.stderr,
     /src[/\\]pages[/\\]index\.astro: Formatting changes rendered Astro slot text/
   );
-  assert.match(
-    result.stderr,
-    /Warning: starter cleanup completed, but formatting failed for src\/pages\/index\.astro/
-  );
+  assert.match(result.stderr, /Warning: starter cleanup completed with formatting errors/);
+  assert.match(result.stdout, /Done with formatting warnings/);
   assert.equal(read('src/pages/index.astro'), unsafe);
   assertFormatted('src/config/site.ts', 'src/registry.json', 'src/pages/extra.astro');
 });

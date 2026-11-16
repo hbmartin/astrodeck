@@ -2,10 +2,7 @@
   import { createDemoCopyToggle } from '@/components/demos/demo-copy-toggle';
   import { copyText } from '@/lib/clipboard';
 
-  const toggleCode = createDemoCopyToggle(copyText, {
-    setTimeout: (callback, delay) => window.setTimeout(callback, delay),
-    clearTimeout: (timer) => window.clearTimeout(timer),
-  });
+  const toggleCode = createDemoCopyToggle(copyText, window);
 
   document.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;

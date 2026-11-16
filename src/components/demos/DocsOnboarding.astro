@@ -71,14 +71,14 @@ const skillRoutes = [
       <h3 class="font-semibold mb-3">No coding experience</h3>
       <ol class="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">
         <li>
-          Download the ZIP from the{' '}
+          Download the{' '}
           <a
             class={link}
-            href="https://github.com/holger1411/astrodeck/releases/latest"
+            href="https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip"
             target="_blank"
             rel="noopener noreferrer"
           >
-            latest release
+            main branch source ZIP
           </a>{' '}
           and unzip it.
         </li>
@@ -107,14 +107,14 @@ const skillRoutes = [
       <CodeBlock
         class={pre}
         codeClass="text-sm font-mono"
-        code={`pnpm dlx degit holger1411/astrodeck my-site
+        code={`git clone --branch main --single-branch https://github.com/hbmartin/astrodeck.git my-site
 cd my-site
 pnpm install --frozen-lockfile
 pnpm run dev`}
       />
       <p class="text-sm text-muted-foreground mt-3">
-        <code class={ic}>git clone</code> or the release ZIP work the same way. Then let your agent
-        run the workflow, or work by hand: set <code class={ic}>src/config/site.ts</code>, run{' '}
+        The main branch source ZIP also includes the lockfile. Then let your agent run the workflow,
+        or work by hand: set <code class={ic}>src/config/site.ts</code>, run{' '}
         <code class={ic}>pnpm run theme</code>, compose pages from sections and finish with{' '}
         <code class={ic}>pnpm run verify</code>.
       </p>

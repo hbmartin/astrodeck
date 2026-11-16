@@ -39,7 +39,7 @@ Why a copy: Claude Code reads skills only from \`.claude/skills/\`, most other a
 `;
 
 /** OS metadata files that are never mirrored and never count as drift. */
-const IGNORED = new Set(['.DS_Store']);
+const IGNORED = new Set(['.DS_Store', 'Thumbs.db']);
 
 /**
  * Walk dir without following symlinks; skips IGNORED files.

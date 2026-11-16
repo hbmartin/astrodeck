@@ -16,7 +16,7 @@ export const GET: APIRoute = ({ site }) => {
     '',
     `Short index: ${origin}/llms.txt`,
     `Live docs: ${origin}/docs`,
-    `Source: https://github.com/holger1411/astrodeck`,
+    `Source: https://github.com/hbmartin/astrodeck`,
     '',
     '---',
     '',

@@ -42,6 +42,8 @@ logos or numbers, one `h1` per page, light and dark mode, mobile first.
 - New or changed section: follow `.agents/skills/astrodeck-new-section/SKILL.md`, then update
   `src/registry.json` (props, `useWhen`, `example`). `pnpm run check:registry` compares it with the
   component.
+- When adding or changing a public UI export, update its `exports` in `src/registry.json` and
+  the corresponding `usedExports` in `.fallowrc.json`. The registry tests check that they match.
 - Icons come from `src/lib/icons.ts`; add new ones there.
 
 ### Skills and agent files

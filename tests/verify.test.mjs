@@ -86,6 +86,11 @@ test('run() reports a failing step with its output tail and exits 1', () => {
   assert.match(out, /VERIFY FAILED \(1\)/);
 });
 
+test('verification explicitly uses the compact spec reporter', () => {
+  const testStep = STEPS.find((step) => step.id === 'test');
+  assert.ok(testStep.args.includes('--test-reporter=spec'));
+});
+
 test('run() retains early test diagnostics and limits other failure output', () => {
   const lines = [];
   const failing =

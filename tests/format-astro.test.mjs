@@ -5,6 +5,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { changedAstroSlots } from '../scripts/lib/astro-slots.mjs';
+import { compactionForFiles } from '../scripts/lib/formatter-config.mjs';
+
 const script = join(import.meta.dirname, '..', 'scripts', 'format.mjs');
 
 function checkFormatting(source, printWidth, check) {
@@ -65,7 +68,7 @@ for (const [name, source, slot] of unsafe) {
       assert.match(result.stderr, slot);
       assert.match(result.stderr, /explicit string expression/);
       assert.equal(read(), source);
-      assert.equal(readJavaScript(), 'const value="hello"');
+      assert.equal(readJavaScript(), "const value = 'hello';\n");
     });
   });
 }
@@ -118,4 +121,33 @@ test('format ignores excluded paths and only writes changed targets', () => {
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+});
+
+test('slot safety uses Astro compaction from Oxfmt and protects uncertain config modes', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'slot-mode-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const inline = '<Demo><b>One</b><i>Two</i></Demo>';
+  const wrapped = '<Demo>\n  <b>One</b>\n  <i>Two</i>\n</Demo>';
+  const file = 'example.astro';
+  const config = join(root, '.oxfmtrc.json');
+  for (const [setting, mode] of [
+    ['jsx', 'jsx'],
+    ['html', true],
+    ['none', false],
+  ]) {
+    writeFileSync(config, JSON.stringify({ astro: { compressHTML: setting } }));
+    const modes = compactionForFiles(root)(file);
+    assert.deepEqual(modes, [mode]);
+    assert.deepEqual(
+      changedAstroSlots(inline, wrapped, file, mode),
+      mode === 'jsx' ? [] : ['Demo (default)']
+    );
+  }
+  writeFileSync(
+    config,
+    JSON.stringify({
+      overrides: [{ files: ['*.astro'], options: { astro: { compressHTML: 'none' } } }],
+    })
+  );
+  assert.deepEqual(compactionForFiles(root)(file), ['jsx', true, false]);
 });

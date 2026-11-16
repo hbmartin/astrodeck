@@ -230,19 +230,24 @@ const { title, subtitle, primaryCta, secondaryCta, badge } = Astro.props;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
+  }
 
+  @supports (background-clip: text) {
     :global(.dark) .hero-gradient-title {
       background-image: linear-gradient(
         135deg,
-        oklch(98% 0 0) 0%,
-        oklch(85% 0.03 280) 60%,
-        oklch(80% 0.05 260) 100%
+        var(--color-foreground) 0%,
+        var(--color-muted-foreground) 100%
       );
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
   }
 
-  @media (forced-colors: active) {
-    .hero-gradient-title {
+  @media print, (forced-colors: active) {
+    .hero-gradient-title,
+    :global(.dark) .hero-gradient-title {
+      background-image: none;
       color: CanvasText;
       -webkit-text-fill-color: currentColor;
     }

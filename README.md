@@ -15,7 +15,7 @@
 
 Download AstroDeck, open it in Claude Code, Codex, Cursor or another coding agent, and describe
 your site — in one sentence or with a full brief. The agent follows a guided workflow from brief
-to finished pages, and the result is checked by `npm run verify` and the bundled
+to finished pages, and the result is checked by `pnpm run verify` and the bundled
 [vibe2prod](https://github.com/holger1411/vibe2prod) audit.
 
 Built with [Astro](https://astro.build) 7, [Tailwind CSS](https://tailwindcss.com) 4,
@@ -36,14 +36,14 @@ TypeScript, React 19 islands and [shadcn/ui](https://ui.shadcn.com) on Radix.
 3. **Describe your site:** "Build my website for a physiotherapy practice in Hamburg." Put texts,
    PDFs, a logo or a `DESIGN.md` into the `brief/` folder if you have them.
 4. **Get a checked result.** The agent asks a few questions, shows a preview, builds the pages,
-   runs `npm run verify` and the vibe2prod audit, and tells you what is still open.
+   runs `pnpm run verify` and the vibe2prod audit, and tells you what is still open.
 
 AstroDeck is for company and service sites, SaaS and product pages, portfolios, personal sites,
 event pages and blogs. It is not built for dashboards or app-heavy products.
 
 ## Quick start
 
-Requires **Node.js >= 22.23.4** (`node -v`).
+Requires **Node.js >= 22.23.4** and **pnpm 12.21.0**.
 
 ### No coding experience
 
@@ -59,14 +59,14 @@ what to change.
 ### Developers
 
 ```bash
-npx degit holger1411/astrodeck my-site   # or git clone, or the release ZIP
+pnpm dlx degit holger1411/astrodeck my-site  # or git clone, or the release ZIP
 cd my-site
-npm install
-npm run dev                              # http://localhost:4321
+pnpm install --frozen-lockfile
+pnpm run dev                                 # http://localhost:4321
 ```
 
 Then let your agent run the workflow, or work by hand: set `src/config/site.ts`, run
-`npm run theme`, compose pages from `src/components/sections/`, finish with `npm run verify`.
+`pnpm run theme`, compose pages from `src/components/sections/`, finish with `pnpm run verify`.
 
 Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can write its own
 `AGENTS.md` over the kit's. Use the ZIP, `git clone` or `degit`.
@@ -85,12 +85,12 @@ Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can wr
   `src/registry.json` with props, "use when" hints and usage examples.
 - **One config file.** Brand, navigation, footer, SEO defaults and feature flags in
   `src/config/site.ts`.
-- **Theme script.** `npm run theme` turns a brand color or a `DESIGN.md` into OKLCH tokens for
+- **Theme script.** `pnpm run theme` turns a brand color or a `DESIGN.md` into OKLCH tokens for
   light and dark mode, with a WCAG contrast gate.
 - **Honest content rules.** No invented testimonials, customer logos, numbers or team members;
   gaps become open questions instead of placeholder text.
-- **Demo cleanup.** `npm run starter:clean` removes the demo site in one step.
-- **One verify command.** Formatting, ESLint, `astro check`, design and docs lint, registry and
+- **Demo cleanup.** `pnpm run starter:clean` removes the demo site in one step.
+- **One verify command.** Oxfmt, Oxlint, Astro lint, `astro check`, design and docs lint, registry and
   skills checks, tests, the build and checks on the built HTML.
 - **vibe2prod bundled.** Production-readiness audit with a READY / NOT YET / BLOCKED verdict.
 - **The usual Astro basics.** Dark mode, sitemap, RSS, Open Graph and structured data, a blog
@@ -103,12 +103,12 @@ Say "build my website" and the agent follows `.agents/skills/astrodeck-build-sit
 | Step | What happens |
 |------|--------------|
 | 1. Intake | Inventory of your messages, `PROJECT.md` and `brief/`. Little input: one round of at most five questions with proposed defaults. A full briefing: faithful extraction with sources, conflicts and gaps listed. |
-| 2. Start clean | The demo is removed (`npm run starter:clean`, dry run first). |
+| 2. Start clean | The demo is removed (`pnpm run starter:clean`, dry run first). |
 | 3. Brief and site plan | `PROJECT.md` filled, a recipe chosen, a section list per page from the registry. |
 | 4. Configure | `src/config/site.ts`, the production URL, `robots.txt`, `llms.txt`, favicons. |
-| 5. Theme | Brand colors, neutral tone and radius via `npm run theme`; fonts only on brand input. |
+| 5. Theme | Brand colors, neutral tone and radius via `pnpm run theme`; fonts only on brand input. |
 | 6. Build pages | Home first with an early preview, then the rest. Facts come only from the brief. |
-| 7. Verify and audit | `npm run verify -- --starter`, then vibe2prod targeting READY, then the manual checklist. |
+| 7. Verify and audit | `pnpm run verify --starter`, then vibe2prod targeting READY, then the manual checklist. |
 | 8. Handover | What was built, defaults taken, open questions, check results, how to deploy. |
 
 Other tasks have their own skill:
@@ -140,10 +140,10 @@ page) is in `src/config/ui.ts`; translate it for a non-English site. Pages pass 
 layout adds the brand.
 
 ```bash
-npm run theme -- --primary "#0f766e" --dry-run          # preview tokens and contrast report
-npm run theme -- --primary "#0f766e" --accent "#f59e0b" --neutral slate --radius 0.75rem
-npm run theme -- --from brief/DESIGN.md                 # apply a DESIGN.md
-npm run icons                                           # PNG icons + og.png from public/favicon.svg
+pnpm run theme --primary "#0f766e" --dry-run          # preview tokens and contrast report
+pnpm run theme --primary "#0f766e" --accent "#f59e0b" --neutral slate --radius 0.75rem
+pnpm run theme --from brief/DESIGN.md                 # apply a DESIGN.md
+pnpm run icons                                           # PNG icons + og.png from public/favicon.svg
 ```
 
 The script writes the color tokens in `src/styles/globals.css` for light and dark mode and fails
@@ -190,9 +190,9 @@ The download contains the astrodeck.dev demo site (docs, showcases, demo templat
 The build-site workflow removes it right after intake; you can also run it yourself:
 
 ```bash
-npm run starter:clean -- --dry-run      # show what is removed and replaced
-npm run starter:clean -- --yes          # remove the demo
-npm run starter:clean -- --yes --keep-blog
+pnpm run starter:clean --dry-run  # show what is removed and replaced
+pnpm run starter:clean --yes      # remove the demo
+pnpm run starter:clean --yes --keep-blog
 ```
 
 It keeps a minimal home page, the 404 page, all sections, layouts, scripts and skills (and, with
@@ -204,13 +204,13 @@ The cleanup is one-shot: once the `starter/` folder is gone, a second run does n
 ## Verify and vibe2prod
 
 ```bash
-npm run verify                 # all checks; ends with VERIFY PASSED
-npm run verify -- --starter    # also fails on demo leftovers (after cleanup)
-npm run validate               # verify without build (fast)
+pnpm run verify            # all checks; ends with VERIFY PASSED
+pnpm run verify --starter  # also fails on demo leftovers (after cleanup)
+pnpm run validate          # verify without build (fast)
 ```
 
-`verify` runs, in order: Prettier, ESLint, `astro check`, design lint (semantic tokens, real
-links and form actions, no deprecated APIs), docs lint (dead paths, version and count drift),
+`verify` runs Oxfmt, Oxlint, Astro lint (directives, exports, styles and deprecated APIs),
+`astro check`, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
 registry check, skills mirror check, tests, the build and checks on the built HTML (one `h1`,
 unique titles, meta descriptions, internal links, alt text). It runs offline and says which
 step failed.
@@ -222,8 +222,8 @@ responsiveness, and gives a verdict (READY / NOT YET / BLOCKED) with a 0–100 s
 are installed once:
 
 ```bash
-npm run setup:audit -- --check   # report what is missing
-npm run setup:audit              # install Lighthouse, axe CLI, Playwright + Chromium
+pnpm run setup:audit --check  # report what is missing
+pnpm run setup:audit          # install Lighthouse, axe CLI, Playwright + Chromium
 ```
 
 Without its tools, vibe2prod gives no verdict and reports which checks were skipped. After your
@@ -250,8 +250,8 @@ still get the workflow, because `AGENTS.md` names every skill file.
 
 Claude Code extras (optional, never required): a read-only review subagent
 (`.claude/agents/astrodeck-reviewer.md`) and a guard hook that shares its rules with
-`npm run lint:design`. `.claude/skills/` is generated from `.agents/skills/` by
-`npm run sync:agents`; edit the source. Add your own Claude-only skills directly in
+`pnpm run lint:design`. `.claude/skills/` is generated from `.agents/skills/` by
+`pnpm run sync:agents`; edit the source. Add your own Claude-only skills directly in
 `.claude/skills/`: sync never touches folders it does not manage.
 
 **MCP (optional):** `.mcp.json` declares the Astro Docs MCP server and the shadcn MCP server for
@@ -261,20 +261,20 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 
 | Command | What it does |
 |---------|--------------|
-| `npm run dev` | Dev server on `http://localhost:4321` |
-| `npm run build` / `npm run preview` | Production build to `dist/` / serve it locally |
-| `npm run verify` | All checks (see above) |
-| `npm run validate` | `verify` without build |
-| `npm run theme -- ...` | Brand tokens with contrast gate |
-| `npm run starter:clean -- ...` | Remove the demo |
-| `npm run setup:audit` | Install the vibe2prod tools |
-| `npm run lint:design` / `npm run lint:docs` / `npm run check:registry` | Single checks |
-| `npm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
-| `npm run format` / `npm run lint:fix` | Auto-fix formatting and lint |
+| `pnpm run dev` | Dev server on `http://localhost:4321` |
+| `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve it locally |
+| `pnpm run verify` | All checks (see above) |
+| `pnpm run validate` | `verify` without build |
+| `pnpm run theme ...` | Brand tokens with contrast gate |
+| `pnpm run starter:clean ...` | Remove the demo |
+| `pnpm run setup:audit` | Install the vibe2prod tools |
+| `pnpm run lint:design` / `pnpm run lint:docs` / `pnpm run check:registry` | Single checks |
+| `pnpm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
+| `pnpm run format` / `pnpm run lint:fix` | Auto-fix formatting and lint |
 
 ## Deploy
 
-`npm run build` produces static files in `dist/` for any static host: Vercel, Netlify,
+`pnpm run build` produces static files in `dist/` for any static host: Vercel, Netlify,
 Cloudflare Pages, GitHub Pages or your own server. Set `SITE_URL` in `src/config/site-url.mjs`
 first; canonical URLs, sitemap and RSS use it.
 
@@ -310,7 +310,7 @@ first; canonical URLs, sitemap and RSS use it.
 - Per-tool rule files (`.cursorrules`, `.windsurfrules`, `.cursor/rules`) and the Claude slash
   commands, skills and review agents were replaced by `AGENTS.md` and the skills in
   `.agents/skills/`.
-- `npm run check:kpis` became `npm run verify`.
+- `npm run check:kpis` became `pnpm run verify`.
 
 Before/after snippets: [CHANGELOG.md](CHANGELOG.md) and the
 [migration guide](https://www.astrodeck.dev/docs#migrating). For an existing 3.x site, start

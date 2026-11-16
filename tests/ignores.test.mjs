@@ -10,11 +10,11 @@ const lines = (rel) =>
     .map((l) => l.trim());
 
 // The bundled vibe2prod audit writes .vibe2prod/ (raw Lighthouse/axe JSON, scratch scripts) into
-// the project. `npm run verify` after an audit must not lint, format or commit those files.
-test('.vibe2prod/ is ignored by git, prettier and eslint', async () => {
+// the project. `pnpm run verify` after an audit must not lint, format or commit those files.
+test('.vibe2prod/ is ignored by git, Oxfmt and Oxlint', () => {
   assert.ok(lines('.gitignore').includes('.vibe2prod/'), '.gitignore');
-  assert.ok(lines('.prettierignore').includes('.vibe2prod'), '.prettierignore');
-  const { default: config } = await import('../eslint.config.mjs');
-  const ignores = config.flatMap((c) => (Object.keys(c).length === 1 && c.ignores) || []);
-  assert.ok(ignores.includes('.vibe2prod/**'), 'eslint.config.mjs global ignores');
+  for (const file of ['.oxfmtrc.json', '.oxlintrc.json']) {
+    const { ignorePatterns } = JSON.parse(readFileSync(join(REPO, file), 'utf8'));
+    assert.ok(ignorePatterns.includes('.vibe2prod/**'), file);
+  }
 });

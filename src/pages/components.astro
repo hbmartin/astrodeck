@@ -65,19 +65,21 @@ const codeSnippets = Object.fromEntries(
   <div class="py-16 px-6 md:px-12">
     <h1 class="text-4xl font-bold tracking-tight md:text-5xl mb-4">Component Library</h1>
     <p class="text-lg text-muted-foreground max-w-3xl">
-      {registry.ui.length} UI components built with <a
+      {registry.ui.length} UI components built with{' '}
+      <a
         href="https://ui.shadcn.com"
         target="_blank"
         rel="noopener noreferrer"
-        class="underline hover:text-foreground">shadcn/ui</a
-      >, Radix UI primitives, and Tailwind CSS. Fully accessible, dark mode ready, and customizable.
+        class="underline hover:text-foreground"
+      >
+        shadcn/ui
+      </a>
+      , Radix UI primitives, and Tailwind CSS. Fully accessible, dark mode ready, and customizable.
     </p>
   </div>
 
   <!-- Mobile Sub-Navigation -->
-  <div
-    class="sticky top-14 z-30 lg:hidden border-b border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 md:px-12"
-  >
+  <div class="sticky top-14 z-30 lg:hidden border-b border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 md:px-12">
     <button
       id="mobile-subnav-toggle"
       class="flex items-center justify-between w-full py-3 text-sm"
@@ -86,7 +88,9 @@ const codeSnippets = Object.fromEntries(
     >
       <span class="flex items-center gap-2 text-muted-foreground">
         <span>On this page:</span>
-        <span id="mobile-subnav-current" class="font-medium text-foreground">Button</span>
+        <span id="mobile-subnav-current" class="font-medium text-foreground">
+          Button
+        </span>
       </span>
       <svg
         id="mobile-subnav-chevron"
@@ -101,17 +105,15 @@ const codeSnippets = Object.fromEntries(
       </svg>
     </button>
     <nav id="mobile-subnav-menu" class="hidden pb-3 space-y-1" aria-label="Component navigation">
-      {
-        components.map((c) => (
-          <a
-            href={`#${c.id}`}
-            data-section={c.id}
-            class="nav-link block px-3 py-2 text-sm rounded-md transition-colors"
-          >
-            {c.label}
-          </a>
-        ))
-      }
+      {components.map((c) => (
+        <a
+          href={`#${c.id}`}
+          data-section={c.id}
+          class="nav-link block px-3 py-2 text-sm rounded-md transition-colors"
+        >
+          {c.label}
+        </a>
+      ))}
     </nav>
   </div>
 
@@ -124,17 +126,15 @@ const codeSnippets = Object.fromEntries(
           <p class="text-sm font-semibold mb-4 text-muted-foreground" aria-hidden="true">
             Components
           </p>
-          {
-            components.map((c) => (
-              <a
-                href={`#${c.id}`}
-                data-section={c.id}
-                class="nav-link block px-3 py-2 text-sm rounded-md transition-colors"
-              >
-                {c.label}
-              </a>
-            ))
-          }
+          {components.map((c) => (
+            <a
+              href={`#${c.id}`}
+              data-section={c.id}
+              class="nav-link block px-3 py-2 text-sm rounded-md transition-colors"
+            >
+              {c.label}
+            </a>
+          ))}
         </nav>
       </div>
     </aside>
@@ -146,9 +146,8 @@ const codeSnippets = Object.fromEntries(
         <div class="mb-6">
           <h2 class="text-2xl font-bold">Button</h2>
           <p class="text-muted-foreground mt-1">
-            6 variants, 4 sizes. Supports <code class="text-sm bg-muted px-1.5 py-0.5 rounded"
-              >asChild</code
-            > for custom elements.
+            6 variants, 4 sizes. Supports{' '}
+            <code class="text-sm bg-muted px-1.5 py-0.5 rounded">asChild</code> for custom elements.
           </p>
         </div>
         <div class="border rounded-lg p-8 bg-card">
@@ -156,27 +155,46 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">All Variants</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="button">Copy Code</button
+              data-code="button"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-button">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.button}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.button}</code></pre>
           </div>
           <div class="border-t pt-6 space-y-4">
             <div class="flex flex-wrap gap-3 items-center">
               <Button client:load>Default</Button>
-              <Button client:load variant="secondary">Secondary</Button>
-              <Button client:load variant="outline">Outline</Button>
-              <Button client:load variant="ghost">Ghost</Button>
-              <Button client:load variant="destructive">Destructive</Button>
-              <Button client:load variant="link">Link</Button>
+              <Button client:load variant="secondary">
+                {'Secondary'}
+              </Button>
+              <Button client:load variant="outline">
+                {'Outline'}
+              </Button>
+              <Button client:load variant="ghost">
+                {'Ghost'}
+              </Button>
+              <Button client:load variant="destructive">
+                {'Destructive'}
+              </Button>
+              <Button client:load variant="link">
+                {'Link'}
+              </Button>
             </div>
             <div class="flex flex-wrap gap-3 items-center">
-              <Button client:load size="sm">Small</Button>
-              <Button client:load size="default">Default</Button>
-              <Button client:load size="lg">Large</Button>
+              <Button client:load size="sm">
+                {'Small'}
+              </Button>
+              <Button client:load size="default">
+                {'Default'}
+              </Button>
+              <Button client:load size="lg">
+                {'Large'}
+              </Button>
               <Button client:load size="icon" aria-label="Next">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -186,8 +204,10 @@ const codeSnippets = Object.fromEntries(
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  class="h-4 w-4"><path d="M5 12h14M12 5l7 7-7 7"></path></svg
+                  class="h-4 w-4"
                 >
+                  <path d="M5 12h14M12 5l7 7-7 7"></path>
+                </svg>
               </Button>
             </div>
           </div>
@@ -207,19 +227,28 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">All Variants</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="badge">Copy Code</button
+              data-code="badge"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-badge">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.badge}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.badge}</code></pre>
           </div>
           <div class="border-t pt-6 flex flex-wrap gap-3 items-center">
             <Badge client:load>Default</Badge>
-            <Badge client:load variant="secondary">Secondary</Badge>
-            <Badge client:load variant="outline">Outline</Badge>
-            <Badge client:load variant="destructive">Destructive</Badge>
+            <Badge client:load variant="secondary">
+              {'Secondary'}
+            </Badge>
+            <Badge client:load variant="outline">
+              {'Outline'}
+            </Badge>
+            <Badge client:load variant="destructive">
+              {'Destructive'}
+            </Badge>
           </div>
         </div>
       </section>
@@ -237,22 +266,25 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Card with Actions</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="card">Copy Code</button
+              data-code="card"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-card">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.card}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.card}</code></pre>
           </div>
           <div class="border-t pt-6">
             <div class="max-w-sm">
               <Card client:load>
                 <CardHeader>
                   <CardTitle>Project Settings</CardTitle>
-                  <CardDescription
-                    >Manage your project configuration and preferences.</CardDescription
-                  >
+                  <CardDescription>
+                    {'Manage your project configuration and preferences.'}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p class="text-sm text-muted-foreground">
@@ -282,25 +314,34 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Form Fields</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="input">Copy Code</button
+              data-code="input"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-input">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.input}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.input}</code></pre>
           </div>
           <div class="border-t pt-6 max-w-sm space-y-4">
             <div class="space-y-2">
-              <Label client:load htmlFor="demo-email">Email</Label>
+              <Label client:load htmlFor="demo-email">
+                {'Email'}
+              </Label>
               <Input client:load type="email" id="demo-email" placeholder="you@example.com" />
             </div>
             <div class="space-y-2">
-              <Label client:load htmlFor="demo-pw">Password</Label>
+              <Label client:load htmlFor="demo-pw">
+                {'Password'}
+              </Label>
               <Input client:load type="password" id="demo-pw" placeholder="Enter password" />
             </div>
             <div class="space-y-2">
-              <Label client:load htmlFor="demo-dis">Disabled</Label>
+              <Label client:load htmlFor="demo-dis">
+                {'Disabled'}
+              </Label>
               <Input client:load id="demo-dis" placeholder="Can't type here" disabled />
             </div>
           </div>
@@ -320,13 +361,16 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Modal Dialog</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="dialog">Copy Code</button
+              data-code="dialog"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-dialog">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.dialog}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.dialog}</code></pre>
           </div>
           <div class="border-t pt-6">
             <DialogDemo client:load />
@@ -347,13 +391,16 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Collapsible Accordion</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="accordion">Copy Code</button
+              data-code="accordion"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-accordion">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.accordion}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.accordion}</code></pre>
           </div>
           <div class="border-t pt-6">
             <AccordionDemo client:load />
@@ -372,13 +419,16 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Tab Navigation</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="tabs">Copy Code</button
+              data-code="tabs"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-tabs">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.tabs}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.tabs}</code></pre>
           </div>
           <div class="border-t pt-6">
             <TabsDemo client:load />
@@ -399,13 +449,16 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Hover Tooltip</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="tooltip">Copy Code</button
+              data-code="tooltip"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-tooltip">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.tooltip}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.tooltip}</code></pre>
           </div>
           <div class="border-t pt-6">
             <TooltipDemo client:load />
@@ -426,13 +479,16 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Select Dropdown</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="select">Copy Code</button
+              data-code="select"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-select">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.select}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.select}</code></pre>
           </div>
           <div class="border-t pt-6">
             <SelectDemo client:load />
@@ -453,13 +509,16 @@ const codeSnippets = Object.fromEntries(
             <h3 class="font-semibold">Action Menu</h3>
             <button
               class="copy-btn text-sm px-3 py-1 border rounded-md hover:bg-muted transition-colors"
-              data-code="dropdown">Copy Code</button
+              data-code="dropdown"
             >
+              Copy Code
+            </button>
           </div>
           <div class="code-block hidden" id="code-dropdown">
             <pre
               tabindex="0"
-              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"><code>{codeSnippets.dropdown}</code></pre>
+              class="mb-6 p-4 bg-muted rounded-md overflow-x-auto text-sm"
+            ><code>{codeSnippets.dropdown}</code></pre>
           </div>
           <div class="border-t pt-6">
             <DropdownMenuDemo client:load />

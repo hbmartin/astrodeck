@@ -17,16 +17,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
       <h1>Privacy Policy</h1>
 
       <p class="lead text-muted-foreground">
-        Last updated: {
-          new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-        }
+        Last updated:{' '}
+        {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
 
       <div class="bg-muted/50 border border-border rounded-lg p-4 my-6">
         <p class="text-sm text-muted-foreground m-0">
-          <strong>Note for AstroDeck users:</strong> This is a template privacy policy. You should replace
-          this content with your own privacy policy that reflects your actual data practices, legal requirements,
-          and jurisdiction.
+          <strong>Note for AstroDeck users:</strong> This is a template privacy policy. You should
+          replace this content with your own privacy policy that reflects your actual data
+          practices, legal requirements, and jurisdiction.
         </p>
       </div>
 
@@ -119,7 +118,9 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 
       <div class="border-t border-border mt-8 pt-8">
         <p class="text-sm text-muted-foreground">
-          <a href="/" class="text-primary hover:underline">← Back to Home</a>
+          <a href="/" class="text-primary hover:underline">
+            ← Back to Home
+          </a>
         </p>
       </div>
     </article>

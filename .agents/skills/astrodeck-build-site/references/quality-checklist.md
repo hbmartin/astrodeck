@@ -2,7 +2,7 @@
 
 Run this before telling the user a page or site is done. Every item names how it is checked:
 
-- **verify** = `npm run verify` (format, eslint, astro check, design lint, docs lint, registry,
+- **verify** = `pnpm run verify` (Oxfmt, Oxlint, Astro lint, astro check, design lint, docs lint, registry,
   tests, build, built-HTML checks). Must end with `VERIFY PASSED`.
 - **vibe2prod** = the vibe2prod skill (production-readiness audit of the built site or live URL).
 - **manual** = you look at it yourself, in the browser, at the stated widths.

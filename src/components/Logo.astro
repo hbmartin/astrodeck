@@ -49,22 +49,16 @@ const withText = showText && logo.text.trim() !== '';
   class:list={['flex items-center gap-2', className]}
   aria-label={withText ? undefined : label}
 >
-  {
-    logo.svg ? (
-      <span
-        class:list={['inline-flex aspect-square [&>svg]:h-full [&>svg]:w-full', sizeClasses[size]]}
-        aria-hidden="true"
-        set:html={logo.svg}
-      />
-    ) : (
-      logo.src && (
-        <img
-          src={logo.src}
-          alt={withText ? '' : label}
-          class:list={['w-auto', sizeClasses[size]]}
-        />
-      )
+  {logo.svg ? (
+    <span
+      class:list={['inline-flex aspect-square [&>svg]:h-full [&>svg]:w-full', sizeClasses[size]]}
+      aria-hidden="true"
+      set:html={logo.svg}
+    />
+  ) : (
+    logo.src && (
+      <img src={logo.src} alt={withText ? '' : label} class:list={['w-auto', sizeClasses[size]]} />
     )
-  }
+  )}
   {withText && <span class:list={['font-bold', textSizeClasses[size]]}>{logo.text}</span>}
 </a>

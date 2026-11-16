@@ -105,71 +105,67 @@ const categories = [...new Set(pages.map((p) => p.category))];
         <p class="mt-4 text-lg text-muted-foreground max-w-2xl leading-relaxed">
           Every page of the AstroDeck demo, from landing pages to utility screens: responsive, in
           light and dark mode, built from the same sections and layouts as your site. The demo pages
-          are worked examples; <code class="text-sm font-mono">npm run starter:clean</code>{' '}
-          removes them when you build your own site.
+          are worked examples; <code class="text-sm font-mono">npm run starter:clean</code> removes
+          them when you build your own site.
         </p>
       </div>
 
-      {
-        categories.map((category) => (
-          <div class="mb-16">
-            <h2
-              class="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-6"
-              data-animate
-            >
-              {category}s
-            </h2>
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {pages
-                .filter((p) => p.category === category)
-                .map((page, i) => (
-                  <a
-                    href={page.href}
-                    class="group flex flex-col rounded-xl border bg-card overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/40"
-                    data-animate
-                    data-delay={String(Math.min(i + 1, 5))}
-                  >
-                    <div class="relative aspect-video overflow-hidden bg-muted border-b">
-                      <img
-                        src={page.screenshot}
-                        alt={`${page.name} page preview`}
-                        width="640"
-                        height="360"
-                        loading="lazy"
-                        decoding="async"
-                        class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
+      {categories.map((category) => (
+        <div class="mb-16">
+          <h2
+            class="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-6"
+            data-animate
+          >
+            {category}s
+          </h2>
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {pages
+              .filter((p) => p.category === category)
+              .map((page, i) => (
+                <a
+                  href={page.href}
+                  class="group flex flex-col rounded-xl border bg-card overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/40"
+                  data-animate
+                  data-delay={String(Math.min(i + 1, 5))}
+                >
+                  <div class="relative aspect-video overflow-hidden bg-muted border-b">
+                    <img
+                      src={page.screenshot}
+                      alt={`${page.name} page preview`}
+                      width="640"
+                      height="360"
+                      loading="lazy"
+                      decoding="async"
+                      class="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
 
-                    <div class="p-5 flex flex-col flex-1">
-                      <div class="flex items-center justify-between mb-2">
-                        <h3 class="font-semibold text-base group-hover:text-primary transition-colors">
-                          {page.name}
-                        </h3>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          class="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
-                          aria-hidden="true"
-                        >
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                      <p class="text-sm text-muted-foreground leading-relaxed">
-                        {page.description}
-                      </p>
+                  <div class="p-5 flex flex-col flex-1">
+                    <div class="flex items-center justify-between mb-2">
+                      <h3 class="font-semibold text-base group-hover:text-primary transition-colors">
+                        {page.name}
+                      </h3>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                        aria-hidden="true"
+                      >
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
                     </div>
-                  </a>
-                ))}
-            </div>
+                    <p class="text-sm text-muted-foreground leading-relaxed">{page.description}</p>
+                  </div>
+                </a>
+              ))}
           </div>
-        ))
-      }
+        </div>
+      ))}
     </div>
   </div>
 </BaseLayout>

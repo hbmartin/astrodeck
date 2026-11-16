@@ -10,12 +10,12 @@ interface Props {
 }
 
 const { code, class: className, codeClass = '' } = Astro.props;
-const escape = (s: string) =>
+const escapeHtml = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 ---
 
 <pre
   tabindex="0"
   class={className}
-  set:html={`<code class="${codeClass}">${escape(code)}</code>`}
+  set:html={`<code class="${codeClass}">${escapeHtml(code)}</code>`}
 />

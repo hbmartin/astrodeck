@@ -27,25 +27,23 @@ function formatDate(date: Date) {
     </div>
 
     <ul class="space-y-6">
-      {
-        sortedPosts.map((post) => (
-          <li>
-            <a href={`/blog/${post.id}`} class="group block">
-              <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
-                <time
-                  datetime={post.data.pubDate.toISOString()}
-                  class="text-sm text-muted-foreground min-w-[120px]"
-                >
-                  {formatDate(post.data.pubDate)}
-                </time>
-                <h2 class="text-xl font-bold group-hover:text-primary transition-colors">
-                  {post.data.title}
-                </h2>
-              </div>
-            </a>
-          </li>
-        ))
-      }
+      {sortedPosts.map((post) => (
+        <li>
+          <a href={`/blog/${post.id}`} class="group block">
+            <div class="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4">
+              <time
+                datetime={post.data.pubDate.toISOString()}
+                class="text-sm text-muted-foreground min-w-[120px]"
+              >
+                {formatDate(post.data.pubDate)}
+              </time>
+              <h2 class="text-xl font-bold group-hover:text-primary transition-colors">
+                {post.data.title}
+              </h2>
+            </div>
+          </a>
+        </li>
+      ))}
     </ul>
   </div>
 </BaseLayout>

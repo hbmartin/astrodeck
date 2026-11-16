@@ -7,7 +7,8 @@ test('STEPS are in the documented order', () => {
     STEPS.map((s) => s.id),
     [
       'format',
-      'eslint',
+      'oxlint',
+      'lint-astro',
       'astro-check',
       'lint-design',
       'lint-docs',

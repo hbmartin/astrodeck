@@ -105,8 +105,9 @@ const blocks = [
 ];
 
 const verifySteps = [
-  { id: 'format', what: 'Prettier' },
-  { id: 'eslint', what: 'ESLint' },
+  { id: 'format', what: 'Oxfmt' },
+  { id: 'oxlint', what: 'JavaScript, TypeScript and Astro scripts (Oxlint)' },
+  { id: 'lint-astro', what: 'Astro directives, exports, styles and deprecated APIs' },
   { id: 'astro-check', what: 'Types and templates (astro check)' },
   { id: 'lint-design', what: 'Design rules: tokens, links, forms, deprecated APIs' },
   { id: 'lint-docs', what: 'Dead paths, version and count drift in docs, skill front matter' },
@@ -272,9 +273,7 @@ const structure = [
   </div>
 
   <!-- Mobile Sub-Navigation -->
-  <div
-    class="sticky top-14 z-30 lg:hidden border-b border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 md:px-12"
-  >
+  <div class="sticky top-14 z-30 lg:hidden border-b border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 md:px-12">
     <button
       id="mobile-subnav-toggle"
       class="flex items-center justify-between w-full py-3 text-sm"
@@ -283,7 +282,9 @@ const structure = [
     >
       <span class="flex items-center gap-2 text-muted-foreground">
         <span>On this page:</span>
-        <span id="mobile-subnav-current" class="font-medium text-foreground">Getting Started</span>
+        <span id="mobile-subnav-current" class="font-medium text-foreground">
+          Getting Started
+        </span>
       </span>
       <svg
         id="mobile-subnav-chevron"
@@ -298,17 +299,15 @@ const structure = [
       </svg>
     </button>
     <nav id="mobile-subnav-menu" class="hidden pb-3 space-y-1" aria-label="Page navigation">
-      {
-        sections.map((section) => (
-          <a
-            href={`#${section.id}`}
-            data-section={section.id}
-            class="nav-link block px-3 py-2.5 text-sm rounded-xl transition-colors"
-          >
-            {section.label}
-          </a>
-        ))
-      }
+      {sections.map((section) => (
+        <a
+          href={`#${section.id}`}
+          data-section={section.id}
+          class="nav-link block px-3 py-2.5 text-sm rounded-xl transition-colors"
+        >
+          {section.label}
+        </a>
+      ))}
     </nav>
   </div>
 
@@ -318,18 +317,18 @@ const structure = [
     <aside class="hidden lg:block lg:w-48 lg:shrink-0">
       <div class="sticky top-20">
         <nav id="docs-nav" class="space-y-1" aria-label="Documentation sections">
-          <p class="text-sm font-semibold mb-4 text-muted-foreground" aria-hidden="true">Guide</p>
-          {
-            sections.map((section) => (
-              <a
-                href={`#${section.id}`}
-                data-section={section.id}
-                class="nav-link block px-3 py-2.5 text-sm rounded-xl transition-colors"
-              >
-                {section.label}
-              </a>
-            ))
-          }
+          <p class="text-sm font-semibold mb-4 text-muted-foreground" aria-hidden="true">
+            Guide
+          </p>
+          {sections.map((section) => (
+            <a
+              href={`#${section.id}`}
+              data-section={section.id}
+              class="nav-link block px-3 py-2.5 text-sm rounded-xl transition-colors"
+            >
+              {section.label}
+            </a>
+          ))}
         </nav>
       </div>
     </aside>
@@ -355,12 +354,15 @@ const structure = [
                   class={link}
                   href="https://github.com/holger1411/astrodeck/releases/latest"
                   target="_blank"
-                  rel="noopener noreferrer">latest release</a
-                > and unzip it.
+                  rel="noopener noreferrer"
+                >
+                  latest release
+                </a>{' '}
+                and unzip it.
               </li>
               <li>
-                Optional: put what you already have into the <code class={ic}>brief/</code> folder (texts,
-                PDFs, a logo, a <code class={ic}>DESIGN.md</code>).
+                Optional: put what you already have into the <code class={ic}>brief/</code> folder
+                (texts, PDFs, a logo, a <code class={ic}>DESIGN.md</code>).
               </li>
               <li>
                 Open the folder in your coding agent (Claude Code, Codex, Cursor, GitHub Copilot,
@@ -374,9 +376,7 @@ const structure = [
             </div>
             <p class="text-sm text-muted-foreground mt-3">
               The agent installs everything, asks a few questions in one message (each with a
-              proposed default), shows a preview at <code class={ic}>http://localhost:4321</code>{
-                ' '
-              }
+              proposed default), shows a preview at <code class={ic}>http://localhost:4321</code>{' '}
               and iterates with you. You do not need to run any command yourself.
             </p>
           </div>
@@ -384,15 +384,16 @@ const structure = [
             <h3 class="font-semibold mb-3">Developers</h3>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`npx degit holger1411/astrodeck my-site
+              class={pre}
+            ><code class="text-sm font-mono">{`npx degit holger1411/astrodeck my-site
 cd my-site
 npm install
 npm run dev`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
-              <code class={ic}>git clone</code> or the release ZIP work the same way. Then let your agent
-              run the workflow, or work by hand: set <code class={ic}>src/config/site.ts</code>, run <code
-                class={ic}>npm run theme</code
-              >, compose pages from sections and finish with <code class={ic}>npm run verify</code>.
+              <code class={ic}>git clone</code> or the release ZIP work the same way. Then let your
+              agent run the workflow, or work by hand: set{' '}
+              <code class={ic}>src/config/site.ts</code>, run <code class={ic}>npm run theme</code>,
+              compose pages from sections and finish with <code class={ic}>npm run verify</code>.
             </p>
             <p class="text-sm text-muted-foreground mt-3">
               Avoid <code class={ic}>npm create astro -- --template holger1411/astrodeck</code>:
@@ -407,30 +408,28 @@ npm run dev`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">The Build-Site Workflow</h2>
           <p class="text-muted-foreground">
-            "Build my website" routes the agent to the <code class={ic}>astrodeck-build-site</code> skill
-            (<code class={ic}>.agents/skills/astrodeck-build-site/SKILL.md</code>). It works through
-            eight steps and names the command and reference for each.
+            "Build my website" routes the agent to the <code class={ic}>astrodeck-build-site</code>{' '}
+            skill (<code class={ic}>.agents/skills/astrodeck-build-site/SKILL.md</code>). It works
+            through eight steps and names the command and reference for each.
           </p>
         </div>
         <ol class="space-y-4">
-          {
-            workflow.map((step, i) => (
-              <li class={`${card} flex gap-4`}>
-                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-                  {i + 1}
-                </span>
-                <div>
-                  <h3 class="font-semibold">{step.title}</h3>
-                  <p class="text-sm text-muted-foreground mt-1">{step.text}</p>
-                  {step.cmd && (
-                    <p class="mt-2">
-                      <code class={ic}>{step.cmd}</code>
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))
-          }
+          {workflow.map((step, i) => (
+            <li class={`${card} flex gap-4`}>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-semibold">
+                {i + 1}
+              </span>
+              <div>
+                <h3 class="font-semibold">{step.title}</h3>
+                <p class="text-sm text-muted-foreground mt-1">{step.text}</p>
+                {step.cmd && (
+                  <p class="mt-2">
+                    <code class={ic}>{step.cmd}</code>
+                  </p>
+                )}
+              </div>
+            </li>
+          ))}
         </ol>
         <div class={`${card} mt-8 overflow-x-auto`}>
           <h3 class="font-semibold mb-3">Task → skill</h3>
@@ -442,21 +441,18 @@ npm run dev`}</code></pre>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
-              {
-                skillRoutes.map((r) => (
-                  <tr>
-                    <td class="py-2 pr-4">{r.task}</td>
-                    <td class="py-2 font-mono text-xs">{r.skill}</td>
-                  </tr>
-                ))
-              }
+              {skillRoutes.map((r) => (
+                <tr>
+                  <td class="py-2 pr-4">{r.task}</td>
+                  <td class="py-2 font-mono text-xs">{r.skill}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <p class="text-sm text-muted-foreground mt-3">
-            Skills live in <code class={ic}>.agents/skills/</code> ({kitStats.skills} skills: {
-              skills.join(', ')
-            }). <code class={ic}>AGENTS.md</code> names every one, so agents that do not load skills on
-            their own still find them.
+            Skills live in <code class={ic}>.agents/skills/</code> ({kitStats.skills} skills:{' '}
+            {skills.join(', ')}). <code class={ic}>AGENTS.md</code> names every one, so agents that
+            do not load skills on their own still find them.
           </p>
         </div>
       </section>
@@ -471,23 +467,27 @@ npm run dev`}</code></pre>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class={card}>
-            <h3 class="font-semibold mb-3"><code class={ic}>brief/</code> — your material</h3>
+            <h3 class="font-semibold mb-3">
+              <code class={ic}>brief/</code> — your material
+            </h3>
             <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
               <li>Texts: about, services, company profile PDF, an old flyer</li>
               <li>Page content: opening hours, prices, FAQs, quotes you may use</li>
               <li>
-                Design: a <code class={ic}>DESIGN.md</code> with color tokens, brand guidelines, logo
-                files (SVG preferred)
+                Design: a <code class={ic}>DESIGN.md</code> with color tokens, brand guidelines,
+                logo files (SVG preferred)
               </li>
               <li>Images you own, and a links list (current site, profiles, sites you like)</li>
             </ul>
             <p class="text-sm text-muted-foreground mt-3">
-              Files in <code class={ic}>brief/</code> are inputs, not part of the website. No passwords
-              or keys: in a public repository this folder is public too.
+              Files in <code class={ic}>brief/</code> are inputs, not part of the website. No
+              passwords or keys: in a public repository this folder is public too.
             </p>
           </div>
           <div class={card}>
-            <h3 class="font-semibold mb-3"><code class={ic}>PROJECT.md</code> — the brief</h3>
+            <h3 class="font-semibold mb-3">
+              <code class={ic}>PROJECT.md</code> — the brief
+            </h3>
             <p class="text-sm text-muted-foreground mb-3">
               The agent writes a structured brief and keeps it up to date. It overrides the defaults
               in <code class={ic}>AGENTS.md</code>, so later sessions and other agents continue from
@@ -509,11 +509,10 @@ npm run dev`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Site Config</h2>
           <p class="text-muted-foreground">
-            Brand, navigation, footer, SEO defaults and feature flags live in one typed file: <code
-              class={ic}>src/config/site.ts</code
-            >. The production URL lives in <code class={ic}>src/config/site-url.mjs</code>{' '}
-            (<code class={ic}>SITE_URL</code>), shared with <code class={ic}>astro.config.mjs</code
-            >.
+            Brand, navigation, footer, SEO defaults and feature flags live in one typed file:{' '}
+            <code class={ic}>src/config/site.ts</code>. The production URL lives in{' '}
+            <code class={ic}>src/config/site-url.mjs</code> (<code class={ic}>SITE_URL</code>),
+            shared with <code class={ic}>astro.config.mjs</code>.
           </p>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -526,21 +525,20 @@ npm run dev`}</code></pre>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border">
-                {
-                  configFields.map((f) => (
-                    <tr>
-                      <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap">{f.field}</td>
-                      <td class="py-2 text-muted-foreground">{f.use}</td>
-                    </tr>
-                  ))
-                }
+                {configFields.map((f) => (
+                  <tr>
+                    <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap">{f.field}</td>
+                    <td class="py-2 text-muted-foreground">{f.use}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <div class={card}>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`export const site: SiteConfig = {
+              class={pre}
+            ><code class="text-sm font-mono">{`export const site: SiteConfig = {
   name: 'Harbor Physio',
   url: SITE_URL,
   description: 'Physiotherapy in Hamburg-Altona',
@@ -567,11 +565,9 @@ npm run dev`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Theme &amp; Branding</h2>
           <p class="text-muted-foreground">
-            <code class={ic}>npm run theme</code> writes OKLCH color tokens for light and dark mode into{
-              ' '
-            }
-            <code class={ic}>src/styles/globals.css</code> and checks WCAG contrast of the key text pairs.
-            It fails when a pair is too weak and suggests the nearest passing value.
+            <code class={ic}>npm run theme</code> writes OKLCH color tokens for light and dark mode
+            into <code class={ic}>src/styles/globals.css</code> and checks WCAG contrast of the key
+            text pairs. It fails when a pair is too weak and suggests the nearest passing value.
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -584,24 +580,25 @@ npm run dev`}</code></pre>
               <p class="text-sm italic">"Apply brief/DESIGN.md."</p>
             </div>
             <p class="text-sm text-muted-foreground mt-3">
-              The <code class={ic}>astrodeck-theme</code> skill collects values (also from a logo or a
-              design-system link), runs a dry run, reads the contrast report and applies it. Fonts change
-              only on brand input.
+              The <code class={ic}>astrodeck-theme</code> skill collects values (also from a logo or
+              a design-system link), runs a dry run, reads the contrast report and applies it. Fonts
+              change only on brand input.
             </p>
           </div>
           <div class={card}>
             <h3 class="font-semibold mb-3">By hand</h3>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`npm run theme -- --primary "#0f766e" --dry-run
+              class={pre}
+            ><code class="text-sm font-mono">{`npm run theme -- --primary "#0f766e" --dry-run
 npm run theme -- --primary "#0f766e" --accent "#f59e0b" \\
   --neutral slate --radius 0.75rem
 npm run theme -- --from brief/DESIGN.md
 npm run icons   # PNG icons + public/og.png from favicon.svg`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               <code class={ic}>--neutral</code>: zinc, slate, stone, neutral or gray. The token
-              regions in <code class={ic}>globals.css</code> are written by the script; do not edit them
-              by hand. There is no <code class={ic}>tailwind.config</code>.
+              regions in <code class={ic}>globals.css</code> are written by the script; do not edit
+              them by hand. There is no <code class={ic}>tailwind.config</code>.
             </p>
           </div>
         </div>
@@ -626,36 +623,30 @@ npm run icons   # PNG icons + public/og.png from favicon.svg`}</code></pre>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
-              {
-                blocks.map((b) => (
-                  <tr>
-                    <td class="py-2 pr-4">
-                      <a class={link} href={b.href}>
-                        {b.name}
-                      </a>
-                    </td>
-                    <td class="py-2 pr-4">{b.count}</td>
-                    <td class="py-2 font-mono text-xs">{b.path}</td>
-                  </tr>
-                ))
-              }
+              {blocks.map((b) => (
+                <tr>
+                  <td class="py-2 pr-4">
+                    <a class={link} href={b.href}>
+                      {b.name}
+                    </a>
+                  </td>
+                  <td class="py-2 pr-4">{b.count}</td>
+                  <td class="py-2 font-mono text-xs">{b.path}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <p class="text-sm text-muted-foreground mt-3">
-            <code class={ic}>src/registry.json</code> lists every section, layout and UI component with
-            props, a "use when" hint and a usage example; <code class={ic}
-              >npm run check:registry</code
-            > keeps it in sync with the code. Icons come from <code class={ic}>IconName</code> in <code
-              class={ic}>src/lib/icons.ts</code
-            >.
+            <code class={ic}>src/registry.json</code> lists every section, layout and UI component
+            with props, a "use when" hint and a usage example;{' '}
+            <code class={ic}>npm run check:registry</code> keeps it in sync with the code. Icons
+            come from <code class={ic}>IconName</code> in <code class={ic}>src/lib/icons.ts</code>.
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class={card}>
             <h3 class="font-semibold mb-3">A page</h3>
-            <pre
-              tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`---
+            <pre tabindex="0" class={pre}><code class="text-sm font-mono">{`---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Hero from '@/components/sections/Hero.astro';
 import FAQ from '@/components/sections/FAQ.astro';
@@ -672,11 +663,11 @@ import FAQ from '@/components/sections/FAQ.astro';
               <p class="text-sm italic">"Add a pricing page with our three packages."</p>
             </div>
             <p class="text-sm text-muted-foreground mt-3">
-              <code class={ic}>astrodeck-new-page</code> picks the layout and sections, sets title and
-              description, links the page in <code class={ic}>site.nav</code> and verifies. Only when
-              no section fits does <code class={ic}>astrodeck-new-section</code> add a prop or a new registered
-              section. Sections that need real data (testimonials, stats, team, logos, pricing) are used
-              only when you supply that data.
+              <code class={ic}>astrodeck-new-page</code> picks the layout and sections, sets title
+              and description, links the page in <code class={ic}>site.nav</code> and verifies. Only
+              when no section fits does <code class={ic}>astrodeck-new-section</code> add a prop or
+              a new registered section. Sections that need real data (testimonials, stats, team,
+              logos, pricing) are used only when you supply that data.
             </p>
           </div>
         </div>
@@ -687,46 +678,46 @@ import FAQ from '@/components/sections/FAQ.astro';
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Demo Cleanup</h2>
           <p class="text-muted-foreground">
-            The download is this demo site. <code class={ic}>npm run starter:clean</code> removes it in
-            one step; the build-site workflow does this right after intake.
+            The download is this demo site. <code class={ic}>npm run starter:clean</code> removes it
+            in one step; the build-site workflow does this right after intake.
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class={card}>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`npm run starter:clean -- --dry-run   # show the plan
+              class={pre}
+            ><code class="text-sm font-mono">{`npm run starter:clean -- --dry-run   # show the plan
 npm run starter:clean -- --yes       # remove the demo
 npm run starter:clean -- --yes --keep-blog`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
-              It is one-shot and destructive: it runs only while the <code class={ic}>starter/</code
-              >{' '}
-              folder exists; a second run does nothing (it prints "Already cleaned"). Without <code
-                class={ic}>--yes</code
-              > it asks for confirmation.
+              It is one-shot and destructive: it runs only while the{' '}
+              <code class={ic}>starter/</code> folder exists; a second run does nothing (it prints
+              "Already cleaned"). Without <code class={ic}>--yes</code> it asks for confirmation.
             </p>
           </div>
           <div class={card}>
             <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
               <li>
-                <strong class="text-foreground">Removed:</strong> docs and showcase pages, changelog,
-                demo templates, login and privacy samples, demo blog posts, screenshots, evals and maintainer
-                docs.
+                <strong class="text-foreground">Removed:</strong> docs and showcase pages,
+                changelog, demo templates, login and privacy samples, demo blog posts, screenshots,
+                evals and maintainer docs.
               </li>
               <li>
-                <strong class="text-foreground">Replaced</strong> with starter versions: <code
-                  class={ic}>PROJECT.md</code
-                >, <code class={ic}>site.ts</code>, <code class={ic}>site-url.mjs</code>, the home
-                page, <code class={ic}>robots.txt</code>, <code class={ic}>llms.txt</code>.
+                <strong class="text-foreground">Replaced</strong> with starter versions:{' '}
+                <code class={ic}>PROJECT.md</code>, <code class={ic}>site.ts</code>,{' '}
+                <code class={ic}>site-url.mjs</code>, the home page,{' '}
+                <code class={ic}>robots.txt</code>, <code class={ic}>llms.txt</code>.
               </li>
               <li>
-                <strong class="text-foreground">Kept:</strong> a minimal home page, the 404 page, all
-                sections, layouts, scripts and skills; with <code class={ic}>--keep-blog</code> the blog
-                system with one draft post.
+                <strong class="text-foreground">Kept:</strong> a minimal home page, the 404 page,
+                all sections, layouts, scripts and skills; with <code class={ic}>--keep-blog</code>{' '}
+                the blog system with one draft post.
               </li>
             </ul>
             <p class="text-sm text-muted-foreground mt-3">
-              Afterwards, <code class={ic}>npm run verify -- --starter</code> also fails on demo leftovers.
+              Afterwards, <code class={ic}>npm run verify -- --starter</code> also fails on demo
+              leftovers.
             </p>
           </div>
         </div>
@@ -737,9 +728,9 @@ npm run starter:clean -- --yes --keep-blog`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Verify</h2>
           <p class="text-muted-foreground">
-            <code class={ic}>npm run verify</code> runs every check in one go, offline and deterministic,
-            and ends with <code class={ic}>VERIFY PASSED</code> or a short list of what failed. If a step
-            cannot run, it says so instead of passing.
+            <code class={ic}>npm run verify</code> runs every check in one go, offline and
+            deterministic, and ends with <code class={ic}>VERIFY PASSED</code> or a short list of
+            what failed. If a step cannot run, it says so instead of passing.
           </p>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -752,30 +743,30 @@ npm run starter:clean -- --yes --keep-blog`}</code></pre>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border">
-                {
-                  verifySteps.map((s) => (
-                    <tr>
-                      <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap">{s.id}</td>
-                      <td class="py-2 text-muted-foreground">{s.what}</td>
-                    </tr>
-                  ))
-                }
+                {verifySteps.map((s) => (
+                  <tr>
+                    <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap">{s.id}</td>
+                    <td class="py-2 text-muted-foreground">{s.what}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <div class={card}>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`npm run verify                # everything
+              class={pre}
+            ><code class="text-sm font-mono">{`npm run verify                # everything
 npm run verify -- --starter   # + demo leftovers
 npm run validate              # without build (fast)
 npm run lint:design           # single checks
 npm run lint:docs
 npm run check:registry`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
-              The design rules behind <code class={ic}>lint:design</code> (semantic color tokens only,
-              every link and form pointing somewhere real, no <code class={ic}>ViewTransitions</code
-              >, ...) are shared with the optional Claude Code hook.
+              The design rules behind <code class={ic}>lint:design</code> (semantic color tokens
+              only, every link and form pointing somewhere real, no{' '}
+              <code class={ic}>ViewTransitions</code>, ...) are shared with the optional Claude Code
+              hook.
             </p>
           </div>
         </div>
@@ -786,16 +777,19 @@ npm run check:registry`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">vibe2prod Audit</h2>
           <p class="text-muted-foreground">
-            The <a
+            The{' '}
+            <a
               class={link}
               href="https://github.com/holger1411/vibe2prod"
               target="_blank"
-              rel="noopener noreferrer">vibe2prod</a
-            > skill{vibe2prodVersion && ` (${vibe2prodVersion})`} ships in <code class={ic}
-              >.agents/skills/vibe2prod/</code
-            > (MIT, license included). It audits performance, accessibility, SEO, HTML, security, assets,
-            robustness, AI-slop artifacts and responsiveness and returns a READY / NOT YET / BLOCKED verdict
-            with a 0–100 score.
+              rel="noopener noreferrer"
+            >
+              vibe2prod
+            </a>{' '}
+            skill{vibe2prodVersion && ` (${vibe2prodVersion})`} ships in{' '}
+            <code class={ic}>.agents/skills/vibe2prod/</code> (MIT, license included). It audits
+            performance, accessibility, SEO, HTML, security, assets, robustness, AI-slop artifacts
+            and responsiveness and returns a READY / NOT YET / BLOCKED verdict with a 0–100 score.
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -815,7 +809,8 @@ npm run check:registry`}</code></pre>
             <h3 class="font-semibold mb-3">Install its tools once</h3>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`npm run setup:audit -- --check   # what is missing
+              class={pre}
+            ><code class="text-sm font-mono">{`npm run setup:audit -- --check   # what is missing
 npm run setup:audit              # install it`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               Installs Lighthouse, the axe CLI, Playwright with Chromium and axe for Playwright
@@ -831,13 +826,13 @@ npm run setup:audit              # install it`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Supported Agents</h2>
           <p class="text-muted-foreground">
-            <code class={ic}>AGENTS.md</code> is the always-loaded index; the skills in <code
-              class={ic}>.agents/skills/</code
-            > hold the workflows. "Tested end to end" means the 4.0 workflow was run with the tool on
-            the eval cases and ended with <code class={ic}>VERIFY PASSED</code> and a vibe2prod READY
-            verdict (Claude Code CLI 2.1.319, Codex CLI 0.155.1; in Codex's sandbox the browser audit
-            cannot run, so it ran outside). "Documented" means the vendor's documentation says the tool
-            reads these files; the workflow was not run with it.
+            <code class={ic}>AGENTS.md</code> is the always-loaded index; the skills in{' '}
+            <code class={ic}>.agents/skills/</code> hold the workflows. "Tested end to end" means
+            the 4.0 workflow was run with the tool on the eval cases and ended with{' '}
+            <code class={ic}>VERIFY PASSED</code> and a vibe2prod READY verdict (Claude Code CLI
+            2.1.319, Codex CLI 0.155.1; in Codex's sandbox the browser audit cannot run, so it ran
+            outside). "Documented" means the vendor's documentation says the tool reads these files;
+            the workflow was not run with it.
           </p>
         </div>
         <div class={`${card} overflow-x-auto`}>
@@ -851,32 +846,33 @@ npm run setup:audit              # install it`}</code></pre>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
-              {
-                agentRows.map((a) => (
-                  <tr>
-                    <td class="py-2 pr-4 font-semibold">{a.name}</td>
-                    <td class="py-2 pr-4 text-muted-foreground">{a.agentsMd}</td>
-                    <td class="py-2 pr-4 font-mono text-xs">{a.skills}</td>
-                    <td class="py-2">{a.status}</td>
-                  </tr>
-                ))
-              }
+              {agentRows.map((a) => (
+                <tr>
+                  <td class="py-2 pr-4 font-semibold">{a.name}</td>
+                  <td class="py-2 pr-4 text-muted-foreground">{a.agentsMd}</td>
+                  <td class="py-2 pr-4 font-mono text-xs">{a.skills}</td>
+                  <td class="py-2">{a.status}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
           <p class="text-sm text-muted-foreground mt-3">
-            Claude Code only, optional: a read-only review subagent (<code class={ic}
-              >astrodeck-reviewer</code
-            >) and a hook that blocks <code class={ic}>tailwind.config.*</code>, <code class={ic}
-              >ViewTransitions</code
-            > and <code class={ic}>z</code> from <code class={ic}>astro:content</code>. The workflow
-            never needs them. <code class={ic}>.claude/skills/</code> is generated from <code
-              class={ic}>.agents/skills/</code
-            > by <code class={ic}>npm run sync:agents</code>; edit the source. Details: <a
+            Claude Code only, optional: a read-only review subagent (
+            <code class={ic}>astrodeck-reviewer</code>) and a hook that blocks{' '}
+            <code class={ic}>tailwind.config.*</code>, <code class={ic}>ViewTransitions</code> and{' '}
+            <code class={ic}>z</code> from <code class={ic}>astro:content</code>. The workflow never
+            needs them. <code class={ic}>.claude/skills/</code> is generated from{' '}
+            <code class={ic}>.agents/skills/</code> by <code class={ic}>npm run sync:agents</code>;
+            edit the source. Details:{' '}
+            <a
               class={link}
               href={`${repo}/blob/main/docs/agents/supported-agents.md`}
               target="_blank"
-              rel="noopener noreferrer">docs/agents/supported-agents.md</a
-            >.
+              rel="noopener noreferrer"
+            >
+              docs/agents/supported-agents.md
+            </a>
+            .
           </p>
         </div>
       </section>
@@ -886,40 +882,45 @@ npm run setup:audit              # install it`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">MCP Servers</h2>
           <p class="text-muted-foreground">
-            Optional. <code class={ic}>.mcp.json</code> declares two servers for Claude Code; other tools
-            use their own config files with the same values.
+            Optional. <code class={ic}>.mcp.json</code> declares two servers for Claude Code; other
+            tools use their own config files with the same values.
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class={card}>
             <ul class="space-y-3 text-sm text-muted-foreground">
               <li>
-                <strong class="text-foreground">astro-docs</strong> — current Astro documentation over
-                HTTP: <code class={ic}>https://mcp.docs.astro.build/mcp</code>
+                <strong class="text-foreground">astro-docs</strong> — current Astro documentation
+                over HTTP: <code class={ic}>https://mcp.docs.astro.build/mcp</code>
               </li>
               <li>
-                <strong class="text-foreground">shadcn</strong> — shadcn/ui component search and install:
+                <strong class="text-foreground">shadcn</strong> — shadcn/ui component search and
+                install:
                 <code class={ic}>npx shadcn@latest mcp</code>
               </li>
             </ul>
             <p class="text-sm text-muted-foreground mt-3">
-              Setup for Codex, Cursor and VS Code: <a
+              Setup for Codex, Cursor and VS Code:{' '}
+              <a
                 class={link}
                 href={`${repo}/blob/main/docs/agents/mcp-setup.md`}
                 target="_blank"
-                rel="noopener noreferrer">docs/agents/mcp-setup.md</a
-              >.
+                rel="noopener noreferrer"
+              >
+                docs/agents/mcp-setup.md
+              </a>
+              .
             </p>
           </div>
           <div class={card}>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`codex mcp add astro-docs --url https://mcp.docs.astro.build/mcp
+              class={pre}
+            ><code class="text-sm font-mono">{`codex mcp add astro-docs --url https://mcp.docs.astro.build/mcp
 codex mcp add shadcn -- npx shadcn@latest mcp`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
-              Cursor reads <code class={ic}>.cursor/mcp.json</code>; VS Code uses a top-level <code
-                class={ic}>servers</code
-              > key instead of <code class={ic}>mcpServers</code>.
+              Cursor reads <code class={ic}>.cursor/mcp.json</code>; VS Code uses a top-level{' '}
+              <code class={ic}>servers</code> key instead of <code class={ic}>mcpServers</code>.
             </p>
           </div>
         </div>
@@ -937,29 +938,28 @@ codex mcp add shadcn -- npx shadcn@latest mcp`}</code></pre>
           <div class={card}>
             <pre
               tabindex="0"
-              class={pre}><code class="text-sm font-mono">{`npm run build     # static site in dist/
+              class={pre}
+            ><code class="text-sm font-mono">{`npm run build     # static site in dist/
 npm run preview   # serve the build locally`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
-              Set <code class={ic}>SITE_URL</code> in <code class={ic}>src/config/site-url.mjs</code
-              >{' '}
-              first: canonical URLs, sitemap and RSS use it.
+              Set <code class={ic}>SITE_URL</code> in{' '}
+              <code class={ic}>src/config/site-url.mjs</code> first: canonical URLs, sitemap and RSS
+              use it.
             </p>
           </div>
           <div class={card}>
             <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
               <li>
-                Vercel, Netlify, Cloudflare Pages, GitHub Pages or your own server: deploy <code
-                  class={ic}>dist/</code
-                >.
+                Vercel, Netlify, Cloudflare Pages, GitHub Pages or your own server: deploy{' '}
+                <code class={ic}>dist/</code>.
               </li>
               <li>
-                <code class={ic}>vercel.json</code> adds security headers on Vercel; on other hosts configure
-                equivalent headers.
+                <code class={ic}>vercel.json</code> adds security headers on Vercel; on other hosts
+                configure equivalent headers.
               </li>
               <li>
-                <code class={ic}>features.analytics</code> loads Vercel Web Analytics; keep it <code
-                  class={ic}>false</code
-                > elsewhere.
+                <code class={ic}>features.analytics</code> loads Vercel Web Analytics; keep it{' '}
+                <code class={ic}>false</code> elsewhere.
               </li>
               <li>After the first deploy, run vibe2prod against the live URL.</li>
             </ul>
@@ -972,14 +972,15 @@ npm run preview   # serve the build locally`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Astro 7 Notes</h2>
           <p class="text-muted-foreground">
-            The details agents most often get wrong from older training data. The full list is in <code
-              class={ic}>AGENTS.md</code
-            >.
+            The details agents most often get wrong from older training data. The full list is in{' '}
+            <code class={ic}>AGENTS.md</code>.
           </p>
         </div>
         <div class={card}>
           <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
-            {astroNotes.map((n) => <li set:html={n} />)}
+            {astroNotes.map((n) => (
+              <li set:html={n} />
+            ))}
           </ul>
         </div>
       </section>
@@ -990,27 +991,29 @@ npm run preview   # serve the build locally`}</code></pre>
           <h2 class="text-3xl font-bold mb-2">Migrating from 3.x</h2>
           <p class="text-muted-foreground">
             4.0 changes section props, adds the site config and replaces the per-tool AI files with
-            skills. The full list is in the <a class={link} href="/changelog">changelog</a>.
+            skills. The full list is in the{' '}
+            <a class={link} href="/changelog">
+              changelog
+            </a>
+            .
           </p>
         </div>
         <div class="space-y-4">
-          {
-            migrations.map((m) => (
-              <div class={card}>
-                <h3 class="font-semibold mb-3">{m.title}</h3>
-                <div class="grid grid-cols-1 gap-4">
-                  <div>
-                    <p class="text-xs font-medium text-muted-foreground mb-1">3.x</p>
-                    <CodeBlock class={pre} codeClass="text-sm font-mono" code={m.before} />
-                  </div>
-                  <div>
-                    <p class="text-xs font-medium text-muted-foreground mb-1">4.0</p>
-                    <CodeBlock class={pre} codeClass="text-sm font-mono" code={m.after} />
-                  </div>
+          {migrations.map((m) => (
+            <div class={card}>
+              <h3 class="font-semibold mb-3">{m.title}</h3>
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <p class="text-xs font-medium text-muted-foreground mb-1">3.x</p>
+                  <CodeBlock class={pre} codeClass="text-sm font-mono" code={m.before} />
+                </div>
+                <div>
+                  <p class="text-xs font-medium text-muted-foreground mb-1">4.0</p>
+                  <CodeBlock class={pre} codeClass="text-sm font-mono" code={m.after} />
                 </div>
               </div>
-            ))
-          }
+            </div>
+          ))}
         </div>
       </section>
 
@@ -1022,14 +1025,17 @@ npm run preview   # serve the build locally`}</code></pre>
         </div>
         <div class={card}>
           <p class="text-sm text-muted-foreground">
-            The site config has one language (<code class={ic}>lang</code>, <code class={ic}
-              >locale</code
-            >). For several languages, add Astro's <a
+            The site config has one language (<code class={ic}>lang</code>,{' '}
+            <code class={ic}>locale</code>). For several languages, add Astro's{' '}
+            <a
               class={link}
               href="https://docs.astro.build/en/guides/internationalization/"
               target="_blank"
-              rel="noopener noreferrer">i18n routing</a
-            > on top. Built-in multilingual support is a candidate for a later release.
+              rel="noopener noreferrer"
+            >
+              i18n routing
+            </a>{' '}
+            on top. Built-in multilingual support is a candidate for a later release.
           </p>
         </div>
       </section>
@@ -1043,16 +1049,12 @@ npm run preview   # serve the build locally`}</code></pre>
         <div class={`${card} overflow-x-auto`}>
           <table class="w-full text-sm">
             <tbody class="divide-y divide-border">
-              {
-                structure.map((s) => (
-                  <tr>
-                    <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap align-top">
-                      {s.path}
-                    </td>
-                    <td class="py-2 text-muted-foreground">{s.what}</td>
-                  </tr>
-                ))
-              }
+              {structure.map((s) => (
+                <tr>
+                  <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap align-top">{s.path}</td>
+                  <td class="py-2 text-muted-foreground">{s.what}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -1077,7 +1079,8 @@ npm run preview   # serve the build locally`}</code></pre>
           stroke-linecap="round"
           stroke-linejoin="round"
           stroke-width="2"
-          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+        ></path>
       </svg>
     </a>
   </div>

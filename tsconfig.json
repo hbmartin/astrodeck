@@ -10,7 +10,6 @@
     ".claude/skills/vibe2prod"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },

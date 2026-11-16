@@ -4,6 +4,7 @@ import { cpSync, mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { mkdirSync } from 'node:fs';
 import { planClean, applyClean, loadManifest } from '../scripts/starter-clean.mjs';
 
@@ -160,11 +161,18 @@ test('CLI: --yes applies, a second --yes run is a guarded no-op', () => {
   assert.equal(read('src/pages/docs.astro'), 'mine');
 });
 
-test('CLI: files written by --yes are Prettier-clean with the project config', async () => {
-  const prettier = await import('prettier');
+test('CLI: files written by --yes are Oxfmt-clean with the target project config', () => {
   writeFileSync(
-    join(root, '.prettierrc'),
-    JSON.stringify({ singleQuote: true, trailingComma: 'es5', printWidth: 100 })
+    join(root, '.oxfmtrc.json'),
+    JSON.stringify({ astro: true, singleQuote: true, trailingComma: 'es5', printWidth: 100 })
+  );
+  writeFileSync(
+    join(root, 'starter/index.astro'),
+    '---\nconst hello="world";\n---\n<p>{hello}</p>\n'
+  );
+  writeFileSync(
+    join(root, 'src/pages/keep.astro'),
+    '---\nconst hello="world";\n---\n<p>{hello}</p>\n'
   );
   writeFileSync(
     join(root, 'starter/site.ts'),
@@ -180,13 +188,14 @@ test('CLI: files written by --yes are Prettier-clean with the project config', a
     ].join('\n')
   );
   assert.equal(cli('--yes').status, 0);
-  for (const rel of ['src/config/site.ts', 'src/registry.json']) {
-    const path = join(root, rel);
-    const config = (await prettier.resolveConfig(path)) ?? {};
-    assert.ok(
-      await prettier.check(read(rel), { ...config, filepath: path }),
-      `${rel} is not Prettier-formatted`
-    );
-  }
+  const bin = fileURLToPath(new URL('./bin/oxfmt', import.meta.resolve('oxfmt/package.json')));
+  const { status, stdout, stderr } = spawnSync(
+    process.execPath,
+    [bin, '--check', 'src/config/site.ts', 'src/registry.json', 'src/pages/index.astro'],
+    { cwd: root, encoding: 'utf8' }
+  );
+  assert.equal(status, 0, stdout + stderr);
   assert.match(read('src/config/site.ts'), /nav: \[\{ href: '\/', label: 'Home' \}\],/);
+  assert.match(read('src/pages/index.astro'), /const hello = 'world';/);
+  assert.match(read('src/pages/keep.astro'), /const hello="world";/);
 });

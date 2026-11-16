@@ -5,36 +5,36 @@ Run these from the repository root before every release. All commands must exit 
 ## 1. Demo (this repository)
 
 ```bash
-npm run validate
-npm run build
+pnpm run validate
+pnpm run build
 node scripts/check-dist.mjs
 node scripts/check-registry.mjs
 node scripts/lint-docs.mjs
-npm run lint:design
-npm test
+pnpm run lint:design
+pnpm test
 ```
 
 ## 2. Clean starter (what users get after `starter:clean`)
 
-The ZIP ships the demo; the agent runs `npm run starter:clean`. Verify the result on a throwaway copy,
+The ZIP ships the demo; the agent runs `pnpm run starter:clean`. Verify the result on a throwaway copy,
 never in the repository itself:
 
 ```bash
 T=$(mktemp -d)
 rsync -a --exclude node_modules --exclude dist --exclude .git --exclude .superpowers --exclude .astro ./ "$T"/
 cd "$T"
-npm ci
-npm run starter:clean -- --yes
-npm run build
+pnpm install --frozen-lockfile
+pnpm run starter:clean --yes
+pnpm run build
 node scripts/check-dist.mjs --starter
-npx astro check
+pnpm run check
 node scripts/check-registry.mjs
 node scripts/lint-docs.mjs
-npm run lint:design
-npm test
+pnpm run lint:design
+pnpm test
 ```
 
-Repeat the second block with `npm run starter:clean -- --yes --keep-blog` on a fresh copy.
+Repeat the second block with `pnpm run starter:clean --yes --keep-blog` on a fresh copy.
 
 `starter:clean` options: `--dry-run` prints the plan, `--keep-blog` keeps the blog system and replaces the demo
 posts with one draft post, `--yes` skips the confirmation (without it and without a TTY the command exits 2).

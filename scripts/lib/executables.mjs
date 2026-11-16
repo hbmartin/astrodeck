@@ -12,21 +12,17 @@ export function packageBin(pkg, name = pkg) {
   return join(dir, path);
 }
 
-/** Locate an executable on PATH, including Windows command shims. */
+/** Locate an executable on PATH. */
 export function findOnPath(name, env = process.env) {
-  const isWin = process.platform === 'win32';
-  const dirs = (env.PATH ?? env.Path ?? '').split(delimiter).filter(Boolean);
-  const exts = isWin ? ['', ...(env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD').split(';')] : [''];
+  const dirs = (env.PATH ?? '').split(delimiter).filter(Boolean);
   for (const dir of dirs) {
-    for (const ext of exts) {
-      const file = join(dir, name + ext);
-      try {
-        if (!statSync(file).isFile()) continue;
-        if (!isWin) accessSync(file, constants.X_OK);
-        return file;
-      } catch {
-        // Continue searching PATH.
-      }
+    const file = join(dir, name);
+    try {
+      if (!statSync(file).isFile()) continue;
+      accessSync(file, constants.X_OK);
+      return file;
+    } catch {
+      // Continue searching PATH.
     }
   }
   return null;

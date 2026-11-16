@@ -8,7 +8,7 @@ import { lintDocs } from '../scripts/lint-docs.mjs';
 const REPO = join(import.meta.dirname, '..');
 let root;
 
-function put(rel, content) {
+function put(root, rel, content) {
   const p = join(root, rel);
   mkdirSync(dirname(p), { recursive: true });
   writeFileSync(p, content);
@@ -17,6 +17,7 @@ function put(rel, content) {
 before(() => {
   root = mkdtempSync(join(tmpdir(), 'lint-docs-'));
   put(
+    root,
     'package.json',
     JSON.stringify({
       engines: { node: '>=22.23.4' },
@@ -25,6 +26,7 @@ before(() => {
     })
   );
   put(
+    root,
     'src/registry.json',
     JSON.stringify({
       sections: [{}, {}, {}],
@@ -32,18 +34,21 @@ before(() => {
       layouts: [{}],
     })
   );
-  put('src/real.ts', '');
+  put(root, 'src/real.ts', '');
   put(
+    root,
     'starter.manifest.json',
     JSON.stringify({ remove: ['src/demo.ts', 'src/demo-dir/'], removeUnlessBlog: ['src/blog/'] })
   );
-  put('src/config/site-url.mjs', "export const SITE_URL = 'https://example.com';\n");
+  put(root, 'src/config/site-url.mjs', "export const SITE_URL = 'https://example.com';\n");
   put(
+    root,
     'src/config/site.ts',
     "interface S { url: string }\nexport const site = {\n  url: 'https://other.com',\n};\n"
   );
-  put('astro.config.mjs', 'export default {};\n');
+  put(root, 'astro.config.mjs', 'export default {};\n');
   put(
+    root,
     'README.md',
     [
       'Uses `src/real.ts` and `src/missing.ts`.',
@@ -56,8 +61,8 @@ before(() => {
       '```',
     ].join('\n')
   );
-  put('CHANGELOG.md', 'Astro 3\n');
-  put('.agents/skills/vibe2prod/SKILL.md', 'Astro 2 `src/nope.ts`\n');
+  put(root, 'CHANGELOG.md', 'Astro 3\n');
+  put(root, '.agents/skills/vibe2prod/SKILL.md', 'Astro 2 `src/nope.ts`\n');
 });
 
 after(() => rmSync(root, { recursive: true, force: true }));
@@ -83,15 +88,22 @@ test('real repo passes', () => {
   assert.deepEqual(lintDocs(REPO), []);
 });
 
-test('docs lint ignores skill content and paths into the skill directories', () => {
-  put('.agents/skills/examples/SKILL.md', 'Invalid metadata and `src/missing-skill-file.ts`.');
-  put('.claude/skills/examples/SKILL.md', 'See `src/broken-mirror-path.ts`.');
+test('docs lint ignores skill content and paths into the skill directories', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'lint-skill-docs-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
   put(
+    root,
+    '.agents/skills/examples/SKILL.md',
+    'Invalid metadata and `src/missing-skill-file.ts`.'
+  );
+  put(root, '.claude/skills/examples/SKILL.md', 'See `src/broken-mirror-path.ts`.');
+  put(
+    root,
     'docs/skills.md',
     'Optional resources in `.agents/skills/missing.md` and `.claude/skills/missing.md`.'
   );
-  put('.claude/agents/reviewer.md', 'See `src/missing-reviewer-file.ts`.');
-  const findings = lintDocs(root).filter(({ file }) => /skills|reviewer/.test(file));
+  put(root, '.claude/agents/reviewer.md', 'See `src/missing-reviewer-file.ts`.');
+  const findings = lintDocs(root);
   assert.deepEqual(
     findings.map(({ file, rule }) => [file, rule]),
     [['.claude/agents/reviewer.md', 'dead-path']]

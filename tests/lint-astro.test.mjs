@@ -182,6 +182,16 @@ test('allows types and route options and reports other exports', () => {
   );
 });
 
+test('type-only overload signatures do not count as runtime exports', () => {
+  const paths = astro(
+    'export function getStaticPaths(): unknown[]; export function getStaticPaths() { return []; }'
+  );
+  assert.deepEqual(rules(paths, page), []);
+
+  const helper = astro('export function helper(): number; export function helper() { return 1; }');
+  assert.deepEqual(rules(helper), ['astro/no-exports-from-components']);
+});
+
 test('project Astro lint accepts a config without ignorePatterns', () => {
   const root = mkdtempSync(join(tmpdir(), 'lint-astro-'));
   try {

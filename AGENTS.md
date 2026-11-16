@@ -24,7 +24,7 @@ finished site.
 
 ## Quick start for agents
 
-Requires Node >=22.23.4. Always use pnpm to install dependencies, manage the lockfile, and run project scripts. Run `pnpm install --frozen-lockfile` once.
+Requires macOS or Linux and Node >=22.23.4. Always use pnpm to install dependencies, manage the lockfile, and run project scripts. Run `pnpm install --frozen-lockfile` once.
 
 | Command | What it does |
 |---------|--------------|

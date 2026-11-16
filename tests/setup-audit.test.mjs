@@ -27,15 +27,11 @@ test('--check with empty runtime and empty PATH exits 2 and lists missing pieces
 test('findOnPath resolves an executable on PATH and returns null otherwise', () => {
   const dir = mkdtempSync(join(tmpdir(), 'audit-'));
   try {
-    const name = process.platform === 'win32' ? 'fake-tool.cmd' : 'fake-tool';
-    const file = join(dir, name);
+    const file = join(dir, 'fake-tool');
     writeFileSync(file, '');
     chmodSync(file, 0o755);
-    const env = { PATH: dir, PATHEXT: '.CMD' };
-    // Windows resolves the extension as spelled in PATHEXT (.CMD) and the FS is case-insensitive.
-    const found = findOnPath('fake-tool', env);
-    const norm = (f) => (process.platform === 'win32' ? f?.toLowerCase() : f);
-    assert.equal(norm(found), norm(file));
+    const env = { PATH: dir };
+    assert.equal(findOnPath('fake-tool', env), file);
     assert.equal(findOnPath('nope-tool', env), null);
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -48,14 +44,11 @@ test('audit install uses npm on PATH even under a JavaScript pnpm launcher', () 
     const bin = join(dir, 'bin');
     const runtime = join(dir, 'runtime with spaces');
     const fakePnpm = join(dir, 'pnpm.cjs');
-    const windows = process.platform === 'win32';
     mkdirSync(bin);
     writeFileSync(fakePnpm, "console.log('wrong package manager'); process.exit(55);");
-    const stub = windows
-      ? '@echo off\r\necho %CD%\r\necho %*\r\nexit /b 29\r\n'
-      : '#!/bin/sh\nprintf "%s\\n" "$PWD"\nprintf "%s " "$@"\nexit 29\n';
+    const stub = '#!/bin/sh\nprintf "%s\\n" "$PWD"\nprintf "%s " "$@"\nexit 29\n';
     for (const name of ['npm', 'axe', 'lighthouse']) {
-      writeFileSync(join(bin, windows ? `${name}.cmd` : name), stub, { mode: 0o755 });
+      writeFileSync(join(bin, name), stub, { mode: 0o755 });
     }
     const r = spawnSync(process.execPath, [SCRIPT], {
       encoding: 'utf8',

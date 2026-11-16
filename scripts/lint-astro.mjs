@@ -227,6 +227,7 @@ function propertyName(key, computed, scope) {
 }
 
 const TYPE_ONLY_NODES = new Set([
+  'TSDeclareFunction',
   'TSInterfaceDeclaration',
   'TSTypeAliasDeclaration',
   'EmptyStatement',

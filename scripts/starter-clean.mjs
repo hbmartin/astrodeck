@@ -95,24 +95,34 @@ function pruneRegistry(root) {
   writeFileSync(path, JSON.stringify(reg, null, 2) + '\n');
 }
 
+function formatGroup(root, paths) {
+  if (!paths.length) return;
+  const formatter = fileURLToPath(new URL('./format.mjs', import.meta.url));
+  const { status, error } = spawnSync(process.execPath, [formatter, ...paths], {
+    cwd: root,
+    stdio: ['ignore', 'ignore', 'inherit'],
+  });
+  if (status === 0) return;
+  if (error) console.warn(error.message);
+  console.warn(
+    `Warning: starter cleanup completed, but formatting failed for ${paths.join(', ')}. ` +
+      'Resolve the formatter error, then run `pnpm run format`.'
+  );
+}
+
 /**
- * Best-effort: format the files starter:clean wrote with the target project's Oxfmt config.
- * If Oxfmt is unavailable, the replacement files stay valid as written.
+ * Format the files starter:clean wrote with the target project's Oxfmt config.
+ * Format Astro files independently so a slot text change only blocks that file.
  * @param {string} root project root
  * @param {string[]} files paths relative to root
  */
 function formatWritten(root, files) {
-  try {
-    const formatter = fileURLToPath(new URL('./format.mjs', import.meta.url));
-    const paths = [...new Set(files)].filter((file) => existsSync(inside(root, file)));
-    if (paths.length)
-      spawnSync(process.execPath, [formatter, ...paths], {
-        cwd: root,
-        stdio: ['ignore', 'ignore', 'inherit'],
-      });
-  } catch {
-    // Keep the replacement files as written.
-  }
+  const paths = [...new Set(files)].filter((file) => existsSync(inside(root, file)));
+  formatGroup(
+    root,
+    paths.filter((file) => !file.endsWith('.astro'))
+  );
+  for (const file of paths.filter((file) => file.endsWith('.astro'))) formatGroup(root, [file]);
 }
 
 /** Every file applyClean writes, relative to root. */

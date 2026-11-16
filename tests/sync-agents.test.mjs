@@ -165,11 +165,10 @@ test('installer-managed skill content and symlinks survive explicit sync', (t) =
   assert.deepEqual(syncAgents(root, { check: true }).changed, []);
 });
 
-test('ignores OS junk files (.DS_Store, Thumbs.db) in source and mirror', () => {
+test('ignores .DS_Store files in source and mirror', () => {
   put('.agents/skills/a/.DS_Store', 'junk');
-  put('.agents/skills/a/references/Thumbs.db', 'junk');
   const { changed } = syncAgents(root, { check: false });
-  assert.ok(!changed.some((p) => /\.DS_Store|Thumbs\.db/.test(p)), changed.join(','));
+  assert.ok(!changed.some((p) => p.endsWith('/.DS_Store')), changed.join(','));
   assert.equal(existsSync(join(root, '.claude/skills/a/.DS_Store')), false);
   put('.claude/skills/a/.DS_Store', 'junk');
   assert.deepEqual(syncAgents(root, { check: true }).changed, []);

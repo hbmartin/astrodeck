@@ -43,7 +43,7 @@ event pages and blogs. It is not built for dashboards or app-heavy products.
 
 ## Quick start
 
-Requires **Node.js >= 22.23.4** and **pnpm 12.21.0**.
+Requires **macOS or Linux**, **Node.js >= 22.23.4**, and **pnpm 12.21.0**.
 
 ### No coding experience
 
@@ -200,6 +200,8 @@ It keeps a minimal home page, the 404 page, all sections, layouts, scripts and s
 `src/config/site-url.mjs`, the home page, `robots.txt` and `llms.txt` with starter versions.
 The cleanup is one-shot: once the `starter/` folder is gone, a second run does nothing (it prints
 "Already cleaned"), so it never deletes files you created later.
+If a replacement cannot be formatted safely, cleanup keeps the file as written and reports
+which files need attention.
 
 ## Verify and vibe2prod
 

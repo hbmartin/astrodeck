@@ -6,10 +6,11 @@
  * Rules: dead-path, version-drift, count-drift, site-url-drift.
  * Usage: node scripts/lint-docs.mjs [projectRoot]   (exit 1 on any finding)
  */
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { formatFindings } from './lib/findings.mjs';
+import { walkFiles } from './lib/walk-files.mjs';
 
 const ROOT_DOCS = [
   'AGENTS.md',
@@ -24,23 +25,14 @@ const CLAUDE_SKILLS = '.claude/skills';
 
 const PATH_ROOTS = ['src', 'scripts', 'public', 'docs', 'tests', '.claude', '.github'];
 
-/** @param {string} dir */
-function walkMd(dir, excluded) {
-  const out = [];
-  if (dir === excluded || !existsSync(dir)) return out;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walkMd(full, excluded));
-    else if (entry.name.endsWith('.md')) out.push(full);
-  }
-  return out;
-}
-
 function listDocs(root) {
   const files = new Set();
   for (const f of ROOT_DOCS) if (existsSync(join(root, f))) files.add(join(root, f));
-  for (const dir of SCAN_DIRS) {
-    for (const file of walkMd(join(root, dir), join(root, CLAUDE_SKILLS))) files.add(file);
+  const skills = join(root, CLAUDE_SKILLS);
+  const isMarkdown = (name) => name.endsWith('.md');
+  for (const dir of SCAN_DIRS.map((name) => join(root, name))) {
+    if (!existsSync(dir)) continue;
+    for (const file of walkFiles(dir, isMarkdown, (path) => path === skills)) files.add(file);
   }
   return [...files]
     .map((f) => ({ abs: f, rel: relative(root, f).split(sep).join('/') }))
@@ -85,16 +77,8 @@ function parseVer(range) {
   return m ? { major: +m[1], minor: m[2] === undefined ? 0 : +m[2] } : null;
 }
 
-/**
- * @param {string} root project root
- * @returns {import('./lib/findings.mjs').Finding[]}
- */
-export function lintDocs(root) {
-  /** @type {import('./lib/findings.mjs').Finding[]} */
-  const findings = [];
-  const pkg = readJson(join(root, 'package.json'));
-  const registry = readJson(join(root, 'src/registry.json'));
-  const versionRules = [
+function prepareVersionRules(pkg) {
+  const tools = [
     [
       /\bAstro\s+v?(\d+)(?:\.(\d+))?/g,
       'astro',
@@ -107,6 +91,25 @@ export function lintDocs(root) {
     ],
     [/\bNode(?:\.js)?\s+v?(\d+)(?:\.(\d+))?/g, 'node', pkg?.engines?.node],
   ];
+  return tools.map(([pattern, tool, range]) => ({
+    pattern,
+    minimum: tool === 'node',
+    expected: parseVer(range),
+    reason:
+      tool === 'node' ? `is below engines.node ${range}` : `but package.json has ${tool} ${range}`,
+  }));
+}
+
+/**
+ * @param {string} root project root
+ * @returns {import('./lib/findings.mjs').Finding[]}
+ */
+export function lintDocs(root) {
+  /** @type {import('./lib/findings.mjs').Finding[]} */
+  const findings = [];
+  const pkg = readJson(join(root, 'package.json'));
+  const registry = readJson(join(root, 'src/registry.json'));
+  const versionRules = prepareVersionRules(pkg);
   const optional = optionalPaths(root);
   const isOptional = (p) => optional.some((o) => p === o || p.startsWith(`${o}/`));
   const counts = registry
@@ -160,16 +163,11 @@ function versionMismatch(match, expected, minimum) {
 }
 
 function checkVersions(line, rules, add) {
-  for (const [pattern, tool, range] of rules) {
-    const expected = parseVer(range);
+  for (const { pattern, expected, minimum, reason } of rules) {
     if (!expected) continue;
-    const isNode = tool === 'node';
     for (const match of line.matchAll(pattern)) {
-      if (!versionMismatch(match, expected, isNode)) continue;
-      const reason = isNode
-        ? `is below engines.node ${range}`
-        : `but package.json has ${tool} ${range}`;
-      add('version-drift', `"${match[0]}" ${reason}`);
+      if (versionMismatch(match, expected, minimum))
+        add('version-drift', `"${match[0]}" ${reason}`);
     }
   }
 }

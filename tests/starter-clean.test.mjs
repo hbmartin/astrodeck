@@ -188,23 +188,33 @@ test('CLI: files written by --yes are Oxfmt-clean with the target project config
     ].join('\n')
   );
   assert.equal(cli('--yes').status, 0);
-  const bin = packageBin('oxfmt');
-  const { status, stdout, stderr } = spawnSync(
-    process.execPath,
-    [bin, '--check', 'src/config/site.ts', 'src/registry.json', 'src/pages/index.astro'],
-    { cwd: root, encoding: 'utf8' }
-  );
-  assert.equal(status, 0, stdout + stderr);
+  assertFormatted('src/config/site.ts', 'src/registry.json', 'src/pages/index.astro');
   assert.match(read('src/config/site.ts'), /nav: \[\{ href: '\/', label: 'Home' \}\],/);
   assert.match(read('src/pages/index.astro'), /const hello = 'world';/);
   assert.match(read('src/pages/keep.astro'), /const hello="world";/);
 });
 
-test('starter cleanup preserves slot text when its formatter would change it', () => {
+function assertFormatted(...paths) {
+  const { status, stdout, stderr } = spawnSync(
+    process.execPath,
+    [packageBin('oxfmt'), '--check', ...paths],
+    { cwd: root, encoding: 'utf8' }
+  );
+  assert.equal(status, 0, stdout + stderr);
+}
+
+test('starter cleanup warns about unsafe formatting and formats the other replacements', () => {
   writeFileSync(join(root, '.oxfmtrc.json'), '{"astro":{"compressHTML":"jsx"},"printWidth":45}');
   writeFileSync(
     join(root, 'starter/site.ts'),
-    'export const site = { features: { blog: false, rss: false } };\n'
+    'export const site={features:{ blog: false, rss: false }};\n'
+  );
+  const manifest = loadManifest(root);
+  manifest.replace.push({ from: 'starter/extra.astro', to: 'src/pages/extra.astro' });
+  writeFileSync(join(root, 'starter.manifest.json'), JSON.stringify(manifest));
+  writeFileSync(
+    join(root, 'starter/extra.astro'),
+    '---\nconst copy="extra";\n---\n<p>{copy}</p>\n'
   );
   const unsafe = '<Demo client:load variant="secondary">Secondary</Demo>';
   writeFileSync(join(root, 'starter/index.astro'), unsafe);
@@ -214,5 +224,10 @@ test('starter cleanup preserves slot text when its formatter would change it', (
     result.stderr,
     /src[/\\]pages[/\\]index\.astro: Formatting changes rendered Astro slot text/
   );
+  assert.match(
+    result.stderr,
+    /Warning: starter cleanup completed, but formatting failed for src\/pages\/index\.astro/
+  );
   assert.equal(read('src/pages/index.astro'), unsafe);
+  assertFormatted('src/config/site.ts', 'src/registry.json', 'src/pages/extra.astro');
 });

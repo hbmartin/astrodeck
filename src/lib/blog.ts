@@ -7,3 +7,11 @@ import { getCollection } from 'astro:content';
 export async function getPublishedPosts() {
   return getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
 }
+
+export function formatDate(date: Date) {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}

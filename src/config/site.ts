@@ -79,7 +79,7 @@ export const site: SiteConfig = {
   },
   footer: {
     tagline:
-      'Open-source Astro starter kit for building websites with your coding agent, checked by npm run verify and vibe2prod.',
+      'Open-source Astro starter kit for building websites with your coding agent, checked by pnpm run verify and vibe2prod.',
     groups: [
       {
         title: 'AstroDeck',

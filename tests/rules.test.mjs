@@ -264,12 +264,12 @@ test('hook: PostToolUse reports palette colors via exit 2, clean text exits 0', 
 });
 
 test('hook: malformed stdin never breaks the session', () => {
-  const r = spawnSync('node', [HOOK], { input: 'not json', encoding: 'utf8' });
+  const r = spawnSync(process.execPath, [HOOK], { input: 'not json', encoding: 'utf8' });
   assert.equal(r.status, 0);
 });
 
 function runHook(payload) {
-  return spawnSync('node', [HOOK], {
+  return spawnSync(process.execPath, [HOOK], {
     input: JSON.stringify(payload),
     encoding: 'utf8',
     env: { ...process.env, CLAUDE_PROJECT_DIR: REPO },
@@ -291,7 +291,7 @@ test('hook: PostToolUse checks the full file on disk', () => {
     const file = join(dir, 'src', 'components', 'T.astro');
     writeFileSync(file, '<div class="bg-red-500">');
     const run = (newString) =>
-      spawnSync('node', [HOOK], {
+      spawnSync(process.execPath, [HOOK], {
         input: JSON.stringify({
           hook_event_name: 'PostToolUse',
           tool_input: { file_path: file, new_string: newString },

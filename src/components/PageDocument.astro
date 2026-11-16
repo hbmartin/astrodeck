@@ -1,0 +1,25 @@
+---
+import '@/styles/globals.css';
+import Head from '@/components/Head.astro';
+import { site } from '@/config/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  noindex?: boolean;
+  bodyClass: string;
+}
+
+const { title, description = site.description, image, noindex = false, bodyClass } = Astro.props;
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <Head {title} {description} {image} {noindex} />
+  </head>
+  <body class={bodyClass}>
+    <slot />
+  </body>
+</html>

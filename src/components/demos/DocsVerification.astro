@@ -1,0 +1,171 @@
+---
+import CodeBlock from './CodeBlock.astro';
+import { vibe2prodVersion } from './kit-stats';
+import { ic, pre, card, link } from './docs-styles';
+
+const verifySteps = [
+  { id: 'format', what: 'Oxfmt' },
+  { id: 'oxlint', what: 'JavaScript, TypeScript and Astro scripts (Oxlint)' },
+  { id: 'lint-astro', what: 'Astro directives, exports, styles and deprecated APIs' },
+  { id: 'astro-check', what: 'Types and templates (astro check)' },
+  { id: 'fallow', what: 'Dead code, imports, dependencies, complexity, and duplication' },
+  { id: 'lint-design', what: 'Design rules: tokens, links, forms, deprecated APIs' },
+  { id: 'lint-docs', what: 'Dead paths, version and count drift in docs' },
+  { id: 'registry', what: 'Registry matches component files, props, page templates and recipes' },
+  { id: 'test', what: 'Script tests (node --test)' },
+  { id: 'build', what: 'Production build' },
+  {
+    id: 'dist',
+    what: 'Built HTML: one h1, unique titles, meta descriptions, internal links, alt text',
+  },
+];
+---
+
+<!-- Cleanup -->
+<section id="cleanup" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Demo Cleanup</h2>
+    <p class="text-muted-foreground">
+      The download is this demo site. <code class={ic}>pnpm run starter:clean</code> removes it in
+      one step; the build-site workflow does this right after intake.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`pnpm run starter:clean --dry-run   # show the plan
+pnpm run starter:clean --yes       # remove the demo
+pnpm run starter:clean --yes --keep-blog`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        It is one-shot and destructive: it runs only while the <code class={ic}>starter/</code>{' '}
+        folder exists; a second run does nothing (it prints "Already cleaned"). Without{' '}
+        <code class={ic}>--yes</code> it asks for confirmation.
+      </p>
+    </div>
+    <div class={card}>
+      <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+        <li>
+          <strong class="text-foreground">Removed:</strong> docs and showcase pages, changelog, demo
+          templates, login and privacy samples, demo blog posts, screenshots, evals and maintainer
+          docs.
+        </li>
+        <li>
+          <strong class="text-foreground">Replaced</strong> with starter versions:{' '}
+          <code class={ic}>PROJECT.md</code>, <code class={ic}>site.ts</code>,{' '}
+          <code class={ic}>site-url.mjs</code>, the home page, <code class={ic}>robots.txt</code>,{' '}
+          <code class={ic}>llms.txt</code>.
+        </li>
+        <li>
+          <strong class="text-foreground">Kept:</strong> a minimal home page, the 404 page, all
+          sections, layouts, scripts and skills; with <code class={ic}>--keep-blog</code> the blog
+          system with one draft post.
+        </li>
+      </ul>
+      <p class="text-sm text-muted-foreground mt-3">
+        Afterwards, <code class={ic}>pnpm run verify --starter</code> also fails on demo leftovers.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Verify -->
+<section id="verify" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Verify</h2>
+    <p class="text-muted-foreground">
+      <code class={ic}>pnpm run verify</code> runs every check in one go, offline and deterministic,
+      and ends with <code class={ic}>VERIFY PASSED</code> or a short list of what failed. If a step
+      cannot run, it says so instead of passing.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class={`${card} overflow-x-auto`}>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b text-left">
+            <th class="pb-2 pr-4 font-medium text-muted-foreground">Step</th>
+            <th class="pb-2 font-medium text-muted-foreground">Checks</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {verifySteps.map((s) => (
+            <tr>
+              <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap">{s.id}</td>
+              <td class="py-2 text-muted-foreground">{s.what}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class={card}>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`pnpm run verify                # everything
+pnpm run verify --starter   # + demo leftovers
+pnpm run validate              # without build (fast)
+pnpm run check:fallow          # strict static analysis
+pnpm run lint:design           # single checks
+pnpm run lint:docs
+pnpm run check:registry`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        The design rules behind <code class={ic}>lint:design</code> (semantic color tokens only,
+        every link and form pointing somewhere real, no <code class={ic}>ViewTransitions</code>,
+        ...) are shared with the optional Claude Code hook.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- vibe2prod -->
+<section id="vibe2prod" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">vibe2prod Audit</h2>
+    <p class="text-muted-foreground">
+      The{' '}
+      <a
+        class={link}
+        href="https://github.com/holger1411/vibe2prod"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        vibe2prod
+      </a>{' '}
+      skill{vibe2prodVersion && ` (${vibe2prodVersion})`} ships in{' '}
+      <code class={ic}>.agents/skills/vibe2prod/</code> (MIT, license included). It audits
+      performance, accessibility, SEO, HTML, security, assets, robustness, AI-slop artifacts and
+      responsiveness and returns a READY / NOT YET / BLOCKED verdict with a 0–100 score.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <h3 class="font-semibold mb-3">Run it</h3>
+      <div class="bg-muted/50 border border-border rounded-xl p-4">
+        <p class="text-sm italic">"Run the vibe2prod audit on this project."</p>
+      </div>
+      <p class="text-sm text-muted-foreground mt-3">
+        Without a URL it builds the project and audits a local production server (local project
+        mode). After your first deploy, run it again against the live URL. The build-site workflow
+        runs it in step 7; agents apply technical fixes and propose content changes.
+      </p>
+    </div>
+    <div class={card}>
+      <h3 class="font-semibold mb-3">Install its tools once</h3>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`pnpm run setup:audit --check   # what is missing
+pnpm run setup:audit              # install it`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        Installs Lighthouse, the axe CLI, Playwright with Chromium and axe for Playwright (needs
+        network). vibe2prod gives no verdict without its tools; it reports exactly which checks were
+        skipped.
+      </p>
+    </div>
+  </div>
+</section>

@@ -1,8 +1,8 @@
 # AstroDeck
 
-> Free, open-source (MIT) Astro starter kit for building websites with a coding agent. Download it, open it in Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI or Windsurf, and describe your site. The agent follows a guided workflow (intake, brief, cleanup, config, theme, pages, verify, vibe2prod audit, handover) and the result is checked by `npm run verify` and the bundled vibe2prod audit.
+> Free, open-source (MIT) Astro starter kit for building websites with a coding agent. Download it, open it in Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI or Windsurf, and describe your site. The agent follows a guided workflow (intake, brief, cleanup, config, theme, pages, verify, vibe2prod audit, handover) and the result is checked by `pnpm run verify` and the bundled vibe2prod audit.
 
-AstroDeck is an Astro 7 + Tailwind CSS 4 + React 19 + shadcn/ui project. Agents read AGENTS.md (the always-loaded index) and the portable Agent Skills in .agents/skills/. The site brief lives in PROJECT.md, brand and navigation in src/config/site.ts, design tokens in src/styles/globals.css (written by `npm run theme`).
+AstroDeck is an Astro 7 + Tailwind CSS 4 + React 19 + shadcn/ui project. Agents read AGENTS.md (the always-loaded index) and the portable Agent Skills in .agents/skills/. The site brief lives in PROJECT.md, brand and navigation in src/config/site.ts, design tokens in src/styles/globals.css (written by `pnpm run theme`).
 
 ## Docs
 

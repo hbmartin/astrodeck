@@ -1,17 +1,7 @@
 ---
+import DemoExternalLink from '@/components/demos/DemoExternalLink.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import CodeBlock from '@/components/demos/CodeBlock.astro';
-
-/** Escapes HTML and renders `backticks` as inline code (entries share their text with CHANGELOG.md). */
-const inline = (text: string) =>
-  text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(
-      /`([^`]+)`/g,
-      '<code class="text-sm font-mono bg-muted px-1 py-0.5 rounded">$1</code>'
-    );
+import ReleaseEntry from '@/components/demos/ReleaseEntry.astro';
 
 const releases = [
   {
@@ -522,20 +512,6 @@ const releases = [
     ],
   },
 ];
-
-const tagStyles: Record<string, { bg: string; text: string; label: string }> = {
-  major: { bg: 'bg-primary', text: 'text-primary-foreground', label: 'Major' },
-  minor: {
-    bg: 'bg-foreground/10 border border-foreground/20',
-    text: 'text-foreground',
-    label: 'Minor',
-  },
-  patch: {
-    bg: 'bg-foreground/5 border border-foreground/15',
-    text: 'text-muted-foreground',
-    label: 'Patch',
-  },
-};
 ---
 
 <BaseLayout
@@ -557,145 +533,7 @@ const tagStyles: Record<string, { bg: string; text: string; label: string }> = {
 
       <div class="space-y-12">
         {releases.map((release, index) => (
-          <article class="relative pl-10">
-            {/* Timeline dot */}
-            <div
-              class:list={[
-                'absolute left-0 rounded-full border-2 border-background',
-                index === 0
-                  ? 'top-1.5 w-[19px] h-[19px] bg-primary -ml-[2px] animate-pulse'
-                  : 'top-2 w-[15px] h-[15px]',
-                index !== 0 && (release.tag === 'major' ? 'bg-primary' : 'bg-muted-foreground/40'),
-              ]}
-              aria-hidden="true"
-            />
-
-            {/* Version header */}
-            <div class="flex flex-wrap items-center gap-3 mb-3">
-              <h2 class="text-2xl font-bold">
-                {release.date ? `v${release.version}` : release.version}
-              </h2>
-              {index === 0 && (
-                <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground">
-                  {release.date ? 'Latest' : 'Upcoming'}
-                </span>
-              )}
-              <span
-                class:list={[
-                  'px-2 py-0.5 rounded-md text-xs font-semibold',
-                  tagStyles[release.tag].bg,
-                  tagStyles[release.tag].text,
-                ]}
-              >
-                {tagStyles[release.tag].label}
-              </span>
-              {release.date && (
-                <time datetime={release.date} class="text-sm text-muted-foreground">
-                  {new Date(release.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
-              )}
-            </div>
-
-            {/* Title */}
-            <p class="text-lg font-medium text-foreground/80 mb-4">{release.title}</p>
-
-            {/* Breaking changes */}
-            {release.breaking && release.breaking.length > 0 && (
-              <div class="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
-                <p class="text-sm font-semibold text-foreground mb-2">
-                  {release.breakingTitle ?? 'Breaking Changes'}
-                </p>
-                <ul class="space-y-1">
-                  {release.breaking.map((item) => (
-                    <li class="text-sm text-muted-foreground flex items-start gap-2">
-                      <span class="text-foreground mt-0.5 shrink-0" aria-hidden="true">
-                        !
-                      </span>
-                      <span set:html={inline(item)} />
-                    </li>
-                  ))}
-                </ul>
-                {release.migration && (
-                  <details class="mt-4">
-                    <summary class="cursor-pointer text-sm font-medium text-foreground">
-                      Before / after snippets
-                    </summary>
-                    <div class="mt-3 space-y-4">
-                      {release.migration.map((m) => (
-                        <div>
-                          <p class="text-sm font-semibold mb-1">{m.title}</p>
-                          <p class="text-xs text-muted-foreground mb-1">Before (3.x)</p>
-                          <CodeBlock
-                            class="bg-background border border-border rounded-md p-3 overflow-x-auto"
-                            codeClass={`text-xs font-mono language-${m.lang ?? 'astro'}`}
-                            code={m.before}
-                          />
-                          <p class="text-xs text-muted-foreground mt-2 mb-1">After (4.0)</p>
-                          <CodeBlock
-                            class="bg-background border border-border rounded-md p-3 overflow-x-auto"
-                            codeClass={`text-xs font-mono language-${m.lang ?? 'astro'}`}
-                            code={m.after}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </div>
-            )}
-
-            {/* Grouped changes (Added / Changed / Fixed), same text as CHANGELOG.md */}
-            {release.groups &&
-              release.groups.map((group) => (
-                <div class="mb-4">
-                  <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                    {group.heading}
-                  </h3>
-                  <ul class="space-y-2">
-                    {group.items.map((item) => (
-                      <li class="text-muted-foreground flex items-start gap-2">
-                        <svg
-                          class="h-5 w-5 text-primary shrink-0 mt-0.5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          aria-hidden="true"
-                        >
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span set:html={inline(item)} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-
-            {/* Highlights */}
-            <ul class="space-y-2">
-              {(release.highlights ?? []).map((item) => (
-                <li class="text-muted-foreground flex items-start gap-2">
-                  <svg
-                    class="h-5 w-5 text-primary shrink-0 mt-0.5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
-                  >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-
-            {index < releases.length - 1 && <div class="mt-8" aria-hidden="true" />}
-          </article>
+          <ReleaseEntry {release} first={index === 0} last={index === releases.length - 1} />
         ))}
       </div>
     </div>
@@ -705,28 +543,11 @@ const tagStyles: Record<string, { bg: string; text: string; label: string }> = {
       <p class="text-muted-foreground mb-4">
         View the full technical changelog and source code on GitHub.
       </p>
-      <a
+      <DemoExternalLink
         href="https://github.com/holger1411/astrodeck/releases"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center gap-2 justify-center rounded-md bg-primary text-primary-foreground font-medium h-10 px-6 hover:bg-primary/90 transition-colors text-sm"
-      >
-        All Releases on GitHub
-        <svg
-          class="h-3 w-3"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-          ></path>
-        </svg>
-      </a>
+        label="All Releases on GitHub"
+        class="rounded-md"
+      />
     </div>
   </div>
 </BaseLayout>

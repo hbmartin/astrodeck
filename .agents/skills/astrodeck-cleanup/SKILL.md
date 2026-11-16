@@ -5,7 +5,7 @@ description: 'Removes the AstroDeck demo (astrodeck.dev docs, showcases, demo te
 
 # AstroDeck: remove the demo
 
-`npm run starter:clean` is a one-shot, destructive operation driven by `starter.manifest.json`.
+`pnpm run starter:clean` is a one-shot, destructive operation driven by `starter.manifest.json`.
 It only runs while the `starter/` folder exists; afterwards it reports "Already cleaned" and
 does nothing.
 
@@ -17,8 +17,8 @@ does nothing.
 ## 2. Show the plan
 
 ```bash
-npm run starter:clean -- --dry-run              # without blog
-npm run starter:clean -- --dry-run --keep-blog  # keep the blog system
+pnpm run starter:clean --dry-run              # without blog
+pnpm run starter:clean --dry-run --keep-blog  # keep the blog system
 ```
 
 The plan lists what is removed (demo pages such as docs, sections, components, pages,
@@ -42,7 +42,7 @@ Ask whether they want a blog if that is not decided (default: no blog).
 ## 4. Run
 
 ```bash
-npm run starter:clean -- --yes               # or: -- --yes --keep-blog
+pnpm run starter:clean --yes               # or: -- --yes --keep-blog
 ```
 
 `--yes` is needed in agent shells (no interactive prompt). The script also prunes
@@ -52,7 +52,7 @@ npm run starter:clean -- --yes               # or: -- --yes --keep-blog
 
 - The site now has a minimal home page, the 404 page and (with `--keep-blog`) the blog with
   one draft post. Section components, layouts, UI components, the theme and all scripts stay.
-- `npm run verify -- --starter` must pass (it also fails on `data-demo` markers and the text
+- `pnpm run verify --starter` must pass (it also fails on `data-demo` markers and the text
   "AstroDeck" / "astrodeck.dev" in the built pages).
 - Still AstroDeck-branded until you change them (the check above cannot see them): the favicons
   in `public/`, and the starter placeholders in

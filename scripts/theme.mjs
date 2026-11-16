@@ -29,7 +29,7 @@ export const DEFAULT_PRIMARY = 'oklch(11.2% 0.0079 286.75)';
  * so a run with the default primary and no neutral reproduces the shipped CSS exactly.
  * @type {{ light: Tokens; dark: Tokens; invertedLight: Tokens; invertedDark: Tokens }}
  */
-export const DEFAULT_TOKENS = {
+const DEFAULT_TOKENS = {
   light: {
     background: 'oklch(100% 0 0)',
     foreground: 'oklch(9.8% 0.0016 286.75)',
@@ -104,7 +104,7 @@ export const DEFAULT_TOKENS = {
 };
 
 /** Characteristic hue / chroma of each Tailwind-style neutral family. */
-export const NEUTRAL_FAMILIES = {
+const NEUTRAL_FAMILIES = {
   zinc: { h: 286, c: 0.006 },
   slate: { h: 257, c: 0.02 },
   stone: { h: 56, c: 0.008 },
@@ -423,21 +423,14 @@ export function readTokens(css) {
   };
 }
 
-/**
- * Minimal YAML front-matter reader for DESIGN.md: nested maps and scalars only.
- * Reads `colors.primary`, `colors.accent` and `rounded` / `radius`; everything else is reported.
- * @param {string} text
- * @returns {{ input: Partial<ThemeInput>; warnings: string[] }}
- */
-export function parseDesignMd(text) {
-  const m = text.replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/);
-  if (!m) throw new Error('No YAML front matter found (expected a leading --- block)');
+function readDesignYaml(yaml) {
   const root = {};
   const stack = [{ indent: -1, node: root }];
-  for (const raw of m[1].split('\n')) {
-    if (!raw.trim() || raw.trim().startsWith('#') || raw.trim().startsWith('- ')) continue;
+  for (const raw of yaml.split('\n')) {
+    const line = raw.trim();
+    if (line.startsWith('#') || line.startsWith('- ')) continue;
     const indent = raw.length - raw.trimStart().length;
-    const kv = raw.trim().match(/^([\w.-]+|"[^"]+"|'[^']+')\s*:\s*(.*)$/);
+    const kv = line.match(/^([\w.-]+|"[^"]+"|'[^']+')\s*:\s*(.*)$/);
     if (!kv) continue;
     while (stack.at(-1).indent >= indent) stack.pop();
     const key = kv[1].replace(/^["']|["']$/g, '');
@@ -450,6 +443,19 @@ export function parseDesignMd(text) {
       stack.push({ indent, node: parent[key] });
     } else parent[key] = value;
   }
+  return root;
+}
+
+/**
+ * Minimal YAML front-matter reader for DESIGN.md: nested maps and scalars only.
+ * Reads `colors.primary`, `colors.accent` and `rounded` / `radius`; everything else is reported.
+ * @param {string} text
+ * @returns {{ input: Partial<ThemeInput>; warnings: string[] }}
+ */
+export function parseDesignMd(text) {
+  const m = text.replace(/\r\n/g, '\n').match(/^---\n([\s\S]*?)\n---/);
+  if (!m) throw new Error('No YAML front matter found (expected a leading --- block)');
+  const root = readDesignYaml(m[1]);
   /** @type {Partial<ThemeInput>} */
   const input = {};
   const warnings = [];
@@ -470,7 +476,7 @@ export function parseDesignMd(text) {
 }
 
 /** Line-based diff of changed tokens between the current CSS and a theme. */
-export function diffTheme(css, theme) {
+function diffTheme(css, theme) {
   const before = readTokens(css);
   const lines = [];
   const groups = [
@@ -497,7 +503,7 @@ function hint(r) {
 }
 
 /** @param {ContrastRow[]} report */
-export function formatReport(report) {
+function formatReport(report) {
   return report
     .map(
       (r) =>

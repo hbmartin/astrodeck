@@ -1,0 +1,436 @@
+---
+import RegistryUsage from './RegistryUsage.astro';
+import { groupComponents } from './section-groups';
+import Features from '@/components/sections/Features.astro';
+import ContentBlock from '@/components/sections/ContentBlock.astro';
+import LogoCloud from '@/components/sections/LogoCloud.astro';
+import IntegrationGrid from '@/components/sections/IntegrationGrid.astro';
+---
+
+<!-- Heroes -->
+<section id="heroes" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Hero Sections</h2>
+    <p class="text-muted-foreground">
+      Eye-catching hero sections to make a strong first impression.
+    </p>
+  </div>
+
+  <RegistryUsage names={groupComponents.heroes} />
+
+  <div class="space-y-12">
+    <!-- Hero 1: Centered with Badge -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Centered with Badge</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="min-h-[400px] flex items-center">
+          <div class="w-full flex flex-col items-center gap-6 text-center">
+            <div class="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-medium">
+              <span class="bg-foreground text-background px-2 py-0.5 rounded-md font-semibold text-xs">
+                NEW
+              </span>
+              <span>Introducing our latest feature</span>
+            </div>
+            <h3 class="text-4xl font-bold leading-tight tracking-tight md:text-6xl max-w-3xl">
+              Build amazing products faster
+            </h3>
+            <p class="max-w-[600px] text-lg text-muted-foreground">
+              Start with our pre-built components and focus on what matters. Ship faster, iterate
+              quicker.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 mt-4">
+              <a
+                href="/docs"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-8"
+              >
+                Get Started
+              </a>
+              <a
+                href="/docs"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent h-12 px-8"
+              >
+                Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero 2: Left Aligned with Image -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Left Aligned with Visual</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="min-h-[400px] grid lg:grid-cols-2 gap-12 items-center">
+          <div class="space-y-6">
+            <div class="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
+              Now in beta
+            </div>
+            <h3 class="text-4xl font-bold leading-tight tracking-tight md:text-5xl">
+              Ship your SaaS in days, not months
+            </h3>
+            <p class="text-lg text-muted-foreground">
+              Everything you need to build a modern landing page. TypeScript, Tailwind, and
+              shadcn/ui included.
+            </p>
+            <div class="flex gap-4">
+              <a
+                href="/docs"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+              >
+                Start Building
+              </a>
+              <a
+                href="/templates/saas"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium border h-11 px-8"
+              >
+                View Demo
+              </a>
+            </div>
+          </div>
+          <img
+            src="/screenshots/saas.png"
+            alt="Nebula SaaS demo hero: headline 'The platform your team will actually love.', See pricing and Talk to sales buttons, and a product mock-up on the right"
+            width="1280"
+            height="720"
+            loading="lazy"
+            decoding="async"
+            class="w-full rounded-lg border shadow-lg"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero 3: Minimal with Stats -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Minimal with Stats</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="min-h-[400px] flex items-center">
+          <div class="w-full space-y-8">
+            <div class="max-w-3xl mx-auto text-center space-y-6">
+              <h3 class="text-5xl font-bold leading-tight tracking-tight md:text-6xl">
+                The complete toolkit for modern development
+              </h3>
+              <p class="text-xl text-muted-foreground">
+                Sample numbers for Nebula, a fictional product
+              </p>
+            </div>
+            <div class="grid grid-cols-3 gap-8 max-w-2xl mx-auto pt-8">
+              <div class="text-center">
+                <div class="text-3xl font-bold">50K+</div>
+                <div class="text-sm text-muted-foreground mt-1">Downloads</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold">1.2K+</div>
+                <div class="text-sm text-muted-foreground mt-1">GitHub Stars</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold">99%</div>
+                <div class="text-sm text-muted-foreground mt-1">Satisfaction</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Feature Grids</h2>
+    <p class="text-muted-foreground">
+      Three to nine benefits, each with an icon, a title and a short description.
+    </p>
+  </div>
+
+  <RegistryUsage names={groupComponents.features} live />
+
+  <div class="space-y-12">
+    <div class="border rounded-lg bg-card overflow-hidden">
+      <div class="flex items-center justify-between p-8 pb-4">
+        <h3 class="font-semibold">Icon Grid</h3>
+      </div>
+      <div class="border-t">
+        <Features
+          title="Why teams pick Nebula"
+          subtitle="Everything in one place, nothing to stitch together"
+          features={[
+            {
+              icon: 'users',
+              title: 'Real-time collaboration',
+              description: 'Edit together and see changes as they happen.',
+            },
+            {
+              icon: 'lock',
+              title: 'Secure by default',
+              description: 'Single sign-on and roles for every workspace.',
+            },
+            {
+              icon: 'chart',
+              title: 'Clear analytics',
+              description: 'See what your team ships each week.',
+            },
+          ]}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Content Blocks -->
+<section id="content" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Content Blocks</h2>
+    <p class="text-muted-foreground">
+      A text block with an optional bullet list. With the image prop (a real photo or screenshot) it
+      becomes two columns, as in the usage snippet.
+    </p>
+  </div>
+
+  <RegistryUsage names={groupComponents.content} live />
+
+  <div class="space-y-12">
+    <div class="border rounded-lg bg-card overflow-hidden">
+      <div class="flex items-center justify-between p-8 pb-4">
+        <h3 class="font-semibold">Text Only</h3>
+      </div>
+      <div class="border-t">
+        <ContentBlock
+          tagline="How it works"
+          title="One workspace for the whole team"
+          description="Nebula keeps plans, files and decisions in one place, so nobody has to ask where the latest version is."
+          features={[
+            'Shared boards for every project',
+            'Comments next to the work',
+            'Weekly summary by email',
+          ]}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Logo Clouds -->
+<section id="logos" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Logo Clouds</h2>
+    <p class="text-muted-foreground">
+      One row of logos with a leading label: your stack, or customers who agreed to be shown.
+    </p>
+  </div>
+
+  <RegistryUsage names={groupComponents.logos} live />
+
+  <div class="space-y-12">
+    <div class="border rounded-lg bg-card overflow-hidden">
+      <div class="flex items-center justify-between p-8 pb-4">
+        <h3 class="font-semibold">Single Row</h3>
+      </div>
+      <div class="border-t">
+        <LogoCloud
+          title="Built with:"
+          logos={[
+            { name: 'Astro', src: '/icons/tech/astro.svg', href: 'https://astro.build' },
+            {
+              name: 'Tailwind CSS',
+              src: '/icons/tech/tailwind.svg',
+              href: 'https://tailwindcss.com',
+            },
+            {
+              name: 'TypeScript',
+              src: '/icons/tech/typescript.svg',
+              href: 'https://www.typescriptlang.org',
+            },
+          ]}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Integrations -->
+<section id="integrations" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Integration Grids</h2>
+    <p class="text-muted-foreground">
+      Tools, integrations or partners as a grid of cards next to a short intro. Cards link out only
+      when they have an href.
+    </p>
+  </div>
+
+  <RegistryUsage names={groupComponents.integrations} live />
+
+  <div class="space-y-12">
+    <div class="border rounded-lg bg-card overflow-hidden">
+      <div class="flex items-center justify-between p-8 pb-4">
+        <h3 class="font-semibold">Two-Column Grid</h3>
+      </div>
+      <div class="border-t">
+        <IntegrationGrid
+          subtitle="Integrations"
+          title="Works with the tools you already use"
+          items={[
+            { name: 'CSV import', subtitle: 'Bring existing data', icon: 'code' },
+            { name: 'JSON export', subtitle: 'Take your data anywhere', icon: 'code' },
+            { name: 'Webhooks', subtitle: 'Trigger your own workflows', icon: 'zap' },
+            { name: 'REST API', subtitle: 'Build on top of Nebula', icon: 'globe' },
+          ]}
+        >
+          <p>Move data in and out of Nebula without waiting for us.</p>
+        </IntegrationGrid>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTAs -->
+<section id="ctas" class="scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Call to Action</h2>
+    <p class="text-muted-foreground">Convert visitors with compelling CTAs.</p>
+  </div>
+
+  <RegistryUsage names={groupComponents.ctas} />
+
+  <div class="space-y-12">
+    <!-- CTA 1: Simple Centered -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Simple Centered</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="rounded-lg border bg-muted/50 p-12 text-center">
+          <h2 class="text-3xl font-bold mb-4">Ready to get started?</h2>
+          <p class="text-muted-foreground max-w-[600px] mx-auto mb-6">
+            Start with ready-made sections and focus on your content.
+          </p>
+          <a
+            href="/docs"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+          >
+            Get Started
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA 2: Split with Features -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Split with Features</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="rounded-lg border bg-gradient-to-br from-primary/10 to-primary/5 p-12">
+          <div class="grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h2 class="text-3xl font-bold mb-4">Build faster with our components</h2>
+              <ul class="space-y-3">
+                <li class="flex items-center gap-2">
+                  <svg
+                    class="h-5 w-5 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                  <span>Pre-built components</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg
+                    class="h-5 w-5 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                  <span>Full TypeScript support</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg
+                    class="h-5 w-5 text-primary"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"
+                    ></path>
+                  </svg>
+                  <span>Dark mode ready</span>
+                </li>
+              </ul>
+            </div>
+            <div class="space-y-4">
+              <a
+                href="/docs"
+                class="block w-full text-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 leading-[44px]"
+              >
+                Get Started
+              </a>
+              <a
+                href="/docs"
+                class="block w-full text-center rounded-md text-sm font-medium border h-11 leading-[44px]"
+              >
+                View Documentation
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA 3: Banner Style -->
+    <div class="border rounded-lg p-8 bg-card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold">Banner Style</h3>
+      </div>
+      <div class="border-t pt-6">
+        <div class="rounded-lg bg-foreground text-background p-8">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 class="text-2xl font-bold mb-2">Try Nebula today</h3>
+              <p class="opacity-90">14 days free, no credit card required.</p>
+            </div>
+            <div class="flex gap-3">
+              <a
+                href="/templates/saas#pricing-heading"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-background text-foreground hover:bg-background/90 h-10 px-6"
+              >
+                See pricing
+              </a>
+              <a
+                href="/templates/contact"
+                class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-background/20 hover:bg-background/10 h-10 px-6"
+              >
+                Talk to sales
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

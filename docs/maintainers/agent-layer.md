@@ -1,7 +1,7 @@
 # Agent layer (maintainers)
 
 How AstroDeck's instructions for coding agents are organized, and how to change them without
-drift. Users never need this file; it is removed by `npm run starter:clean`.
+drift. Users never need this file; it is removed by `pnpm run starter:clean`.
 
 ## Layers
 
@@ -26,7 +26,7 @@ the skill for each task and carry the golden rules.
   lines; detail in `references/`.
 - Front matter: only `name`, `description`, `license`, `compatibility`, `metadata`,
   `allowed-tools` (agentskills.io). Tool-specific fields break portability.
-- `npm run lint:docs` enforces this (`skill-frontmatter` rule; vendored vibe2prod is skipped),
+- Apply these rules when authoring first-party skills.
   plus dead paths, version and count drift in every doc.
 - Current set: `astrodeck-build-site` (references: intake, brief-template, content-rules,
   design-system, quality-checklist, recipes), `astrodeck-new-page`, `astrodeck-new-section`,
@@ -35,27 +35,25 @@ the skill for each task and carry the golden rules.
 ## Mirror
 
 Claude Code reads skills only from `.claude/skills/`; Codex, Cursor, Copilot, Gemini CLI and
-Windsurf read `.agents/skills/`. The mirror is real files (symlinks do not survive ZIP
-extraction on Windows).
+Windsurf read `.agents/skills/`. AstroDeck's mirrors use regular files so they survive ZIP
+extraction on Windows.
 
-- Edit `.agents/skills/`, then `npm run sync:agents` (`scripts/sync-agents.mjs`): copies every
-  file of every skill in `.agents/skills/`, removes stale files inside those skills, writes
-  `.claude/skills/README.md`. Folders in `.claude/skills/` without a counterpart in
-  `.agents/skills/` are user-owned: sync never touches them, `--check` ignores them and only
-  prints an info line naming them. Add your own Claude-only skills directly in `.claude/skills/`.
-- `npm run verify` runs `sync-agents --check` (step `agents-sync`) and fails on drift.
+- Edit `.agents/skills/`, then run `pnpm run sync:agents` to copy the managed skills, remove
+  their stale mirror files, and regenerate `.claude/skills/README.md`. Claude-only skills and
+  skills listed in `skills-lock.json` keep their own files.
+- Run `pnpm run sync:agents --check` to check mirror drift on demand.
 - Tests: `tests/sync-agents.test.mjs`.
 
 ## Changing the workflow
 
 1. Edit the skill or reference in `.agents/skills/`.
 2. If a rule changes, update `AGENTS.md` only when it is a golden rule or a task → skill route.
-3. `npm run sync:agents`, then `npm run verify`.
+3. `pnpm run sync:agents`, then `pnpm run verify`.
 4. Rerun an eval case (`evals/`) with at least one agent when the build-site workflow changes.
 
 ## Why the cleanup runs early
 
-`npm run starter:clean` replaces `PROJECT.md`, `src/config/site.ts`, `src/config/site-url.mjs`,
+`pnpm run starter:clean` replaces `PROJECT.md`, `src/config/site.ts`, `src/config/site-url.mjs`,
 `src/pages/index.astro`, `public/robots.txt` and `public/llms.txt`. The build-site workflow
 therefore removes the demo right after intake (step 2), before the brief and config are written.
 
@@ -64,11 +62,11 @@ therefore removes the demo right after intake (step 2), before the brief and con
 `.agents/skills/vibe2prod/` is a copy of the upstream vibe2prod skill (MIT, by the same owner,
 https://github.com/holger1411/vibe2prod). Never edit it by hand.
 
-- Update (maintainers only, needs network and git): `npm run sync:vibe2prod -- --tag vX.Y.Z`.
+- Update (maintainers only, needs network and git): `pnpm run sync:vibe2prod --tag vX.Y.Z`.
   Without `--tag` the highest semver git tag is used. The script copies `skills/vibe2prod/`
   with symlinks resolved, adds the upstream `LICENSE`, writes `VERSION` (tag, commit, date) and
-  runs `npm run sync:agents`.
+  runs `pnpm run sync:agents`.
 - The vendored folder is excluded from Oxfmt, Oxlint, TypeScript and the docs lint.
 - License: the upstream `LICENSE` ships inside the folder and must stay there.
-- Audit runtime: `npm run setup:audit -- --check` reports what is missing (exit 2), and
-  `npm run setup:audit` installs only the missing pieces.
+- Audit runtime: `pnpm run setup:audit --check` reports what is missing (exit 2), and
+  `pnpm run setup:audit` installs only the missing pieces.

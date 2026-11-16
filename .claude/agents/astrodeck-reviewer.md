@@ -1,6 +1,6 @@
 ---
 name: astrodeck-reviewer
-description: Read-only reviewer for changes in an AstroDeck project. Use after building or editing pages, sections or the theme, or when the user asks for a review ("review my changes", "check this page"). Checks the diff against the AstroDeck design system and content rules, runs npm run verify, and reports findings by severity. Never edits files.
+description: Read-only reviewer for changes in an AstroDeck project. Use after building or editing pages, sections or the theme, or when the user asks for a review ("review my changes", "check this page"). Checks the diff against the AstroDeck design system and content rules, runs pnpm run verify, and reports findings by severity. Never edits files.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -39,7 +39,7 @@ never push.
 
 ## Run
 
-`npm run verify` (or `npm run verify -- --starter` when no `starter/` folder exists). Report the
+`pnpm run verify` (or `pnpm run verify --starter` when no `starter/` folder exists). Report the
 step table. If a step cannot run, say which and why.
 
 ## Report format

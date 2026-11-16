@@ -4,7 +4,7 @@ import { cpSync, mkdtempSync, rmSync, existsSync, readFileSync, writeFileSync } 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { packageBin } from '../scripts/lib/executables.mjs';
 import { mkdirSync } from 'node:fs';
 import { planClean, applyClean, loadManifest } from '../scripts/starter-clean.mjs';
 
@@ -188,7 +188,7 @@ test('CLI: files written by --yes are Oxfmt-clean with the target project config
     ].join('\n')
   );
   assert.equal(cli('--yes').status, 0);
-  const bin = fileURLToPath(new URL('./bin/oxfmt', import.meta.resolve('oxfmt/package.json')));
+  const bin = packageBin('oxfmt');
   const { status, stdout, stderr } = spawnSync(
     process.execPath,
     [bin, '--check', 'src/config/site.ts', 'src/registry.json', 'src/pages/index.astro'],
@@ -198,4 +198,21 @@ test('CLI: files written by --yes are Oxfmt-clean with the target project config
   assert.match(read('src/config/site.ts'), /nav: \[\{ href: '\/', label: 'Home' \}\],/);
   assert.match(read('src/pages/index.astro'), /const hello = 'world';/);
   assert.match(read('src/pages/keep.astro'), /const hello="world";/);
+});
+
+test('starter cleanup preserves slot text when its formatter would change it', () => {
+  writeFileSync(join(root, '.oxfmtrc.json'), '{"astro":{"compressHTML":"jsx"},"printWidth":45}');
+  writeFileSync(
+    join(root, 'starter/site.ts'),
+    'export const site = { features: { blog: false, rss: false } };\n'
+  );
+  const unsafe = '<Demo client:load variant="secondary">Secondary</Demo>';
+  writeFileSync(join(root, 'starter/index.astro'), unsafe);
+  const result = cli('--yes');
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(
+    result.stderr,
+    /src[/\\]pages[/\\]index\.astro: Formatting changes rendered Astro slot text/
+  );
+  assert.equal(read('src/pages/index.astro'), unsafe);
 });

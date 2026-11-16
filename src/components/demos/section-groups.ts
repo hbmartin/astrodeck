@@ -1,0 +1,16 @@
+export const groupComponents: Record<string, string[]> = {
+  heroes: ['Hero', 'HeroSplit', 'HeroGradient'],
+  features: ['Features'],
+  content: ['ContentBlock'],
+  logos: ['LogoCloud'],
+  integrations: ['IntegrationGrid'],
+  ctas: ['CTA'],
+  pricing: ['Pricing'],
+  testimonials: ['Testimonials'],
+  newsletters: ['Newsletter'],
+  faq: ['FAQ'],
+  stats: ['Stats'],
+  team: ['Team'],
+  comparison: ['Comparison'],
+  contact: ['Contact'],
+};

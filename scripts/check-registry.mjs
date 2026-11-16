@@ -37,42 +37,49 @@ export function checkRegistry(root) {
   }
   const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
 
-  for (const { key, dir, ext } of DIRS) {
-    const entries = registry[key] ?? [];
-    const registered = new Set(entries.map((e) => e.file));
-
-    const abs = join(root, dir);
-    const onDisk = existsSync(abs)
-      ? readdirSync(abs)
-          .filter((f) => f.endsWith(ext))
-          .map((f) => `${dir}/${f}`)
-      : [];
-    for (const file of onDisk) {
-      if (!registered.has(file)) add('unregistered', `${file} is not in registry.${key}`, file);
-    }
-
-    for (const entry of entries) {
-      const label = `${key}.${entry.name}`;
-      const filePath = join(root, entry.file ?? '');
-      if (!entry.file || !existsSync(filePath)) {
-        add('missing-file', `${label}: file "${entry.file}" does not exist`);
-        continue;
-      }
-      for (const field of ['description', 'useWhen', 'example']) {
-        if (typeof entry[field] !== 'string' || !entry[field].trim()) {
-          add('incomplete', `${label}: "${field}" is missing or empty`);
-        }
-      }
-      if (entry.screenshot && !existsSync(join(root, 'public', entry.screenshot))) {
-        add('missing-file', `${label}: screenshot "${entry.screenshot}" not found in public/`);
-      }
-      if (COMPARE_PROPS.has(key)) compareProps(label, entry, filePath, add);
-    }
-  }
+  for (const group of DIRS) checkCatalogGroup(root, registry, group, add);
 
   checkPageTemplates(root, registry, add);
   checkRecipes(root, registry, add);
   return findings;
+}
+
+function checkCatalogGroup(root, registry, { key, dir, ext }, add) {
+  const entries = registry[key] ?? [];
+  const registered = new Set(entries.map((e) => e.file));
+
+  const abs = join(root, dir);
+  const onDisk = existsSync(abs)
+    ? readdirSync(abs)
+        .filter((f) => f.endsWith(ext))
+        .map((f) => `${dir}/${f}`)
+    : [];
+  for (const file of onDisk) {
+    if (!registered.has(file)) add('unregistered', `${file} is not in registry.${key}`, file);
+  }
+
+  for (const entry of entries) checkCatalogEntry(root, key, entry, add);
+}
+
+function checkCatalogEntry(root, key, entry, add) {
+  const label = `${key}.${entry.name}`;
+  const filePath = join(root, entry.file ?? '');
+  if (!entry.file || !existsSync(filePath)) {
+    add('missing-file', `${label}: file "${entry.file}" does not exist`);
+    return;
+  }
+  for (const field of ['description', 'useWhen', 'example']) {
+    if (typeof entry[field] !== 'string' || !entry[field].trim()) {
+      add('incomplete', `${label}: "${field}" is missing or empty`);
+    }
+  }
+  checkScreenshot(root, label, entry, add);
+  if (COMPARE_PROPS.has(key)) compareProps(label, entry, filePath, add);
+}
+
+function checkScreenshot(root, label, entry, add) {
+  if (entry.screenshot && !existsSync(join(root, 'public', entry.screenshot)))
+    add('missing-file', `${label}: screenshot "${entry.screenshot}" not found in public/`);
 }
 
 function checkRecipes(root, registry, add) {
@@ -81,31 +88,8 @@ function checkRecipes(root, registry, add) {
   const recipeNames = new Set(recipeFiles.map((f) => basename(f, '.md')));
   const sectionNames = new Set((registry.sections ?? []).map((s) => s.name));
 
-  for (const t of registry.pageTemplates ?? []) {
-    if (t.recipe && !recipeNames.has(t.recipe)) {
-      add(
-        'recipe-section',
-        `pageTemplates.${t.name}: recipe "${t.recipe}" has no file ${RECIPES_DIR}/${t.recipe}.md`
-      );
-    }
-  }
-
-  for (const t of registry.pageTemplates ?? []) {
-    if (!t.recipe || !recipeNames.has(t.recipe) || !t.file) continue;
-    const pagePath = join(root, t.file);
-    if (!existsSync(pagePath)) continue;
-    const expected = homeSections(readFileSync(join(dir, `${t.recipe}.md`), 'utf8'));
-    const src = readFileSync(pagePath, 'utf8');
-    const actual = [...src.matchAll(/<([A-Z][A-Za-z0-9]*)[\s/>]/g)]
-      .map((m) => m[1])
-      .filter((n) => sectionNames.has(n));
-    if (expected.join(',') !== actual.join(',')) {
-      add(
-        'recipe-order',
-        `pageTemplates.${t.name}: sections in ${t.file} (${actual.join(', ')}) differ from the home sequence of recipe "${t.recipe}" (${expected.join(', ')})`
-      );
-    }
-  }
+  for (const template of registry.pageTemplates ?? [])
+    checkTemplateRecipe(root, template, recipeNames, sectionNames, add);
 
   for (const f of recipeFiles) {
     const file = `${RECIPES_DIR}/${f}`;
@@ -117,6 +101,31 @@ function checkRecipes(root, registry, add) {
       }
     });
   }
+}
+
+function checkTemplateRecipe(root, template, recipeNames, sectionNames, add) {
+  const { name, recipe, file } = template;
+  if (!recipe) return;
+  if (!recipeNames.has(recipe)) {
+    add(
+      'recipe-section',
+      `pageTemplates.${name}: recipe "${recipe}" has no file ${RECIPES_DIR}/${recipe}.md`
+    );
+    return;
+  }
+  if (!file) return;
+  const pagePath = join(root, file);
+  if (!existsSync(pagePath)) return;
+  const expected = homeSections(readFileSync(join(root, RECIPES_DIR, `${recipe}.md`), 'utf8'));
+  const src = readFileSync(pagePath, 'utf8');
+  const actual = [...src.matchAll(/<([A-Z][A-Za-z0-9]*)[\s/>]/g)]
+    .map((m) => m[1])
+    .filter((n) => sectionNames.has(n));
+  if (expected.join(',') !== actual.join(','))
+    add(
+      'recipe-order',
+      `pageTemplates.${name}: sections in ${file} (${actual.join(', ')}) differ from the home sequence of recipe "${recipe}" (${expected.join(', ')})`
+    );
 }
 
 /**
@@ -177,39 +186,44 @@ function checkPageTemplates(root, registry, add) {
       add('missing-file', `${label}: file "${t.file}" does not exist`);
       continue;
     }
-    if (t.screenshot && !existsSync(join(root, 'public', t.screenshot))) {
-      add('missing-file', `${label}: screenshot "${t.screenshot}" not found in public/`);
-    }
-    const src = readFileSync(filePath, 'utf8');
-    const imports = [...src.matchAll(/^import\s+\w+\s+from\s+['"]([^'"]+)['"]/gm)].map((m) =>
-      posix(m[1])
-    );
-    const used = (marker) =>
-      imports
-        .filter((i) => i.includes(marker) && i.endsWith('.astro'))
-        .map((i) => basename(i, '.astro'));
-    const layouts = used('/layouts/');
-    const sections = used('/components/sections/');
+    checkScreenshot(root, label, t, add);
+    checkTemplateImports(readFileSync(filePath, 'utf8'), t, label, layoutNames, sectionNames, add);
+  }
+}
 
-    if (!layouts.includes(t.layout)) {
-      add(
-        'template-mismatch',
-        `${label}: layout "${t.layout}" is not imported by ${t.file} (imports: ${layouts.join(', ') || 'none'})`
-      );
-    }
-    if (!layoutNames.has(t.layout))
-      add('template-mismatch', `${label}: layout "${t.layout}" is not in registry.layouts`);
-    const declared = t.sections ?? [];
-    for (const s of declared) {
-      if (!sections.includes(s))
-        add('template-mismatch', `${label}: section "${s}" is not imported by ${t.file}`);
-      else if (!sectionNames.has(s))
-        add('template-mismatch', `${label}: section "${s}" is not in registry.sections`);
-    }
-    for (const s of sections) {
-      if (!declared.includes(s))
-        add('template-mismatch', `${label}: ${t.file} imports section "${s}" which is not listed`);
-    }
+function checkTemplateImports(src, t, label, layoutNames, sectionNames, add) {
+  const imports = [...src.matchAll(/^import\s+\w+\s+from\s+['"]([^'"]+)['"]/gm)].map((m) =>
+    posix(m[1])
+  );
+  const used = (marker) =>
+    imports
+      .filter((i) => i.includes(marker) && i.endsWith('.astro'))
+      .map((i) => basename(i, '.astro'));
+  const layouts = used('/layouts/');
+  const sections = used('/components/sections/');
+
+  if (!layouts.includes(t.layout)) {
+    add(
+      'template-mismatch',
+      `${label}: layout "${t.layout}" is not imported by ${t.file} (imports: ${layouts.join(', ') || 'none'})`
+    );
+  }
+  if (!layoutNames.has(t.layout))
+    add('template-mismatch', `${label}: layout "${t.layout}" is not in registry.layouts`);
+  checkTemplateSections(t, label, sections, sectionNames, add);
+}
+
+function checkTemplateSections(t, label, sections, sectionNames, add) {
+  const declared = t.sections ?? [];
+  for (const s of declared) {
+    if (!sections.includes(s))
+      add('template-mismatch', `${label}: section "${s}" is not imported by ${t.file}`);
+    else if (!sectionNames.has(s))
+      add('template-mismatch', `${label}: section "${s}" is not in registry.sections`);
+  }
+  for (const s of sections) {
+    if (!declared.includes(s))
+      add('template-mismatch', `${label}: ${t.file} imports section "${s}" which is not listed`);
   }
 }
 

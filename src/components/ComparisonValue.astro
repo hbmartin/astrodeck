@@ -1,0 +1,20 @@
+---
+import Icon from '@/components/Icon.astro';
+
+interface Props {
+  included: boolean;
+}
+const { included } = Astro.props;
+---
+
+<span
+  class="inline-flex items-center justify-center"
+  role="img"
+  aria-label={included ? 'Yes' : 'No'}
+>
+  <Icon
+    name={included ? 'check' : 'minus'}
+    class={included ? 'h-5 w-5 text-primary' : 'h-5 w-5 text-muted-foreground'}
+    strokeWidth={included ? 2.5 : 2}
+  />
+</span>

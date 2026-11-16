@@ -1,4 +1,4 @@
-<!-- This copy belongs to the AstroDeck demo (astrodeck.dev). `npm run starter:clean` replaces it
+<!-- This copy belongs to the AstroDeck demo (astrodeck.dev). `pnpm run starter:clean` replaces it
      with the same empty template. To build your own site, follow the astrodeck-build-site skill. -->
 
 # PROJECT.md — Site brief
@@ -69,4 +69,4 @@
 
 <!-- Every default the agent chose without an explicit answer, so the owner can overrule it. -->
 
--
+- Verification uses strict Fallow checks with no findings baseline.

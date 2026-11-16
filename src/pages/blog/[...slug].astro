@@ -1,7 +1,8 @@
 ---
+import PostByline from '@/components/PostByline.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { render } from 'astro:content';
-import { getPublishedPosts } from '@/lib/blog';
+import { formatDate, getPublishedPosts } from '@/lib/blog';
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
 import { getReadingTime } from '@/lib/reading-time';
@@ -45,15 +46,6 @@ interface Props {
 const { post, prevPost, nextPost, relatedPosts } = Astro.props;
 const { Content } = await render(post);
 const readingTime = getReadingTime(post.body ?? '');
-
-// Format date helper
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 ---
 
 <BaseLayout
@@ -94,13 +86,12 @@ function formatDate(date: Date) {
 
         <p class="text-xl text-muted-foreground">{post.data.description}</p>
 
-        <div class="flex items-center gap-4 text-sm text-muted-foreground pt-2">
-          <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-          <span>•</span>
-          <span>{post.data.author}</span>
-          <span>•</span>
-          <span>{readingTime.text}</span>
-        </div>
+        <PostByline
+          date={post.data.pubDate}
+          author={post.data.author}
+          readingTime={readingTime.text}
+          class="pt-2"
+        />
 
         {post.data.tags.length > 0 && (
           <div class="flex flex-wrap gap-2 pt-2">

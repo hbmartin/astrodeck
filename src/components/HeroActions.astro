@@ -1,0 +1,53 @@
+---
+type Link = { label: string; href: string };
+
+interface Props {
+  primaryCta?: Link;
+  secondaryCta?: Link;
+  primaryPadding: string;
+  secondaryPadding: string;
+  class?: string;
+}
+
+const {
+  primaryCta,
+  secondaryCta,
+  primaryPadding,
+  secondaryPadding,
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={['flex flex-col sm:flex-row gap-4', className]}>
+  {primaryCta && (
+    <a
+      href={primaryCta.href}
+      class:list={[
+        'group relative inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-semibold ring-offset-background transition-[background-color,transform,box-shadow] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 h-12 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 overflow-hidden',
+        primaryPadding,
+      ]}
+    >
+      {/* Shine effect overlay */}
+      <span
+        class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-primary-foreground/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"
+        aria-hidden="true"
+      />
+
+      {/* Button text */}
+      <span class="relative z-10 inline-block transition-transform duration-300 group-hover:translate-x-0.5">
+        {primaryCta.label}
+      </span>
+    </a>
+  )}
+  {secondaryCta && (
+    <a
+      href={secondaryCta.href}
+      class:list={[
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-12',
+        secondaryPadding,
+      ]}
+    >
+      {secondaryCta.label}
+    </a>
+  )}
+</div>

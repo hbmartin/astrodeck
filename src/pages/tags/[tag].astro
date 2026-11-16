@@ -1,4 +1,5 @@
 ---
+import PostByline from '@/components/PostByline.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { getPublishedPosts } from '@/lib/blog';
 
@@ -23,15 +24,6 @@ const { posts } = Astro.props;
 
 // Sort posts by date (newest first)
 const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
-// Format date helper
-function formatDate(date: Date) {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
 ---
 
 <BaseLayout
@@ -69,11 +61,7 @@ function formatDate(date: Date) {
 
           <p class="text-lg text-muted-foreground">{post.data.description}</p>
 
-          <div class="flex items-center gap-4 text-sm text-muted-foreground">
-            <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-            <span>•</span>
-            <span>{post.data.author}</span>
-          </div>
+          <PostByline date={post.data.pubDate} author={post.data.author} />
 
           {post.data.tags.length > 1 && (
             <div class="flex flex-wrap gap-2">

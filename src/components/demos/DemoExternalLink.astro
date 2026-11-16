@@ -1,0 +1,24 @@
+---
+import Icon from '@/components/Icon.astro';
+
+interface Props {
+  href: string;
+  label: string;
+  class: 'rounded-md' | 'rounded-xl';
+}
+
+const { href, label, class: radius } = Astro.props;
+---
+
+<a
+  {href}
+  target="_blank"
+  rel="noopener noreferrer"
+  class:list={[
+    'inline-flex items-center gap-2 justify-center bg-primary text-primary-foreground font-medium h-10 px-6 hover:bg-primary/90 transition-colors text-sm',
+    radius,
+  ]}
+>
+  {label}
+  <Icon name="external-link" class="h-3 w-3" />
+</a>

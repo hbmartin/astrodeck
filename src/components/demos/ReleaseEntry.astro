@@ -1,0 +1,103 @@
+---
+import ReleaseBreaking from './ReleaseBreaking.astro';
+import ReleaseItems from './ReleaseItems.astro';
+
+interface Props {
+  release: {
+    version: string;
+    date?: string;
+    tag: string;
+    title: string;
+    breaking?: string[];
+    breakingTitle?: string;
+    migration?: { title: string; before: string; after: string; lang?: string }[];
+    groups?: { heading: string; items: string[] }[];
+    highlights?: string[];
+  };
+  first: boolean;
+  last: boolean;
+}
+
+const { release, first, last } = Astro.props;
+const tagStyles: Record<string, { bg: string; text: string; label: string }> = {
+  major: { bg: 'bg-primary', text: 'text-primary-foreground', label: 'Major' },
+  minor: {
+    bg: 'bg-foreground/10 border border-foreground/20',
+    text: 'text-foreground',
+    label: 'Minor',
+  },
+  patch: {
+    bg: 'bg-foreground/5 border border-foreground/15',
+    text: 'text-muted-foreground',
+    label: 'Patch',
+  },
+};
+---
+
+<article class="relative pl-10">
+  {/* Timeline dot */}
+  <div
+    class:list={[
+      'absolute left-0 rounded-full border-2 border-background',
+      first
+        ? 'top-1.5 w-[19px] h-[19px] bg-primary -ml-[2px] animate-pulse'
+        : 'top-2 w-[15px] h-[15px]',
+      !first && (release.tag === 'major' ? 'bg-primary' : 'bg-muted-foreground/40'),
+    ]}
+    aria-hidden="true"
+  />
+
+  {/* Version header */}
+  <div class="flex flex-wrap items-center gap-3 mb-3">
+    <h2 class="text-2xl font-bold">{release.date ? `v${release.version}` : release.version}</h2>
+    {first && (
+      <span class="px-2 py-0.5 rounded-md text-xs font-semibold bg-primary text-primary-foreground">
+        {release.date ? 'Latest' : 'Upcoming'}
+      </span>
+    )}
+    <span
+      class:list={[
+        'px-2 py-0.5 rounded-md text-xs font-semibold',
+        tagStyles[release.tag].bg,
+        tagStyles[release.tag].text,
+      ]}
+    >
+      {tagStyles[release.tag].label}
+    </span>
+    {release.date && (
+      <time datetime={release.date} class="text-sm text-muted-foreground">
+        {new Date(release.date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}
+      </time>
+    )}
+  </div>
+
+  {/* Title */}
+  <p class="text-lg font-medium text-foreground/80 mb-4">{release.title}</p>
+
+  {release.breaking?.length && (
+    <ReleaseBreaking
+      items={release.breaking}
+      title={release.breakingTitle}
+      migration={release.migration}
+    />
+  )}
+
+  {/* Grouped changes (Added / Changed / Fixed), same text as CHANGELOG.md */}
+  {release.groups &&
+    release.groups.map((group) => (
+      <div class="mb-4">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          {group.heading}
+        </h3>
+        <ReleaseItems items={group.items} inlineCode />
+      </div>
+    ))}
+
+  <ReleaseItems items={release.highlights ?? []} />
+
+  {!last && <div class="mt-8" aria-hidden="true" />}
+</article>

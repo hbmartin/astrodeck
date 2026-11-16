@@ -1,6 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lintAstro } from '../scripts/lint-astro.mjs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { lintAstro, lintAstroProject } from '../scripts/lint-astro.mjs';
 
 const component = 'src/components/Example.astro';
 const page = 'src/pages/index.astro';
@@ -9,6 +12,11 @@ const rules = (source, file = component) => lintAstro(source, file).map((finding
 
 test('client:only requires a static renderer hint', () => {
   assert.deepEqual(rules('<Demo client:only />'), ['astro/missing-client-only-directive-value']);
+  for (const hint of ['""', '"   "', '{null}', '{1}']) {
+    assert.deepEqual(rules(`<Demo client:only=${hint} />`), [
+      'astro/missing-client-only-directive-value',
+    ]);
+  }
   assert.deepEqual(rules('<Demo client:only={renderer} />'), [
     'astro/missing-client-only-directive-value',
   ]);
@@ -47,6 +55,8 @@ test('set directives conflict with each other and meaningful children', () => {
   assert.deepEqual(rules('<p set:text={value}><strong>Text</strong></p>'), [rule]);
   assert.deepEqual(rules('<p set:html={markup}>Text</p>'), [rule]);
   assert.deepEqual(rules('<p set:html={markup}> \n<!-- retained comment -->\n </p>'), []);
+  assert.deepEqual(rules('<p set:text={value}>{/* retained comment */}</p>'), []);
+  assert.deepEqual(rules('<p set:text={value}>{/* note */}{value}</p>'), [rule]);
   assert.deepEqual(rules('<p data-value="set:text">Text</p>'), []);
 });
 
@@ -145,6 +155,16 @@ test('allows types and route options and reports other exports', () => {
   assert.deepEqual(rules(astro("export * from './module';")), [rule]);
   assert.deepEqual(rules(astro("export { value as feature } from './module';")), [rule]);
   assert.deepEqual(rules(astro('export default false;')), [rule]);
+  assert.deepEqual(rules(astro('export enum Status { Ready }')), [rule]);
+  assert.deepEqual(rules(astro('export namespace Tools { export const flag = true; }')), [rule]);
+  assert.deepEqual(
+    rules(
+      astro(
+        'export declare enum Status { Ready } export namespace Types { export type Label = string; }'
+      )
+    ),
+    []
+  );
   assert.deepEqual(
     rules(
       astro(
@@ -160,6 +180,20 @@ test('allows types and route options and reports other exports', () => {
     ),
     []
   );
+});
+
+test('project Astro lint accepts a config without ignorePatterns', () => {
+  const root = mkdtempSync(join(tmpdir(), 'lint-astro-'));
+  try {
+    writeFileSync(join(root, '.oxlintrc.json'), '{}');
+    writeFileSync(join(root, 'page.astro'), '<Demo client:only />');
+    assert.deepEqual(
+      lintAstroProject(root).map(({ rule }) => rule),
+      ['astro/missing-client-only-directive-value']
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('prerender exports are limited to pages directories', () => {

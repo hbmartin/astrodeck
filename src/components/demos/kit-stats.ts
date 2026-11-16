@@ -8,12 +8,15 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import registry from '@/registry.json';
 
+function isKitRoot(dir: string): boolean {
+  return existsSync(join(dir, 'package.json')) && existsSync(join(dir, '.agents', 'skills'));
+}
+
 /** Walk up from `start` to the first folder that holds package.json and .agents/skills. */
 function findUp(start: string): string | undefined {
   let dir = start;
   for (;;) {
-    if (existsSync(join(dir, 'package.json')) && existsSync(join(dir, '.agents', 'skills')))
-      return dir;
+    if (isKitRoot(dir)) return dir;
     const parent = dirname(dir);
     if (parent === dir) return undefined;
     dir = parent;

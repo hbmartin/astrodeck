@@ -1,0 +1,6 @@
+{
+  "$schema": "./node_modules/fallow/schema.json",
+  "extends": "./.fallowrc.json",
+  "sealed": true,
+  "ignoreDependencies": ["@astrojs/rss", "markdown-it", "sanitize-html"]
+}

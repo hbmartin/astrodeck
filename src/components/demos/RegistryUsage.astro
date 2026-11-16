@@ -38,11 +38,13 @@ const entries = names.map((name) => {
           type="button"
           class="copy-btn text-sm px-3 py-1 border rounded-md bg-background hover:bg-muted transition-colors"
           data-code={entry.name}
+          aria-expanded="false"
+          aria-controls={`code-${entry.name}`}
         >
           Copy Code
         </button>
       </div>
-      <div class="code-block" id={`code-${entry.name}`}>
+      <div class="code-block" hidden id={`code-${entry.name}`}>
         <CodeBlock code={entry.example} />
       </div>
     </div>
@@ -51,15 +53,11 @@ const entries = names.map((name) => {
 
 <style>
   .code-block {
-    display: none;
     margin-top: 0.75rem;
     background: var(--color-background);
     border: 1px solid var(--color-border);
     border-radius: 0.5rem;
     overflow: hidden;
-  }
-  .code-block.show {
-    display: block;
   }
   .code-block :global(pre) {
     padding: 1rem;

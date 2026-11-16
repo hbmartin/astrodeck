@@ -7,10 +7,11 @@
  * its description at least 50; no description is longer than 160 characters.
  * Usage: node scripts/check-dist.mjs [--starter] [dir=dist]   (exit 1 on any finding)
  */
-import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, relative, resolve, sep, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'node-html-parser';
+import { walkFiles } from './lib/walk-files.mjs';
 import { formatFindings } from './lib/findings.mjs';
 
 const BAD_ALT = [
@@ -19,17 +20,6 @@ const BAD_ALT = [
   /^IMG_\d+/i,
 ];
 const CREDIT = /<!--\s*astrodeck-credit\s*-->\s*(<a\b[^>]*>[\s\S]*?<\/a>|[^<]*)/g;
-
-/** @param {string} dir */
-function walkHtml(dir) {
-  const out = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walkHtml(full));
-    else if (entry.name.endsWith('.html')) out.push(full);
-  }
-  return out;
-}
 
 /** Does a root-relative URL path resolve to a file in the build output? */
 function resolves(dir, urlPath) {
@@ -46,34 +36,104 @@ function resolves(dir, urlPath) {
   return isFile(base) || isFile(join(base, 'index.html')) || isFile(`${base}.html`);
 }
 
-function checkImg(img, file, add) {
+function emptyAltIsValid(img) {
+  if (img.getAttribute('aria-hidden') === 'true') return true;
+  if (img.getAttribute('role') === 'presentation') return true;
+  const container = img.parentNode;
+  const parent = container?.rawTagName === 'picture' ? container.parentNode : container;
+  if (parent?.text?.trim()) return true;
+  // A decorative icon can share the visible name of its link, button or list item.
+  for (let el = parent; el; el = el.parentNode)
+    if (['a', 'button', 'li'].includes(el.rawTagName) && el.text.trim()) return true;
+  return false;
+}
+
+function isGenericAlt(text, src) {
+  if (BAD_ALT.some((re) => re.test(text))) return true;
+  const name = basename(src.split(/[?#]/)[0]);
+  const stem = name.slice(0, name.length - extname(name).length);
+  return name !== '' && [name, stem].some((part) => part.toLowerCase() === text.toLowerCase());
+}
+
+function checkImg(img, add) {
   const alt = img.getAttribute('alt');
   const src = img.getAttribute('src') ?? '';
   if (alt === undefined) return add('alt-quality', `<img src="${src}"> has no alt attribute`);
   const text = alt.trim();
   if (text === '') {
-    const decorative =
-      img.getAttribute('aria-hidden') === 'true' || img.getAttribute('role') === 'presentation';
-    if (decorative) return;
-    let parent = img.parentNode;
-    if (parent?.rawTagName === 'picture') parent = parent.parentNode;
-    if (parent?.text?.trim()) return;
-    // Decorative icon wrapped in a link/button/list item that carries the visible name.
-    for (let el = parent; el; el = el.parentNode)
-      if (['a', 'button', 'li'].includes(el.rawTagName) && el.text.trim()) return;
-    return add(
-      'alt-quality',
-      `<img src="${src}"> has empty alt without aria-hidden/role="presentation"`
-    );
-  }
-  const name = basename(src.split(/[?#]/)[0]);
-  const stem = name.slice(0, name.length - extname(name).length);
-  const lower = text.toLowerCase();
-  if (
-    BAD_ALT.some((re) => re.test(text)) ||
-    (name && (lower === name.toLowerCase() || lower === stem.toLowerCase()))
-  )
+    if (!emptyAltIsValid(img))
+      add(
+        'alt-quality',
+        `<img src="${src}"> has empty alt without aria-hidden/role="presentation"`
+      );
+  } else if (isGenericAlt(text, src)) {
     add('alt-quality', `generic or filename-like alt "${text}" (src ${src})`);
+  }
+}
+
+function checkMetadata(root, rel, titles, add) {
+  const title = root.querySelector('title')?.text.trim() ?? '';
+  if (!title) add('title-empty', '<title> is missing or empty');
+  else titles.set(title, [...(titles.get(title) ?? []), rel]);
+
+  const description = root
+    .querySelector('meta[name="description"]')
+    ?.getAttribute('content')
+    ?.trim();
+  if (!description) add('meta-description', '<meta name="description"> is missing or empty');
+  if (description?.length > 160)
+    add('meta-length', `meta description is ${description.length} characters (max 160)`);
+  if (rel === 'index.html') checkHomeMetadata(title, description, add);
+}
+
+function checkHomeMetadata(title, description, add) {
+  if (description && description.length < 50)
+    add('meta-length', `home page meta description is ${description.length} characters (50-160)`);
+  if (title && (title.length < 30 || title.length > 60))
+    add('meta-length', `home page <title> is ${title.length} characters (30-60)`);
+}
+
+function checkLinks(root, dir, add) {
+  for (const a of root.querySelectorAll('a[href], link[href]')) {
+    const href = a.getAttribute('href') ?? '';
+    // Whitespace after a tel: or mailto: scheme is invalid HTML.
+    if (/^(tel|mailto):/i.test(href) && /\s/.test(href))
+      add(
+        'link-scheme',
+        `href "${href}" contains whitespace (W3C error; write ${href.replace(/\s+/g, '')})`
+      );
+    if (!href.startsWith('/') || href.startsWith('//')) continue;
+    const path = href.split('#')[0].split('?')[0];
+    if (path && !resolves(dir, path)) add('internal-link', `${href} does not resolve to a file`);
+  }
+}
+
+function checkForms(root, add) {
+  for (const form of root.querySelectorAll('form[novalidate]'))
+    if (form.querySelector('[required]'))
+      add(
+        'form-novalidate',
+        `<form action="${form.getAttribute('action') ?? ''}"> has required fields but novalidate (remove novalidate)`
+      );
+}
+
+function checkDemoLeftovers(html, add) {
+  const stripped = html.replace(CREDIT, '');
+  if (/\sdata-demo(\s|=|>)/.test(stripped))
+    add('demo-leftover', 'data-demo attribute in rendered HTML');
+  const hit = stripped.match(/AstroDeck|astrodeck\.dev/i);
+  if (hit) add('demo-leftover', `"${hit[0]}" found in rendered HTML`);
+}
+
+function checkPage(html, dir, rel, opts, titles, add) {
+  const root = parse(html);
+  const h1s = root.querySelectorAll('h1').length;
+  if (h1s !== 1) add('h1-count', `expected exactly one <h1>, found ${h1s}`);
+  checkMetadata(root, rel, titles, add);
+  checkLinks(root, dir, add);
+  for (const img of root.querySelectorAll('img')) checkImg(img, add);
+  checkForms(root, add);
+  if (opts.starter) checkDemoLeftovers(html, add);
 }
 
 /**
@@ -88,62 +148,10 @@ export function checkDist(dir, opts) {
     return [{ file: dir, rule: 'missing-dir', message: 'directory does not exist' }];
   const titles = new Map();
 
-  for (const abs of walkHtml(dir).sort()) {
+  for (const abs of [...walkFiles(dir, (name) => name.endsWith('.html'))].sort()) {
     const rel = relative(dir, abs).split(sep).join('/');
-    const html = readFileSync(abs, 'utf8');
     const add = (rule, message) => findings.push({ file: rel, rule, message });
-    const root = parse(html);
-
-    const h1s = root.querySelectorAll('h1').length;
-    if (h1s !== 1) add('h1-count', `expected exactly one <h1>, found ${h1s}`);
-
-    const title = root.querySelector('title')?.text.trim() ?? '';
-    if (!title) add('title-empty', '<title> is missing or empty');
-    else titles.set(title, [...(titles.get(title) ?? []), rel]);
-
-    const description = root.querySelector('meta[name="description"]')?.getAttribute('content');
-    if (!description?.trim())
-      add('meta-description', '<meta name="description"> is missing or empty');
-    const isHome = rel === 'index.html';
-    const descLength = description?.trim().length ?? 0;
-    if (descLength > 160)
-      add('meta-length', `meta description is ${descLength} characters (max 160)`);
-    if (isHome && descLength > 0 && descLength < 50)
-      add('meta-length', `home page meta description is ${descLength} characters (50-160)`);
-    if (isHome && title && (title.length < 30 || title.length > 60))
-      add('meta-length', `home page <title> is ${title.length} characters (30-60)`);
-
-    for (const a of root.querySelectorAll('a[href], link[href]')) {
-      const href = a.getAttribute('href') ?? '';
-      // "tel:0511 000000" is invalid HTML (the W3C validator rejects spaces after the scheme).
-      if (/^(tel|mailto):/i.test(href) && /\s/.test(href))
-        add(
-          'link-scheme',
-          `href "${href}" contains whitespace (W3C error; write ${href.replace(/\s+/g, '')})`
-        );
-      if (!href.startsWith('/') || href.startsWith('//')) continue;
-      const path = href.split('#')[0].split('?')[0];
-      if (path && !resolves(dir, path)) add('internal-link', `${href} does not resolve to a file`);
-    }
-
-    for (const img of root.querySelectorAll('img')) checkImg(img, rel, add);
-
-    // Forms post to a real endpoint and there is no JS validation: `novalidate` would let empty
-    // submissions through even though the fields are marked required.
-    for (const form of root.querySelectorAll('form[novalidate]'))
-      if (form.querySelector('[required]'))
-        add(
-          'form-novalidate',
-          `<form action="${form.getAttribute('action') ?? ''}"> has required fields but novalidate (remove novalidate)`
-        );
-
-    if (opts.starter) {
-      const stripped = html.replace(CREDIT, '');
-      if (/\sdata-demo(\s|=|>)/.test(stripped))
-        add('demo-leftover', 'data-demo attribute in rendered HTML');
-      const hit = stripped.match(/AstroDeck|astrodeck\.dev/i);
-      if (hit) add('demo-leftover', `"${hit[0]}" found in rendered HTML`);
-    }
+    checkPage(readFileSync(abs, 'utf8'), dir, rel, opts, titles, add);
   }
 
   for (const [title, files] of titles)

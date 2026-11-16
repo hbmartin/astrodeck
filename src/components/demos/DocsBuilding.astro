@@ -1,0 +1,207 @@
+---
+import CodeBlock from './CodeBlock.astro';
+import { kitStats } from './kit-stats';
+import { ic, pre, card, link } from './docs-styles';
+
+const configFields = [
+  { field: 'name, description', use: 'Header, footer, meta tags, manifest' },
+  { field: 'url', use: 'SITE_URL: canonical URLs, sitemap, RSS' },
+  { field: 'lang, locale', use: '<html lang>, Open Graph locale, RSS language' },
+  { field: 'titleTemplate', use: 'Page titles, e.g. "%s | Harbor Physio"' },
+  { field: 'author', use: 'Meta author, default blog author' },
+  { field: 'logo', use: 'Wordmark text, inline SVG or image' },
+  { field: 'nav, headerCta', use: 'Header navigation and button' },
+  { field: 'footer', use: 'Tagline, link groups, copyright, optional credit' },
+  {
+    field: 'social, contact',
+    use: 'Footer: social profile links, contact email (mailto:), phone (tel:) and address; empty renders nothing (real data only)',
+  },
+  { field: 'ogImage', use: 'Default social preview image' },
+  { field: 'features', use: 'blog, rss, analytics on or off' },
+];
+
+const blocks = [
+  {
+    name: 'Sections',
+    count: kitStats.sections,
+    path: 'src/components/sections/',
+    href: '/sections',
+  },
+  { name: 'UI components', count: kitStats.ui, path: 'src/components/ui/', href: '/components' },
+  { name: 'Layouts', count: kitStats.layouts, path: 'src/layouts/', href: '/pages' },
+];
+---
+
+<!-- Site config -->
+<section id="site-config" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Site Config</h2>
+    <p class="text-muted-foreground">
+      Brand, navigation, footer, SEO defaults and feature flags live in one typed file:{' '}
+      <code class={ic}>src/config/site.ts</code>. The production URL lives in{' '}
+      <code class={ic}>src/config/site-url.mjs</code> (<code class={ic}>SITE_URL</code>), shared
+      with <code class={ic}>astro.config.mjs</code>.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class={`${card} overflow-x-auto`}>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b text-left">
+            <th class="pb-2 pr-4 font-medium text-muted-foreground">Field</th>
+            <th class="pb-2 font-medium text-muted-foreground">Used for</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {configFields.map((f) => (
+            <tr>
+              <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap">{f.field}</td>
+              <td class="py-2 text-muted-foreground">{f.use}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class={card}>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`export const site: SiteConfig = {
+  name: 'Harbor Physio',
+  url: SITE_URL,
+  description: 'Physiotherapy in Hamburg-Altona',
+  lang: 'en',
+  locale: 'en_US',
+  titleTemplate: '%s | Harbor Physio',
+  nav: [
+    { href: '/', label: 'Home' },
+    { href: '/services', label: 'Services' },
+  ],
+  // footer, social, contact, ogImage, features ...
+};`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        Pages pass plain titles (<code class={ic}>title="Services"</code>); the layout adds the
+        brand through <code class={ic}>titleTemplate</code>. Components never repeat the brand name.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Theme -->
+<section id="theme" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Theme &amp; Branding</h2>
+    <p class="text-muted-foreground">
+      <code class={ic}>pnpm run theme</code> writes OKLCH color tokens for light and dark mode into{' '}
+      <code class={ic}>src/styles/globals.css</code> and checks WCAG contrast of the key text pairs.
+      It fails when a pair is too weak and suggests the nearest passing value.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <h3 class="font-semibold mb-3">With your agent</h3>
+      <div class="bg-muted/50 border border-border rounded-xl p-4">
+        <p class="text-sm italic">"Use our brand color #0f766e and rounder corners."</p>
+      </div>
+      <div class="bg-muted/50 border border-border rounded-xl p-4 mt-3">
+        <p class="text-sm italic">"Apply brief/DESIGN.md."</p>
+      </div>
+      <p class="text-sm text-muted-foreground mt-3">
+        The <code class={ic}>astrodeck-theme</code> skill collects values (also from a logo or a
+        design-system link), runs a dry run, reads the contrast report and applies it. Fonts change
+        only on brand input.
+      </p>
+    </div>
+    <div class={card}>
+      <h3 class="font-semibold mb-3">By hand</h3>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`pnpm run theme --primary "#0f766e" --dry-run
+pnpm run theme --primary "#0f766e" --accent "#f59e0b" \\
+  --neutral slate --radius 0.75rem
+pnpm run theme --from brief/DESIGN.md
+pnpm run icons   # PNG icons + public/og.png from favicon.svg`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        <code class={ic}>--neutral</code>: zinc, slate, stone, neutral or gray. The token regions in{' '}
+        <code class={ic}>globals.css</code> are written by the script; do not edit them by hand.
+        There is no <code class={ic}>tailwind.config</code>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Sections & pages -->
+<section id="building-blocks" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Sections &amp; Pages</h2>
+    <p class="text-muted-foreground">
+      Pages are composed from registry sections with props. Content is data, so a section never has
+      to be copied to change its text.
+    </p>
+  </div>
+  <div class={`${card} overflow-x-auto mb-6`}>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b text-left">
+          <th class="pb-2 pr-4 font-medium text-muted-foreground">Building block</th>
+          <th class="pb-2 pr-4 font-medium text-muted-foreground">Count</th>
+          <th class="pb-2 font-medium text-muted-foreground">Location</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {blocks.map((b) => (
+          <tr>
+            <td class="py-2 pr-4">
+              <a class={link} href={b.href}>
+                {b.name}
+              </a>
+            </td>
+            <td class="py-2 pr-4">{b.count}</td>
+            <td class="py-2 font-mono text-xs">{b.path}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="text-sm text-muted-foreground mt-3">
+      <code class={ic}>src/registry.json</code> lists every section, layout and UI component with
+      props, a "use when" hint and a usage example; <code class={ic}>pnpm run check:registry</code>{' '}
+      keeps it in sync with the code. Icons come from <code class={ic}>IconName</code> in{' '}
+      <code class={ic}>src/lib/icons.ts</code>.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <h3 class="font-semibold mb-3">A page</h3>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/sections/Hero.astro';
+import FAQ from '@/components/sections/FAQ.astro';
+---
+<BaseLayout title="Services" description="...">
+  <Hero title="..." subtitle="..."
+    primaryCta={{ href: '/contact', label: 'Book a visit' }} />
+  <FAQ title="Questions" faqs={[{ question: '...', answer: '...' }]} />
+</BaseLayout>`}
+      />
+    </div>
+    <div class={card}>
+      <h3 class="font-semibold mb-3">With your agent</h3>
+      <div class="bg-muted/50 border border-border rounded-xl p-4">
+        <p class="text-sm italic">"Add a pricing page with our three packages."</p>
+      </div>
+      <p class="text-sm text-muted-foreground mt-3">
+        <code class={ic}>astrodeck-new-page</code> picks the layout and sections, sets title and
+        description, links the page in <code class={ic}>site.nav</code> and verifies. Only when no
+        section fits does <code class={ic}>astrodeck-new-section</code> add a prop or a new
+        registered section. Sections that need real data (testimonials, stats, team, logos, pricing)
+        are used only when you supply that data.
+      </p>
+    </div>
+  </div>
+</section>

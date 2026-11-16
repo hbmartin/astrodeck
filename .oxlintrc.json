@@ -11,8 +11,8 @@
     "tests/fixtures/**",
     "brief/**",
     "evals/cases/*/brief/**",
-    ".agents/skills/vibe2prod/**",
-    ".claude/skills/vibe2prod/**",
+    ".agents/**",
+    ".claude/skills/**",
     ".vibe2prod/**"
   ],
   "rules": {
@@ -74,8 +74,9 @@
     "no-unused-labels": "error",
     "no-unused-private-class-members": "error",
     "no-unused-vars": [
-      "warn",
+      "error",
       {
+        "args": "all",
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^$",
         "reportVarsOnlyUsedAsTypes": true

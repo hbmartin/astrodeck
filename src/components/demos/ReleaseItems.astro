@@ -1,0 +1,19 @@
+---
+import Icon from '@/components/Icon.astro';
+import { inline } from './release-text';
+
+interface Props {
+  items: string[];
+  inlineCode?: boolean;
+}
+const { items, inlineCode = false } = Astro.props;
+---
+
+<ul class="space-y-2">
+  {items.map((item) => (
+    <li class="text-muted-foreground flex items-start gap-2">
+      <Icon name="check" class="h-5 w-5 text-primary shrink-0 mt-0.5" />
+      {inlineCode ? <span set:html={inline(item)} /> : <span>{item}</span>}
+    </li>
+  ))}
+</ul>

@@ -23,82 +23,101 @@ const BLOCKS = new Set([
 const UNKNOWN = Symbol('unknown value');
 const ASTRO = Symbol('Astro global');
 
+const PATTERN_CHILDREN = new Map([
+  ['AssignmentPattern', (node) => [node.left]],
+  ['RestElement', (node) => [node.argument]],
+  ['ObjectPattern', (node) => node.properties.map((prop) => prop.value ?? prop.argument)],
+  ['ArrayPattern', (node) => node.elements],
+  ['VariableDeclaration', (node) => node.declarations.map(({ id }) => id)],
+]);
+
 function* boundNames(pattern) {
-  pattern = unwrap(pattern);
-  switch (pattern?.type) {
-    case 'Identifier':
-      yield pattern.name;
-      break;
-    case 'AssignmentPattern':
-      yield* boundNames(pattern.left);
-      break;
-    case 'RestElement':
-      yield* boundNames(pattern.argument);
-      break;
-    case 'ObjectPattern':
-      for (const prop of pattern.properties) yield* boundNames(prop.value ?? prop.argument);
-      break;
-    case 'ArrayPattern':
-      for (const item of pattern.elements) yield* boundNames(item);
-      break;
-    case 'VariableDeclaration':
-      for (const { id } of pattern.declarations) yield* boundNames(id);
-      break;
+  const node = unwrap(pattern);
+  if (!node) return;
+  if (node.type === 'Identifier') {
+    yield node.name;
+    return;
   }
+  for (const child of PATTERN_CHILDREN.get(node.type)?.(node) ?? []) yield* boundNames(child);
 }
 
+function markName(scope, node) {
+  if (node.id) scope.bindings.set(node.id.name, null);
+}
+
+function nodeScope(node, parent) {
+  if (node.type === 'Program')
+    return { parent: null, bindings: new Map(), isVarScope: true, hasAstroGlobal: false };
+  const isVarScope = FUNCTIONS.has(node.type) || node.type === 'StaticBlock';
+  if (!isVarScope && !BLOCKS.has(node.type)) return parent;
+  return { parent, bindings: new Map(), isVarScope, hasAstroGlobal: parent.hasAstroGlobal };
+}
+
+function markPattern(scope, pattern) {
+  for (const name of boundNames(pattern)) scope.bindings.set(name, null);
+}
+
+function markFunction(scope, node) {
+  markName(scope, node);
+  for (const param of node.params) markPattern(scope, param);
+}
+
+function markImports(scope, node) {
+  if (node.importKind === 'type') return;
+  for (const specifier of node.specifiers)
+    if (specifier.importKind !== 'type') scope.bindings.set(specifier.local.name, null);
+}
+
+function varOwner(scope) {
+  while (scope.parent && !scope.isVarScope) scope = scope.parent;
+  return scope;
+}
+
+function initializerBinding(id, init, scope, kind) {
+  if (id.type !== 'Identifier' || !init) return null;
+  return { node: init, scope, constant: kind === 'const', written: false };
+}
+
+function markDeclaredName(owner, name, id, init, scope, kind) {
+  const previous = owner.bindings.get(name);
+  if (kind === 'var' && previous) {
+    if (init) previous.written = true;
+    return;
+  }
+  owner.bindings.set(name, initializerBinding(id, init, scope, kind));
+}
+
+function markVariables(scope, { kind, declarations }) {
+  const owner = kind === 'var' ? varOwner(scope) : scope;
+  for (const { id, init } of declarations)
+    for (const name of boundNames(id)) markDeclaredName(owner, name, id, init, scope, kind);
+}
+
+const BINDINGS = new Map([
+  ['CatchClause', (scope, node) => markPattern(scope, node.param)],
+  ['ImportDeclaration', markImports],
+  ['VariableDeclaration', markVariables],
+]);
+
 /** Index bindings before checking references so a later declaration can shadow an outer name. */
-function collectNodes(node, scope, nodes) {
+function collectNodes(node, parent, nodes) {
   if (!node?.type) return;
-  const isFunction = FUNCTIONS.has(node.type);
-  if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration') {
-    if (node.id) scope.bindings.set(node.id.name, null);
-  }
-  const isVarScope = isFunction || node.type === 'StaticBlock';
-  if (node.type === 'Program') {
-    scope = { parent: null, bindings: new Map(), isVarScope: true, hasAstroGlobal: false };
-  } else if (isVarScope || BLOCKS.has(node.type)) {
-    scope = {
-      parent: scope,
-      bindings: new Map(),
-      isVarScope,
-      hasAstroGlobal: scope.hasAstroGlobal,
-    };
-  }
-  if (isFunction) {
-    if (node.id) scope.bindings.set(node.id.name, null);
-    for (const param of node.params)
-      for (const name of boundNames(param)) scope.bindings.set(name, null);
-  }
-  if (node.type === 'CatchClause')
-    for (const name of boundNames(node.param)) scope.bindings.set(name, null);
-  if (node.type === 'ImportDeclaration' && node.importKind !== 'type') {
-    for (const specifier of node.specifiers)
-      if (specifier.importKind !== 'type') scope.bindings.set(specifier.local.name, null);
-  }
-  if (node.type === 'VariableDeclaration') {
-    let owner = scope;
-    if (node.kind === 'var') while (owner.parent && !owner.isVarScope) owner = owner.parent;
-    for (const { id, init } of node.declarations) {
-      for (const name of boundNames(id)) {
-        const previous = owner.bindings.get(name);
-        if (node.kind === 'var' && previous) {
-          if (init) previous.written = true;
-          continue;
-        }
-        owner.bindings.set(
-          name,
-          id.type === 'Identifier' && init
-            ? { node: init, scope, constant: node.kind === 'const', written: false }
-            : null
-        );
-      }
-    }
-  }
+  if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration')
+    markName(parent, node);
+  const scope = nodeScope(node, parent);
+  if (FUNCTIONS.has(node.type)) markFunction(scope, node);
+  BINDINGS.get(node.type)?.(scope, node);
   nodes.push({ node, scope });
+  collectChildren(node, scope, nodes);
+}
+
+function collectChildren(node, scope, nodes) {
   for (const value of Object.values(node)) {
-    if (Array.isArray(value)) for (const child of value) collectNodes(child, scope, nodes);
-    else collectNodes(value, scope, nodes);
+    if (Array.isArray(value)) {
+      for (const child of value) collectNodes(child, scope, nodes);
+    } else {
+      collectNodes(value, scope, nodes);
+    }
   }
 }
 
@@ -148,46 +167,57 @@ function unwrap(node) {
   return node;
 }
 
+function identifierValue(node, scope, seen) {
+  const binding = bindingFor(scope, node.name);
+  if (binding === undefined) return globalValue(node.name, scope);
+  if (!binding || binding.written || seen.has(binding)) return UNKNOWN;
+  const value = staticValue(binding.node, binding.scope, new Set(seen).add(binding));
+  return binding.constant || value === ASTRO ? value : UNKNOWN;
+}
+
+function globalValue(name, scope) {
+  if (name === 'Astro' && scope.hasAstroGlobal) return ASTRO;
+  return name === 'undefined' ? undefined : UNKNOWN;
+}
+
+function templateValue(node, scope, seen) {
+  const values = node.expressions.map((expression) => staticValue(expression, scope, seen));
+  if (values.some((value) => typeof value === 'symbol')) return UNKNOWN;
+  return node.quasis
+    .map((part, index) => part.value.cooked + (index < values.length ? String(values[index]) : ''))
+    .join('');
+}
+
+function addValues(left, right) {
+  if (typeof left === 'symbol' || typeof right === 'symbol') return UNKNOWN;
+  if (typeof left === 'string' || typeof right === 'string') return String(left) + String(right);
+  return Number(left) + Number(right);
+}
+
+function binaryValue(node, scope, seen) {
+  if (node.operator !== '+') return UNKNOWN;
+  return addValues(staticValue(node.left, scope, seen), staticValue(node.right, scope, seen));
+}
+
+function conditionalValue(node, scope, seen) {
+  const test = staticValue(node.test, scope, seen);
+  if (typeof test === 'symbol') return UNKNOWN;
+  return staticValue(test ? node.consequent : node.alternate, scope, seen);
+}
+
+const STATIC_VALUES = new Map([
+  ['Literal', (node) => node.value],
+  ['Identifier', identifierValue],
+  ['TemplateLiteral', templateValue],
+  ['BinaryExpression', binaryValue],
+  ['ConditionalExpression', conditionalValue],
+]);
+
 /** Evaluate literal values and aliases without running project code. */
 function staticValue(node, scope, seen = new Set()) {
-  node = unwrap(node);
-  switch (node?.type) {
-    case 'Literal':
-      return node.value;
-    case 'Identifier': {
-      const binding = bindingFor(scope, node.name);
-      if (binding === undefined && node.name === 'Astro' && scope.hasAstroGlobal) return ASTRO;
-      if (binding === undefined && node.name === 'undefined') return undefined;
-      if (!binding || binding.written || seen.has(binding)) return UNKNOWN;
-      const value = staticValue(binding.node, binding.scope, new Set(seen).add(binding));
-      return binding.constant || value === ASTRO ? value : UNKNOWN;
-    }
-    case 'TemplateLiteral': {
-      const values = node.expressions.map((expression) => staticValue(expression, scope, seen));
-      if (values.some((value) => typeof value === 'symbol')) return UNKNOWN;
-      return node.quasis
-        .map(
-          (part, index) => part.value.cooked + (index < values.length ? String(values[index]) : '')
-        )
-        .join('');
-    }
-    case 'BinaryExpression': {
-      if (node.operator !== '+') return UNKNOWN;
-      const left = staticValue(node.left, scope, seen);
-      const right = staticValue(node.right, scope, seen);
-      if (typeof left === 'symbol' || typeof right === 'symbol') return UNKNOWN;
-      if (typeof left === 'string' || typeof right === 'string')
-        return String(left) + String(right);
-      return Number(left) + Number(right);
-    }
-    case 'ConditionalExpression': {
-      const test = staticValue(node.test, scope, seen);
-      if (typeof test === 'symbol') return UNKNOWN;
-      return staticValue(test ? node.consequent : node.alternate, scope, seen);
-    }
-    default:
-      return UNKNOWN;
-  }
+  const expression = unwrap(node);
+  const evaluate = STATIC_VALUES.get(expression?.type);
+  return evaluate ? evaluate(expression, scope, seen) : UNKNOWN;
 }
 
 function propertyName(key, computed, scope) {
@@ -196,18 +226,42 @@ function propertyName(key, computed, scope) {
   return typeof value === 'string' || typeof value === 'number' ? String(value) : null;
 }
 
+const TYPE_ONLY_NODES = new Set([
+  'TSInterfaceDeclaration',
+  'TSTypeAliasDeclaration',
+  'EmptyStatement',
+]);
+
+function typeOnlyBody(node) {
+  if (node.type === 'TSModuleDeclaration') return isTypeOnlyDeclaration(node.body);
+  if (node.type === 'TSModuleBlock') return node.body.every(isTypeOnlyDeclaration);
+  if (node.type === 'ExportNamedDeclaration')
+    return node.exportKind === 'type' || isTypeOnlyDeclaration(node.declaration);
+  return false;
+}
+
+function isTypeOnlyDeclaration(node) {
+  if (!node) return false;
+  if (node.declare || TYPE_ONLY_NODES.has(node.type)) return true;
+  return typeOnlyBody(node);
+}
+
 function exportedNames(node) {
   if (node.type === 'ExportAllDeclaration') return ['*'];
   const { declaration, specifiers } = node;
-  if (node.type === 'ExportDefaultDeclaration')
-    return declaration.type === 'TSInterfaceDeclaration' ? [] : ['default'];
-  if (declaration?.type === 'FunctionDeclaration') return [declaration.id?.name ?? 'default'];
-  if (declaration?.type === 'VariableDeclaration')
-    return declaration.declarations.map(({ id }) => (id.type === 'Identifier' ? id.name : null));
-  if (declaration && !declaration.type.startsWith('TS')) return [null];
+  if (isTypeOnlyDeclaration(declaration)) return [];
+  if (node.type === 'ExportDefaultDeclaration') return ['default'];
+  if (declaration) return declaredNames(declaration);
   return specifiers
     .filter((specifier) => specifier.exportKind !== 'type')
     .map(({ exported }) => exported.name ?? exported.value);
+}
+
+function declaredNames(declaration) {
+  if (declaration.type === 'FunctionDeclaration') return [declaration.id?.name ?? 'default'];
+  if (declaration.type === 'VariableDeclaration')
+    return declaration.declarations.map(({ id }) => (id.type === 'Identifier' ? id.name : null));
+  return [null];
 }
 
 /** Ignore comments, and read custom property names from CSS words or quoted values. */
@@ -227,45 +281,59 @@ function cssVariables(css, inlineComments) {
 
 function lintElement(node, scope, report) {
   const { attributes, name } = node.openingElement;
-  const only = attributes.find((attr) => attr.name?.name === 'client:only');
-  if (only && (!only.value || typeof staticValue(only.value, scope) === 'symbol'))
-    report(
-      only,
-      'missing-client-only-directive-value',
-      '`client:only` needs a static renderer value.'
-    );
+  lintClientOnly(attributes, scope, report);
+  lintSetDirectives(attributes, node.children, report);
+  if (name.name === 'style') lintStyleVars(attributes, node.children, scope, report);
+}
 
+function lintClientOnly(attributes, scope, report) {
+  const only = attributes.find((attr) => attr.name?.name === 'client:only');
+  if (only) {
+    const renderer = staticValue(only.value, scope);
+    if (typeof renderer !== 'string' || !renderer.trim())
+      report(
+        only,
+        'missing-client-only-directive-value',
+        '`client:only` needs a nonblank static renderer name.'
+      );
+  }
+}
+
+function hasContent(item) {
+  if (item.type === 'AstroComment') return false;
+  if (item.type === 'JSXExpressionContainer' && item.expression?.type === 'JSXEmptyExpression')
+    return false;
+  return item.type !== 'JSXText' || item.value.trim();
+}
+
+function lintSetDirectives(attributes, children, report) {
   const directives = attributes.filter((attr) =>
     ['set:html', 'set:text'].includes(attr.name?.name)
   );
-  const child = node.children.find(
-    (item) => item.type !== 'AstroComment' && (item.type !== 'JSXText' || item.value.trim())
-  );
-  if (directives.length > 1 || (directives.length && child))
+  if (directives.length > 1 || (directives.length && children.some(hasContent)))
     report(
       directives[0],
       'no-conflict-set-directives',
       '`set:html` and `set:text` cannot be combined with each other or with child content.'
     );
+}
 
-  if (name.name !== 'style') return;
+function lintStyleVars(attributes, children, scope, report) {
   const definition = attributes.find((attr) => attr.name?.name === 'define:vars');
   const expression = unwrap(definition?.value);
-  const [css] = node.children;
-  if (
-    expression?.type !== 'ObjectExpression' ||
-    node.children.length !== 1 ||
-    css.type !== 'JSXText'
-  )
+  const [css] = children;
+  if (expression?.type !== 'ObjectExpression' || children.length !== 1 || css.type !== 'JSXText')
     return;
   const lang = attributes.find((attr) => attr.name?.name === 'lang')?.value?.value;
   const used = cssVariables(css.value, lang && lang !== 'css');
-  for (const prop of expression.properties) {
-    if (prop.type !== 'Property') continue;
-    const key = propertyName(prop.key, prop.computed, scope);
-    if (key !== null && !used.has(key))
-      report(prop.key, 'no-unused-define-vars-in-style', `'${key}' is defined but never used.`);
-  }
+  for (const prop of expression.properties) checkStyleVar(prop, used, scope, report);
+}
+
+function checkStyleVar(prop, used, scope, report) {
+  if (prop.type !== 'Property') return;
+  const key = propertyName(prop.key, prop.computed, scope);
+  if (key !== null && !used.has(key))
+    report(prop.key, 'no-unused-define-vars-in-style', `'${key}' is defined but never used.`);
 }
 
 /** Lint template and frontmatter constructs that need the full Astro AST. */
@@ -288,12 +356,16 @@ export function lintAstro(source, file) {
       rule: `astro/${rule}`,
       message,
     });
-  const reportDeprecated = (node, name) => {
-    if (DEPRECATED_APIS.has(name))
-      report(node, DEPRECATED_APIS.get(name), `Astro.${name} is deprecated.`);
-  };
   const inPages = /(?:^|[/\\])pages[/\\]/.test(file);
   const frontmatter = new Set(ast.frontmatter?.program.body);
+  for (const { node, scope } of indexAstroNodes(ast.body, frontmatter)) {
+    ASTRO_NODE_RULES.get(node.type)?.(node, scope, report);
+    if (frontmatter.has(node)) lintAstroExport(node, inPages, report);
+  }
+  return findings;
+}
+
+function indexAstroNodes(body, frontmatter) {
   const componentScope = {
     parent: null,
     bindings: new Map(),
@@ -302,58 +374,75 @@ export function lintAstro(source, file) {
   };
   const nodes = [];
   for (const node of frontmatter) collectNodes(node, componentScope, nodes);
-  for (const node of ast.body) collectNodes(node, componentScope, nodes);
+  for (const node of body) collectNodes(node, componentScope, nodes);
   markBindingWrites(nodes);
-  for (const { node, scope } of nodes) {
-    if (node.type === 'JSXElement') lintElement(node, scope, report);
-    if (node.type === 'ImportDeclaration' && node.source.value === 'astro:content')
-      for (const specifier of node.specifiers)
-        if (
-          specifier.imported?.name === 'getEntryBySlug' ||
-          specifier.imported?.value === 'getEntryBySlug'
-        )
-          report(
-            specifier,
-            'no-deprecated-getentrybyslug',
-            'Use getEntry() instead of getEntryBySlug().'
-          );
-    if (node.type === 'MemberExpression' && staticValue(node.object, scope) === ASTRO)
-      reportDeprecated(node, propertyName(node.property, node.computed, scope));
-    if (
-      node.type === 'VariableDeclarator' &&
-      node.id.type === 'ObjectPattern' &&
-      staticValue(node.init, scope) === ASTRO
-    )
-      for (const prop of node.id.properties)
-        if (prop.type === 'Property')
-          reportDeprecated(prop.key, propertyName(prop.key, prop.computed, scope));
+  return nodes;
+}
 
-    if (
-      frontmatter.has(node) &&
-      node.type.startsWith('Export') &&
-      node.type.endsWith('Declaration') &&
-      node.exportKind !== 'type'
-    ) {
-      const names = exportedNames(node);
-      if (names.some((name) => !ROUTE_EXPORTS.has(name)))
-        report(
-          node,
-          'no-exports-from-components',
-          'Only Astro route options and types can be exported from an .astro file.'
-        );
-      if (!inPages && names.includes('prerender'))
-        report(
-          node,
-          'no-prerender-export-outside-pages',
-          '`prerender` can only be exported from a pages/ directory.'
-        );
-    }
+function lintContentImport(node, _scope, report) {
+  if (node.source.value !== 'astro:content') return;
+  for (const specifier of node.specifiers) {
+    const { imported } = specifier;
+    if ((imported?.name ?? imported?.value) === 'getEntryBySlug')
+      report(
+        specifier,
+        'no-deprecated-getentrybyslug',
+        'Use getEntry() instead of getEntryBySlug().'
+      );
   }
-  return findings;
+}
+
+function reportDeprecated(node, name, report) {
+  if (DEPRECATED_APIS.has(name))
+    report(node, DEPRECATED_APIS.get(name), `Astro.${name} is deprecated.`);
+}
+
+function lintAstroMember(node, scope, report) {
+  if (staticValue(node.object, scope) === ASTRO)
+    reportDeprecated(node, propertyName(node.property, node.computed, scope), report);
+}
+
+function lintAstroPattern(node, scope, report) {
+  if (node.id.type !== 'ObjectPattern' || staticValue(node.init, scope) !== ASTRO) return;
+  for (const prop of node.id.properties)
+    if (prop.type === 'Property')
+      reportDeprecated(prop.key, propertyName(prop.key, prop.computed, scope), report);
+}
+
+const ASTRO_NODE_RULES = new Map([
+  ['JSXElement', lintElement],
+  ['ImportDeclaration', lintContentImport],
+  ['MemberExpression', lintAstroMember],
+  ['VariableDeclarator', lintAstroPattern],
+]);
+
+function isValueExport(node) {
+  return (
+    node.type.startsWith('Export') &&
+    node.type.endsWith('Declaration') &&
+    node.exportKind !== 'type'
+  );
+}
+
+function lintAstroExport(node, inPages, report) {
+  if (!isValueExport(node)) return;
+  const names = exportedNames(node);
+  if (names.some((name) => !ROUTE_EXPORTS.has(name)))
+    report(
+      node,
+      'no-exports-from-components',
+      'Only Astro route options and types can be exported from an .astro file.'
+    );
+  if (!inPages && names.includes('prerender'))
+    report(
+      node,
+      'no-prerender-export-outside-pages',
+      '`prerender` can only be exported from a pages/ directory.'
+    );
 }
 
 export function lintAstroProject(root) {
-  const { ignorePatterns } = JSON.parse(readFileSync(join(root, '.oxlintrc.json'), 'utf8'));
+  const { ignorePatterns = [] } = JSON.parse(readFileSync(join(root, '.oxlintrc.json'), 'utf8'));
   const exclude = ignorePatterns.map((pattern) => pattern.replace(/\/\*\*$/, ''));
   return globSync('**/*.astro', { cwd: root, exclude })
     .sort()

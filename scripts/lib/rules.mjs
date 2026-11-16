@@ -211,6 +211,10 @@ export const RULES = [
   },
 ];
 
+function isIgnoredLine(inBlock, inFence, skipNext, endsBlock, skipsNext) {
+  return inBlock || inFence || skipNext || endsBlock || skipsNext;
+}
+
 /**
  * Lines (1-based) suppressed by ignore markers and Markdown code fences.
  * @param {string} path
@@ -233,9 +237,9 @@ function ignoredLines(path, text) {
     const start = line.includes('lint-design-ignore-start');
     const end = line.includes('lint-design-ignore-end');
     if (start) inBlock = true;
-    if (inBlock || inFence || skipNext || start || end) ignored.add(n);
-    skipNext = line.includes('lint-design-ignore-next-line');
-    if (skipNext) ignored.add(n);
+    const next = line.includes('lint-design-ignore-next-line');
+    if (isIgnoredLine(inBlock, inFence, skipNext, end, next)) ignored.add(n);
+    skipNext = next;
     if (end) inBlock = false;
   });
   return ignored;

@@ -1,0 +1,371 @@
+---
+import CodeBlock from './CodeBlock.astro';
+import { ic, pre, card, link } from './docs-styles';
+
+const repo = 'https://github.com/holger1411/astrodeck';
+
+const agentRows = [
+  {
+    name: 'Claude Code',
+    agentsMd: 'via CLAUDE.md (@AGENTS.md import)',
+    skills: '.claude/skills/ (mirror)',
+    status: 'tested end to end',
+  },
+  {
+    name: 'OpenAI Codex',
+    agentsMd: 'natively',
+    skills: '.agents/skills/',
+    status: 'tested end to end',
+  },
+  {
+    name: 'Cursor',
+    agentsMd: 'natively',
+    skills: '.agents/skills/',
+    status: 'documented',
+  },
+  {
+    name: 'GitHub Copilot',
+    agentsMd: 'natively (+ .github/copilot-instructions.md pointer)',
+    skills: '.agents/skills/, .claude/skills/',
+    status: 'documented',
+  },
+  {
+    name: 'Gemini CLI',
+    agentsMd: 'via .gemini/settings.json',
+    skills: '.agents/skills/',
+    status: 'documented',
+  },
+  {
+    name: 'Windsurf (Devin Local)',
+    agentsMd: 'natively',
+    skills: '.agents/skills/',
+    status: 'documented',
+  },
+];
+
+const astroNotes = [
+  'Agents start <code>pnpm run dev</code> in the background and poll <code>/_astro/status</code> until it returns <code>{"ok":true}</code>.',
+  'The compiler is stricter: unclosed or misnested tags fail the build.',
+  "<code>compressHTML</code> defaults to <code>'jsx'</code>: whitespace between elements is removed; write <code>{&quot; &quot;}</code> where a space matters.",
+  'Sätteri is the default Markdown processor; remark/rehype plugins need <code>unified()</code> as <code>markdown.processor</code>.',
+  '<code>src/fetch.ts</code> is reserved for Astro. No <code>@astrojs/db</code>.',
+  '<code>ClientRouter</code>, never <code>ViewTransitions</code>; <code>z</code> from <code>astro/zod</code>.',
+  'Tailwind 4 is configured in CSS (<code>@theme</code> in <code>globals.css</code>); there is no <code>tailwind.config</code>.',
+];
+
+const migrations = [
+  {
+    title: 'Brand, URL and navigation → site config',
+    before: `// hardcoded in Header.astro, Footer.astro, SEO.astro
+const navItems = [{ href: '/', label: 'Home' }, ...];`,
+    after: `// src/config/site.ts
+export const site: SiteConfig = { name, url: SITE_URL,
+  titleTemplate: '%s | Brand', nav: [...], footer: {...} };`,
+  },
+  {
+    title: 'Hero and HeroGradient badge',
+    before: `<Hero badge="true" ... />   <!-- fixed version text -->
+<HeroGradient badge="New in v2" ... />`,
+    after: `<Hero badge={{ label: 'New: online booking', href: '/news' }} ... />
+<HeroGradient badge={{ label: 'New in v2', href: '/changelog' }} ... />`,
+  },
+  {
+    title: 'LogoCloud',
+    before: `<LogoCloud />   <!-- built-in logos -->`,
+    after: `<LogoCloud title="Built with:" logos={[
+  { name: 'Astro', src: '/icons/tech/astro.svg', href: 'https://astro.build' },
+]} />`,
+  },
+  {
+    title: 'AIFeature → IntegrationGrid',
+    before: `<AIFeature />`,
+    after: `<IntegrationGrid title="Works with your tools" items={[
+  { name: 'GitHub', href: 'https://github.com', icon: 'code' },
+]} />`,
+  },
+  {
+    title: 'Contact form',
+    before: `<Contact email="..." />   <!-- always a form, no real endpoint -->`,
+    after: `<Contact email="..."
+  form={{ action: 'https://your-form-backend.example/submit' }} />
+<!-- omit form for contact details only -->`,
+  },
+  {
+    title: 'Newsletter',
+    before: `<Newsletter title="..." />   <!-- no real endpoint -->`,
+    after: `<Newsletter action="https://your-provider.example/subscribe" title="..." />`,
+  },
+  {
+    title: 'ContentBlock image',
+    before: `<ContentBlock title="..." description="..." />
+<!-- always showed an empty image box -->`,
+    after: `<ContentBlock title="..." description="..."
+  image={{ src: photo, alt: 'What the photo shows' }} />
+<!-- without image: one text column -->`,
+  },
+  {
+    title: 'AI files and commands → skills',
+    before: `.cursorrules, .windsurfrules, .cursor/rules
+/new-page, /new-section, /theme, /audit, /launch-check, /plenum
+npm run check:kpis`,
+    after: `AGENTS.md + .agents/skills/ (.claude/skills/ is generated)
+astrodeck-new-page, -new-section, -theme, vibe2prod,
+astrodeck-reviewer (Claude Code)
+pnpm run verify`,
+  },
+];
+
+const structure = [
+  { path: 'AGENTS.md', what: 'Index for every coding agent: rules, commands, task → skill' },
+  { path: 'PROJECT.md', what: 'Your site brief; overrides AGENTS.md' },
+  { path: 'brief/', what: 'Your input material' },
+  { path: '.agents/skills/', what: 'Skills (source); .claude/skills/ is a generated mirror' },
+  { path: 'src/config/site.ts', what: 'Brand, navigation, footer, SEO defaults, feature flags' },
+  { path: 'src/styles/globals.css', what: 'Fonts and design tokens (@theme + .dark)' },
+  { path: 'src/registry.json', what: 'Catalog of sections, layouts and UI components' },
+  { path: 'src/components/sections/', what: 'Page sections' },
+  { path: 'src/components/ui/', what: 'shadcn/ui React primitives' },
+  { path: 'src/layouts/', what: 'Base, FullWidth, Minimal, Auth, Article layouts' },
+  { path: 'src/pages/', what: 'File-based routes' },
+  { path: 'src/content/blog/', what: 'Blog posts (content collection)' },
+  { path: 'scripts/, tests/', what: 'Verify, theme, cleanup and sync scripts with tests' },
+  { path: 'docs/agents/', what: 'Supported agents and MCP setup' },
+];
+---
+
+<!-- Supported agents -->
+<section id="agents" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Supported Agents</h2>
+    <p class="text-muted-foreground">
+      <code class={ic}>AGENTS.md</code> is the always-loaded index; the skills in{' '}
+      <code class={ic}>.agents/skills/</code> hold the workflows. "Tested end to end" means the 4.0
+      workflow was run with the tool on the eval cases and ended with{' '}
+      <code class={ic}>VERIFY PASSED</code> and a vibe2prod READY verdict (Claude Code CLI 2.1.319,
+      Codex CLI 0.155.1; in Codex's sandbox the browser audit cannot run, so it ran outside).
+      "Documented" means the vendor's documentation says the tool reads these files; the workflow
+      was not run with it.
+    </p>
+  </div>
+  <div class={`${card} overflow-x-auto`}>
+    <table class="w-full text-sm min-w-[640px]">
+      <thead>
+        <tr class="border-b text-left">
+          <th class="pb-2 pr-4 font-medium text-muted-foreground">Agent</th>
+          <th class="pb-2 pr-4 font-medium text-muted-foreground">Reads AGENTS.md</th>
+          <th class="pb-2 pr-4 font-medium text-muted-foreground">Reads skills from</th>
+          <th class="pb-2 font-medium text-muted-foreground">Status in 4.0</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {agentRows.map((a) => (
+          <tr>
+            <td class="py-2 pr-4 font-semibold">{a.name}</td>
+            <td class="py-2 pr-4 text-muted-foreground">{a.agentsMd}</td>
+            <td class="py-2 pr-4 font-mono text-xs">{a.skills}</td>
+            <td class="py-2">{a.status}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <p class="text-sm text-muted-foreground mt-3">
+      Claude Code only, optional: a read-only review subagent (
+      <code class={ic}>astrodeck-reviewer</code>) and a hook that blocks{' '}
+      <code class={ic}>tailwind.config.*</code>, <code class={ic}>ViewTransitions</code> and{' '}
+      <code class={ic}>z</code> from <code class={ic}>astro:content</code>. The workflow never needs
+      them. <code class={ic}>.claude/skills/</code> is generated from{' '}
+      <code class={ic}>.agents/skills/</code> by <code class={ic}>pnpm run sync:agents</code>; edit
+      the source. Details:{' '}
+      <a
+        class={link}
+        href={`${repo}/blob/main/docs/agents/supported-agents.md`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        docs/agents/supported-agents.md
+      </a>
+      .
+    </p>
+  </div>
+</section>
+
+<!-- MCP -->
+<section id="mcp" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">MCP Servers</h2>
+    <p class="text-muted-foreground">
+      Optional. <code class={ic}>.mcp.json</code> declares two servers for Claude Code; other tools
+      use their own config files with the same values.
+    </p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <ul class="space-y-3 text-sm text-muted-foreground">
+        <li>
+          <strong class="text-foreground">astro-docs</strong> — current Astro documentation over
+          HTTP: <code class={ic}>https://mcp.docs.astro.build/mcp</code>
+        </li>
+        <li>
+          <strong class="text-foreground">shadcn</strong> — shadcn/ui component search and install:
+          <code class={ic}>npx shadcn@latest mcp</code>
+        </li>
+      </ul>
+      <p class="text-sm text-muted-foreground mt-3">
+        Setup for Codex, Cursor and VS Code:{' '}
+        <a
+          class={link}
+          href={`${repo}/blob/main/docs/agents/mcp-setup.md`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          docs/agents/mcp-setup.md
+        </a>
+        .
+      </p>
+    </div>
+    <div class={card}>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`codex mcp add astro-docs --url https://mcp.docs.astro.build/mcp
+codex mcp add shadcn -- npx shadcn@latest mcp`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        Cursor reads <code class={ic}>.cursor/mcp.json</code>; VS Code uses a top-level{' '}
+        <code class={ic}>servers</code> key instead of <code class={ic}>mcpServers</code>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Build & deploy -->
+<section id="deploy" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Build &amp; Deploy</h2>
+    <p class="text-muted-foreground">AstroDeck builds static files that run on any static host.</p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class={card}>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`pnpm run build     # static site in dist/
+pnpm run preview   # serve the build locally`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        Set <code class={ic}>SITE_URL</code> in <code class={ic}>src/config/site-url.mjs</code>{' '}
+        first: canonical URLs, sitemap and RSS use it.
+      </p>
+    </div>
+    <div class={card}>
+      <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+        <li>
+          Vercel, Netlify, Cloudflare Pages, GitHub Pages or your own server: deploy{' '}
+          <code class={ic}>dist/</code>.
+        </li>
+        <li>
+          <code class={ic}>vercel.json</code> adds security headers on Vercel; on other hosts
+          configure equivalent headers.
+        </li>
+        <li>
+          <code class={ic}>features.analytics</code> loads Vercel Web Analytics; keep it{' '}
+          <code class={ic}>false</code> elsewhere.
+        </li>
+        <li>After the first deploy, run vibe2prod against the live URL.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Astro 7 notes -->
+<section id="astro-7" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Astro 7 Notes</h2>
+    <p class="text-muted-foreground">
+      The details agents most often get wrong from older training data. The full list is in{' '}
+      <code class={ic}>AGENTS.md</code>.
+    </p>
+  </div>
+  <div class={card}>
+    <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
+      {astroNotes.map((n) => (
+        <li set:html={n} />
+      ))}
+    </ul>
+  </div>
+</section>
+
+<!-- Migrating -->
+<section id="migrating" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Migrating from 3.x</h2>
+    <p class="text-muted-foreground">
+      4.0 changes section props, adds the site config and replaces the per-tool AI files with
+      skills. The full list is in the{' '}
+      <a class={link} href="/changelog">
+        changelog
+      </a>
+      .
+    </p>
+  </div>
+  <div class="space-y-4">
+    {migrations.map((m) => (
+      <div class={card}>
+        <h3 class="font-semibold mb-3">{m.title}</h3>
+        <div class="grid grid-cols-1 gap-4">
+          <div>
+            <p class="text-xs font-medium text-muted-foreground mb-1">3.x</p>
+            <CodeBlock class={pre} codeClass="text-sm font-mono" code={m.before} />
+          </div>
+          <div>
+            <p class="text-xs font-medium text-muted-foreground mb-1">4.0</p>
+            <CodeBlock class={pre} codeClass="text-sm font-mono" code={m.after} />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<!-- Multilingual -->
+<section id="multilingual" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Multilingual Sites</h2>
+    <p class="text-muted-foreground">Not part of 4.0.</p>
+  </div>
+  <div class={card}>
+    <p class="text-sm text-muted-foreground">
+      The site config has one language (<code class={ic}>lang</code>, <code class={ic}>locale</code>
+      ). For several languages, add Astro's{' '}
+      <a
+        class={link}
+        href="https://docs.astro.build/en/guides/internationalization/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        i18n routing
+      </a>{' '}
+      on top. Built-in multilingual support is a candidate for a later release.
+    </p>
+  </div>
+</section>
+
+<!-- Project structure -->
+<section id="project-structure" class="scroll-mt-32 lg:scroll-mt-20">
+  <div class="mb-8">
+    <h2 class="text-3xl font-bold mb-2">Project Structure</h2>
+    <p class="text-muted-foreground">Where things live.</p>
+  </div>
+  <div class={`${card} overflow-x-auto`}>
+    <table class="w-full text-sm">
+      <tbody class="divide-y divide-border">
+        {structure.map((s) => (
+          <tr>
+            <td class="py-2 pr-4 font-mono text-xs whitespace-nowrap align-top">{s.path}</td>
+            <td class="py-2 text-muted-foreground">{s.what}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</section>

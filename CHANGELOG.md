@@ -2,6 +2,10 @@
 
 All notable changes to AstroDeck are documented in this file.
 
+## [Unreleased]
+
+- Added strict Fallow checks for dead code, imports, dependencies, complexity, and duplication to `pnpm run verify` and `pnpm run validate`.
+
 ## [4.0.1] - 2026-11-06 — Accessibility and canonical URL fixes
 
 ### Fixed

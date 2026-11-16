@@ -5,8 +5,8 @@ implements. Tokens live in `src/styles/globals.css`, the section catalog in `src
 icons in `src/lib/icons.ts` (`IconName`), site facts in `src/config/site.ts`. Do not duplicate
 them here; read them.
 
-Machine-enforced rules: `npm run lint:design` (colors, dead links, inline styles, deep imports,
-Tailwind config). Everything together: `npm run verify`.
+Machine-enforced rules: `pnpm run lint:design` (colors, dead links, inline styles, deep imports,
+Tailwind config). Everything together: `pnpm run verify`.
 
 ## 1. Principles
 
@@ -19,7 +19,7 @@ Tailwind config). Everything together: `npm run verify`.
 
 ## 2. Color tokens
 
-All values are OKLCH. Change the palette with `npm run theme`, never by hand-editing the
+All values are OKLCH. Change the palette with `pnpm run theme`, never by hand-editing the
 `astrodeck-theme:*` regions.
 
 | Token | Utility examples | Use for |

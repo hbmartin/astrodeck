@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 // Vite ?raw imports inline the file contents at build time
-import agents from '/AGENTS.md?raw';
-import readme from '/README.md?raw';
+import agents from '../../AGENTS.md?raw';
+import readme from '../../README.md?raw';
 
 /**
  * /llms-full.txt — the complete project documentation as plain text for LLMs.

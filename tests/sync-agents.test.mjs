@@ -6,6 +6,7 @@ import {
   writeFileSync,
   readFileSync,
   rmSync,
+  readlinkSync,
   existsSync,
   lstatSync,
   symlinkSync,
@@ -16,7 +17,6 @@ import { spawnSync } from 'node:child_process';
 import { syncAgents } from '../scripts/sync-agents.mjs';
 
 const SCRIPT = join(import.meta.dirname, '..', 'scripts', 'sync-agents.mjs');
-const REPO = join(import.meta.dirname, '..');
 let root;
 
 function put(rel, content) {
@@ -139,14 +139,30 @@ test('CLI --check exits 1 and lists drift; exits 0 when in sync', () => {
   const drift = cli('--check');
   assert.equal(drift.status, 1);
   assert.match(drift.stderr, /\.claude\/skills\/a\/SKILL\.md/);
-  assert.match(drift.stderr, /npm run sync:agents/);
+  assert.match(drift.stderr, /pnpm run sync:agents/);
   assert.equal(cli().status, 0);
   const clean = cli('--check');
   assert.equal(clean.status, 0, clean.stderr);
 });
 
-test('real repo mirror is in sync', () => {
-  assert.deepEqual(syncAgents(REPO, { check: true }).changed, []);
+test('installer-managed skill content and symlinks survive explicit sync', (t) => {
+  put('skills-lock.json', '{"version":2,"skills":{"installed":{}}}');
+  put('.agents/skills/installed/SKILL.md', 'installed content');
+  const link = join(root, '.claude/skills/installed');
+  const target = join(root, '.agents/skills/installed');
+  mkdirSync(dirname(link), { recursive: true });
+  try {
+    symlinkSync(target, link, 'dir');
+  } catch {
+    t.skip('symlinks not permitted on this system');
+    return;
+  }
+  const originalTarget = readlinkSync(link);
+  const { changed } = syncAgents(root);
+  assert.ok(changed.includes('.claude/skills/a/SKILL.md'));
+  assert.equal(readlinkSync(link), originalTarget);
+  assert.equal(readFileSync(join(link, 'SKILL.md'), 'utf8'), 'installed content');
+  assert.deepEqual(syncAgents(root, { check: true }).changed, []);
 });
 
 test('ignores OS junk files (.DS_Store, Thumbs.db) in source and mirror', () => {

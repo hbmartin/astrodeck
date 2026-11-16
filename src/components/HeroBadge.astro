@@ -1,0 +1,16 @@
+---
+interface Props {
+  badge: { label: string; href?: string };
+}
+
+const { badge } = Astro.props;
+const classes = 'inline-flex items-center rounded-full border px-4 py-1.5 text-sm font-medium';
+---
+
+{badge.href ? (
+  <a href={badge.href} class:list={[classes, 'hover:bg-muted transition-colors']}>
+    {badge.label}
+  </a>
+) : (
+  <span class={classes}>{badge.label}</span>
+)}

@@ -24,6 +24,7 @@ const UNKNOWN = Symbol('unknown value');
 const ASTRO = Symbol('Astro global');
 
 function* boundNames(pattern) {
+  pattern = unwrap(pattern);
   switch (pattern?.type) {
     case 'Identifier':
       yield pattern.name;
@@ -40,6 +41,9 @@ function* boundNames(pattern) {
     case 'ArrayPattern':
       for (const item of pattern.elements) yield* boundNames(item);
       break;
+    case 'VariableDeclaration':
+      for (const { id } of pattern.declarations) yield* boundNames(id);
+      break;
   }
 }
 
@@ -50,8 +54,16 @@ function collectNodes(node, scope, nodes) {
   if (node.type === 'FunctionDeclaration' || node.type === 'ClassDeclaration') {
     if (node.id) scope.bindings.set(node.id.name, null);
   }
-  if (isFunction || BLOCKS.has(node.type)) {
-    scope = { parent: scope, bindings: new Map(), isFunction };
+  const isVarScope = isFunction || node.type === 'StaticBlock';
+  if (node.type === 'Program') {
+    scope = { parent: null, bindings: new Map(), isVarScope: true, hasAstroGlobal: false };
+  } else if (isVarScope || BLOCKS.has(node.type)) {
+    scope = {
+      parent: scope,
+      bindings: new Map(),
+      isVarScope,
+      hasAstroGlobal: scope.hasAstroGlobal,
+    };
   }
   if (isFunction) {
     if (node.id) scope.bindings.set(node.id.name, null);
@@ -66,15 +78,21 @@ function collectNodes(node, scope, nodes) {
   }
   if (node.type === 'VariableDeclaration') {
     let owner = scope;
-    if (node.kind === 'var') while (owner.parent && !owner.isFunction) owner = owner.parent;
+    if (node.kind === 'var') while (owner.parent && !owner.isVarScope) owner = owner.parent;
     for (const { id, init } of node.declarations) {
-      for (const name of boundNames(id))
+      for (const name of boundNames(id)) {
+        const previous = owner.bindings.get(name);
+        if (node.kind === 'var' && previous) {
+          if (init) previous.written = true;
+          continue;
+        }
         owner.bindings.set(
           name,
           id.type === 'Identifier' && init
-            ? { node: init, scope, constant: node.kind === 'const' }
+            ? { node: init, scope, constant: node.kind === 'const', written: false }
             : null
         );
+      }
     }
   }
   nodes.push({ node, scope });
@@ -87,6 +105,29 @@ function collectNodes(node, scope, nodes) {
 function bindingFor(scope, name) {
   for (let current = scope; current; current = current.parent)
     if (current.bindings.has(name)) return current.bindings.get(name);
+}
+
+/** Any write makes an initializer unreliable for static evaluation throughout its scope. */
+function markBindingWrites(nodes) {
+  for (const { node, scope } of nodes) {
+    let target;
+    switch (node.type) {
+      case 'AssignmentExpression':
+      case 'ForInStatement':
+      case 'ForOfStatement':
+        target = node.left;
+        break;
+      case 'UpdateExpression':
+        target = node.argument;
+        break;
+      default:
+        continue;
+    }
+    for (const name of boundNames(target)) {
+      const binding = bindingFor(scope, name);
+      if (binding) binding.written = true;
+    }
+  }
 }
 
 function unwrap(node) {
@@ -115,9 +156,9 @@ function staticValue(node, scope, seen = new Set()) {
       return node.value;
     case 'Identifier': {
       const binding = bindingFor(scope, node.name);
-      if (binding === undefined && node.name === 'Astro') return ASTRO;
+      if (binding === undefined && node.name === 'Astro' && scope.hasAstroGlobal) return ASTRO;
       if (binding === undefined && node.name === 'undefined') return undefined;
-      if (!binding || seen.has(binding)) return UNKNOWN;
+      if (!binding || binding.written || seen.has(binding)) return UNKNOWN;
       const value = staticValue(binding.node, binding.scope, new Set(seen).add(binding));
       return binding.constant || value === ASTRO ? value : UNKNOWN;
     }
@@ -252,8 +293,17 @@ export function lintAstro(source, file) {
       report(node, DEPRECATED_APIS.get(name), `Astro.${name} is deprecated.`);
   };
   const inPages = /(?:^|[/\\])pages[/\\]/.test(file);
+  const frontmatter = new Set(ast.frontmatter?.program.body);
+  const componentScope = {
+    parent: null,
+    bindings: new Map(),
+    isVarScope: true,
+    hasAstroGlobal: true,
+  };
   const nodes = [];
-  collectNodes(ast, { parent: null, bindings: new Map(), isFunction: false }, nodes);
+  for (const node of frontmatter) collectNodes(node, componentScope, nodes);
+  for (const node of ast.body) collectNodes(node, componentScope, nodes);
+  markBindingWrites(nodes);
   for (const { node, scope } of nodes) {
     if (node.type === 'JSXElement') lintElement(node, scope, report);
     if (node.type === 'ImportDeclaration' && node.source.value === 'astro:content')
@@ -279,6 +329,7 @@ export function lintAstro(source, file) {
           reportDeprecated(prop.key, propertyName(prop.key, prop.computed, scope));
 
     if (
+      frontmatter.has(node) &&
       node.type.startsWith('Export') &&
       node.type.endsWith('Declaration') &&
       node.exportKind !== 'type'

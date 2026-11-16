@@ -36,7 +36,7 @@ const workflow: { title: string; text: string; cmd?: string }[] = [
   {
     title: 'Start clean',
     text: 'The astrodeck-cleanup skill removes the demo before anything is written, after showing the plan.',
-    cmd: 'npm run starter:clean -- --dry-run',
+    cmd: 'pnpm run starter:clean --dry-run',
   },
   {
     title: 'Brief and site plan',
@@ -48,18 +48,18 @@ const workflow: { title: string; text: string; cmd?: string }[] = [
   },
   {
     title: 'Theme',
-    text: 'Brand colors, neutral tone and radius as OKLCH tokens with a contrast gate; fonts only on brand input. npm run icons renders the PNG icons and the social image in the brand color.',
-    cmd: 'npm run theme -- --primary "<hex>" --dry-run',
+    text: 'Brand colors, neutral tone and radius as OKLCH tokens with a contrast gate; fonts only on brand input. pnpm run icons renders the PNG icons and the social image in the brand color.',
+    cmd: 'pnpm run theme --primary "<hex>" --dry-run',
   },
   {
     title: 'Build pages',
     text: 'Home first with an early preview, then the rest, composed from sections in the recipe order. Facts come only from the brief.',
-    cmd: 'npm run dev',
+    cmd: 'pnpm run dev',
   },
   {
     title: 'Verify and audit',
     text: 'All checks pass, then the vibe2prod audit targets READY, then the manual items of the quality checklist.',
-    cmd: 'npm run verify -- --starter',
+    cmd: 'pnpm run verify --starter',
   },
   {
     title: 'Handover',
@@ -161,7 +161,7 @@ const agentRows = [
 ];
 
 const astroNotes = [
-  'Agents start <code>npm run dev</code> in the background and poll <code>/_astro/status</code> until it returns <code>{"ok":true}</code>.',
+  'Agents start <code>pnpm run dev</code> in the background and poll <code>/_astro/status</code> until it returns <code>{"ok":true}</code>.',
   'The compiler is stricter: unclosed or misnested tags fail the build.',
   "<code>compressHTML</code> defaults to <code>'jsx'</code>: whitespace between elements is removed; write <code>{&quot; &quot;}</code> where a space matters.",
   'Sätteri is the default Markdown processor; remark/rehype plugins need <code>unified()</code> as <code>markdown.processor</code>.',
@@ -228,7 +228,7 @@ npm run check:kpis`,
     after: `AGENTS.md + .agents/skills/ (.claude/skills/ is generated)
 astrodeck-new-page, -new-section, -theme, vibe2prod,
 astrodeck-reviewer (Claude Code)
-npm run verify`,
+pnpm run verify`,
   },
 ];
 
@@ -341,7 +341,12 @@ const structure = [
           <h2 class="text-3xl font-bold mb-2">Getting Started</h2>
           <p class="text-muted-foreground">
             Download AstroDeck, open it in your coding agent and describe your site. Requires
-            Node.js <code class={ic}>&gt;=22.23.4</code>.
+            Node.js <code class={ic}>&gt;=22.23.4</code> and pnpm <code class={ic}>12.21.0</code>.
+            See the{' '}
+            <a class={link} href="https://pnpm.io/installation">
+              pnpm installation guide
+            </a>
+            .
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -385,15 +390,15 @@ const structure = [
             <pre
               tabindex="0"
               class={pre}
-            ><code class="text-sm font-mono">{`npx degit holger1411/astrodeck my-site
+            ><code class="text-sm font-mono">{`pnpm dlx degit holger1411/astrodeck my-site
 cd my-site
-npm install
-npm run dev`}</code></pre>
+pnpm install --frozen-lockfile
+pnpm run dev`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               <code class={ic}>git clone</code> or the release ZIP work the same way. Then let your
               agent run the workflow, or work by hand: set{' '}
-              <code class={ic}>src/config/site.ts</code>, run <code class={ic}>npm run theme</code>,
-              compose pages from sections and finish with <code class={ic}>npm run verify</code>.
+              <code class={ic}>src/config/site.ts</code>, run <code class={ic}>pnpm run theme</code>
+              , compose pages from sections and finish with <code class={ic}>pnpm run verify</code>.
             </p>
             <p class="text-sm text-muted-foreground mt-3">
               Avoid <code class={ic}>npm create astro -- --template holger1411/astrodeck</code>:
@@ -565,7 +570,7 @@ npm run dev`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Theme &amp; Branding</h2>
           <p class="text-muted-foreground">
-            <code class={ic}>npm run theme</code> writes OKLCH color tokens for light and dark mode
+            <code class={ic}>pnpm run theme</code> writes OKLCH color tokens for light and dark mode
             into <code class={ic}>src/styles/globals.css</code> and checks WCAG contrast of the key
             text pairs. It fails when a pair is too weak and suggests the nearest passing value.
           </p>
@@ -590,11 +595,11 @@ npm run dev`}</code></pre>
             <pre
               tabindex="0"
               class={pre}
-            ><code class="text-sm font-mono">{`npm run theme -- --primary "#0f766e" --dry-run
-npm run theme -- --primary "#0f766e" --accent "#f59e0b" \\
+            ><code class="text-sm font-mono">{`pnpm run theme --primary "#0f766e" --dry-run
+pnpm run theme --primary "#0f766e" --accent "#f59e0b" \\
   --neutral slate --radius 0.75rem
-npm run theme -- --from brief/DESIGN.md
-npm run icons   # PNG icons + public/og.png from favicon.svg`}</code></pre>
+pnpm run theme --from brief/DESIGN.md
+pnpm run icons   # PNG icons + public/og.png from favicon.svg`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               <code class={ic}>--neutral</code>: zinc, slate, stone, neutral or gray. The token
               regions in <code class={ic}>globals.css</code> are written by the script; do not edit
@@ -639,7 +644,7 @@ npm run icons   # PNG icons + public/og.png from favicon.svg`}</code></pre>
           <p class="text-sm text-muted-foreground mt-3">
             <code class={ic}>src/registry.json</code> lists every section, layout and UI component
             with props, a "use when" hint and a usage example;{' '}
-            <code class={ic}>npm run check:registry</code> keeps it in sync with the code. Icons
+            <code class={ic}>pnpm run check:registry</code> keeps it in sync with the code. Icons
             come from <code class={ic}>IconName</code> in <code class={ic}>src/lib/icons.ts</code>.
           </p>
         </div>
@@ -678,8 +683,8 @@ import FAQ from '@/components/sections/FAQ.astro';
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Demo Cleanup</h2>
           <p class="text-muted-foreground">
-            The download is this demo site. <code class={ic}>npm run starter:clean</code> removes it
-            in one step; the build-site workflow does this right after intake.
+            The download is this demo site. <code class={ic}>pnpm run starter:clean</code> removes
+            it in one step; the build-site workflow does this right after intake.
           </p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -687,9 +692,9 @@ import FAQ from '@/components/sections/FAQ.astro';
             <pre
               tabindex="0"
               class={pre}
-            ><code class="text-sm font-mono">{`npm run starter:clean -- --dry-run   # show the plan
-npm run starter:clean -- --yes       # remove the demo
-npm run starter:clean -- --yes --keep-blog`}</code></pre>
+            ><code class="text-sm font-mono">{`pnpm run starter:clean --dry-run   # show the plan
+pnpm run starter:clean --yes       # remove the demo
+pnpm run starter:clean --yes --keep-blog`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               It is one-shot and destructive: it runs only while the{' '}
               <code class={ic}>starter/</code> folder exists; a second run does nothing (it prints
@@ -716,7 +721,7 @@ npm run starter:clean -- --yes --keep-blog`}</code></pre>
               </li>
             </ul>
             <p class="text-sm text-muted-foreground mt-3">
-              Afterwards, <code class={ic}>npm run verify -- --starter</code> also fails on demo
+              Afterwards, <code class={ic}>pnpm run verify --starter</code> also fails on demo
               leftovers.
             </p>
           </div>
@@ -728,7 +733,7 @@ npm run starter:clean -- --yes --keep-blog`}</code></pre>
         <div class="mb-8">
           <h2 class="text-3xl font-bold mb-2">Verify</h2>
           <p class="text-muted-foreground">
-            <code class={ic}>npm run verify</code> runs every check in one go, offline and
+            <code class={ic}>pnpm run verify</code> runs every check in one go, offline and
             deterministic, and ends with <code class={ic}>VERIFY PASSED</code> or a short list of
             what failed. If a step cannot run, it says so instead of passing.
           </p>
@@ -756,12 +761,12 @@ npm run starter:clean -- --yes --keep-blog`}</code></pre>
             <pre
               tabindex="0"
               class={pre}
-            ><code class="text-sm font-mono">{`npm run verify                # everything
-npm run verify -- --starter   # + demo leftovers
-npm run validate              # without build (fast)
-npm run lint:design           # single checks
-npm run lint:docs
-npm run check:registry`}</code></pre>
+            ><code class="text-sm font-mono">{`pnpm run verify                # everything
+pnpm run verify --starter   # + demo leftovers
+pnpm run validate              # without build (fast)
+pnpm run lint:design           # single checks
+pnpm run lint:docs
+pnpm run check:registry`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               The design rules behind <code class={ic}>lint:design</code> (semantic color tokens
               only, every link and form pointing somewhere real, no{' '}
@@ -810,8 +815,8 @@ npm run check:registry`}</code></pre>
             <pre
               tabindex="0"
               class={pre}
-            ><code class="text-sm font-mono">{`npm run setup:audit -- --check   # what is missing
-npm run setup:audit              # install it`}</code></pre>
+            ><code class="text-sm font-mono">{`pnpm run setup:audit --check   # what is missing
+pnpm run setup:audit              # install it`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               Installs Lighthouse, the axe CLI, Playwright with Chromium and axe for Playwright
               (needs network). vibe2prod gives no verdict without its tools; it reports exactly
@@ -862,7 +867,7 @@ npm run setup:audit              # install it`}</code></pre>
             <code class={ic}>tailwind.config.*</code>, <code class={ic}>ViewTransitions</code> and{' '}
             <code class={ic}>z</code> from <code class={ic}>astro:content</code>. The workflow never
             needs them. <code class={ic}>.claude/skills/</code> is generated from{' '}
-            <code class={ic}>.agents/skills/</code> by <code class={ic}>npm run sync:agents</code>;
+            <code class={ic}>.agents/skills/</code> by <code class={ic}>pnpm run sync:agents</code>;
             edit the source. Details:{' '}
             <a
               class={link}
@@ -939,8 +944,8 @@ codex mcp add shadcn -- npx shadcn@latest mcp`}</code></pre>
             <pre
               tabindex="0"
               class={pre}
-            ><code class="text-sm font-mono">{`npm run build     # static site in dist/
-npm run preview   # serve the build locally`}</code></pre>
+            ><code class="text-sm font-mono">{`pnpm run build     # static site in dist/
+pnpm run preview   # serve the build locally`}</code></pre>
             <p class="text-sm text-muted-foreground mt-3">
               Set <code class={ic}>SITE_URL</code> in{' '}
               <code class={ic}>src/config/site-url.mjs</code> first: canonical URLs, sitemap and RSS

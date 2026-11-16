@@ -55,10 +55,11 @@ test('Hero h1 and Features titles wrap long words on narrow phones', { skip: KIT
   assert.match(h3, /\bbreak-words\b/);
 });
 
-test('Features can render 2 columns so 4 items leave no empty cell', { skip: KIT_ONLY }, () => {
+test('Features can cap the container grid at 2 columns', { skip: KIT_ONLY }, () => {
   const features = read('src/components/sections/Features.astro');
   assert.match(features, /columns\?:\s*2\s*\|\s*3/);
-  assert.match(features, /columns === 3 && 'md:grid-cols-3'/);
+  assert.match(features, /@min-\[37rem\]:grid-cols-2/);
+  assert.match(features, /columns === 3 && '@min-\[45rem\]:grid-cols-3'/);
 });
 
 // Final review I2: site.social and site.contact were documented as footer content but never rendered.

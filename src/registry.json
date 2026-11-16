@@ -153,13 +153,13 @@
         "columns": {
           "type": "2 | 3",
           "required": false,
-          "description": "Columns from the md breakpoint. Default 3; use 2 for 2 or 4 items so no grid cell stays empty."
+          "description": "Maximum columns. Default 3. Use 2 for groups of 2 or 4 items."
         }
       },
       "example": "---\nimport Features from \"@/components/sections/Features.astro\";\n---\n\n<Features\n  title=\"Why choose this starter?\"\n  subtitle=\"Everything you need to build fast\"\n  features={[\n    { icon: \"zap\", title: \"Fast by default\", description: \"Static HTML with minimal JavaScript.\" },\n    { icon: \"shield\", title: \"Type safe\", description: \"TypeScript props on every section.\" },\n    { icon: \"globe\", title: \"SEO ready\", description: \"Meta tags, sitemap and structured data.\" },\n  ]}\n/>",
       "features": ["responsive", "dark-mode"],
       "category": "features",
-      "notes": "Grid is sm:grid-cols-2 md:grid-cols-3 (md:grid-cols-2 with columns={2}). To add icons, add a key + 24x24 stroke path to src/lib/icons.ts; IconName updates automatically."
+      "notes": "The grid switches to two columns at a container width of 37rem and to three at 45rem if columns is 3. To add icons, add a key + 24x24 stroke path to src/lib/icons.ts; IconName updates automatically."
     },
     {
       "name": "Pricing",
@@ -191,7 +191,7 @@
       "example": "---\nimport Pricing from \"@/components/sections/Pricing.astro\";\n---\n\n<Pricing\n  title=\"Simple pricing\"\n  subtitle=\"Pick the plan that fits\"\n  note=\"Prices exclude VAT.\"\n  tiers={[\n    {\n      name: \"Free\",\n      price: \"$0\",\n      description: \"For side projects\",\n      features: [\"1 project\", \"Community support\"],\n      cta: { label: \"Start free\", href: \"/signup\" },\n    },\n    {\n      name: \"Pro\",\n      price: \"$29\",\n      period: \"/month\",\n      description: \"For teams\",\n      features: [\"Unlimited projects\", \"Priority support\"],\n      cta: { label: \"Subscribe\", href: \"/signup\" },\n      highlighted: true,\n    },\n  ]}\n/>",
       "features": ["responsive", "dark-mode"],
       "category": "pricing",
-      "notes": "Grid is lg:grid-cols-3. Nothing is appended to the price automatically; pass period for recurring plans."
+      "notes": "The grid switches to two columns at a container width of 45rem and to three at 61rem. The highlighted card scales in the three-column layout. Pass period to append a billing interval."
     },
     {
       "name": "Testimonials",

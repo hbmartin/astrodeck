@@ -218,6 +218,16 @@ registry check, tests, the build and checks on the built HTML (one `h1`,
 unique titles, meta descriptions, internal links, alt text, and names for image-only links).
 Use `alt=""` for decorative images. Verify runs offline and reports which step failed.
 
+Every indexable page needs one canonical and one matching `og:url` in the document head.
+When the build emits a sitemap, `public/robots.txt` must advertise a built sitemap or sitemap
+index with a `Sitemap:` URL on the production origin. Verification checks sitemap XML and
+nested indexes and keeps `noindex` pages out of them.
+
+`pnpm run test:e2e` builds and tests the real homepage in Chromium. It checks the response,
+main landmark and heading, then the mobile menu, theme toggle and skip-link focus. A customized
+homepage using `MinimalLayout` reports the three shared-header tests as skipped. CI sets
+`ASTRODECK_KIT_CHECKS=1` for the demo and themed clean starter so all four tests must pass.
+
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured
 minimum size. Registry components are intentional entry points; when adding a public UI export,
@@ -274,7 +284,7 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 | `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve it locally |
 | `pnpm run verify` | All checks (see above) |
 | `pnpm run validate` | `verify` without build |
-| `pnpm run test:e2e` | Build, then check the mobile menu, theme toggle and skip link in Chromium (once: `pnpm exec playwright install chromium`) |
+| `pnpm run test:e2e` | Build, then check the homepage, mobile menu, theme toggle and skip link in Chromium (once: `pnpm exec playwright install chromium`) |
 | `pnpm run theme ...` | Brand tokens with contrast gate |
 | `pnpm run starter:clean ...` | Remove the demo |
 | `pnpm run setup:audit` | Install the vibe2prod tools |
@@ -286,7 +296,8 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 
 `pnpm run build` produces static files in `dist/` for any static host: Vercel, Netlify,
 Cloudflare Pages, GitHub Pages or your own server. Set `SITE_URL` in `src/config/site-url.mjs`
-first; canonical URLs, sitemap and RSS use it.
+and update the `Sitemap:` URL in `public/robots.txt` first; canonical URLs, sitemap and RSS
+use `SITE_URL`.
 
 `vercel.json` adds security headers on Vercel; on other hosts configure equivalent headers.
 `features.analytics` in the site config loads Vercel Web Analytics; keep it `false` elsewhere.

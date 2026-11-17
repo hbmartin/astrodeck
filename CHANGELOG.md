@@ -15,6 +15,20 @@ All notable changes to AstroDeck are documented in this file.
 
 - Added strict Fallow checks for dead code, imports, dependencies, complexity, and duplication to `pnpm run verify` and `pnpm run validate`.
 
+- JSON-LD in the SEO head and the FAQ section escapes `<`, so page content cannot close the script element.
+
+- `og:image:width` and `og:image:height` are only announced when known: layouts accept an imported image (blog posts pass their banner), and public-path images no longer claim 1200 x 630.
+
+- The noindex `/login` demo page is no longer listed in the sitemap.
+
+### Added
+
+- `check:dist` rules `canonical` (one self-referencing canonical on the `SITE_URL` origin per indexable page, matching `og:url`), `sitemap-noindex` (no noindex page in a sitemap) and `robots-sitemap` (the `robots.txt` sitemap is on the `SITE_URL` origin and in the build).
+
+- `pnpm run test:e2e` checks the mobile menu, theme toggle and skip link in Chromium with Playwright. CI runs it on the cleaned starter.
+
+- The site brief has a Production URL field.
+
 ## [4.0.1] - 2026-11-06 — Accessibility and canonical URL fixes
 
 ### Fixed

@@ -67,6 +67,8 @@ See the [README command reference](README.md#commands) for other scripts.
 - Run `pnpm run verify` for changes. After demo cleanup, use `pnpm run verify --starter` to
   also check for demo leftovers. The selected command must exit successfully and print
   `VERIFY PASSED`. The faster `pnpm run validate` skips the build and built-HTML checks.
+- After changing the header, mobile menu, theme toggle or layouts, also run `pnpm run test:e2e`
+  (once: `pnpm exec playwright install chromium`).
 - Fix failures at their source. Keep tests, rules and generated output intact.
 - For launch or whole-site handover, run vibe2prod and the manual items in the
   [quality checklist](.agents/skills/astrodeck-build-site/references/quality-checklist.md).

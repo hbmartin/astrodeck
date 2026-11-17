@@ -10,6 +10,7 @@
 <!-- One sentence each. Mark the source of facts, e.g. (chat) or (brief/profile.pdf p. 2). -->
 
 - Site name:
+- Production URL: <!-- Sets SITE_URL and public/robots.txt. Unknown: add it to Open questions. -->
 - What it is:
 - Audience:
 - Primary visitor action:

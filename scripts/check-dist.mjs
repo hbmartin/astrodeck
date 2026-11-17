@@ -2,7 +2,11 @@
 /**
  * Built-HTML check: scans every .html file in a build output directory.
  * Rules: h1-count, title-empty, title-unique, meta-description, meta-length, internal-link,
- * link-scheme, alt-quality, image-link-name, form-novalidate, demo-leftover (starter mode only).
+ * link-scheme, alt-quality, image-link-name, form-novalidate, sitemap-noindex, canonical,
+ * robots-sitemap, demo-leftover (starter mode only).
+ * canonical: every indexable page has one canonical on the SITE_URL origin that points at the
+ * page itself (and og:url matches it). sitemap-noindex: no noindex page is listed in a sitemap.
+ * robots-sitemap: robots.txt names a sitemap of this build on the SITE_URL origin.
  * meta-length mirrors the vibe2prod gates S1/S2: the home page title has 30-60 characters and
  * its description at least 50; no description is longer than 160 characters.
  * Usage: node scripts/check-dist.mjs [--starter] [dir=dist]   (exit 1 on any finding)
@@ -14,8 +18,7 @@ import { parse } from 'node-html-parser';
 import { walkFiles } from './lib/walk-files.mjs';
 import { formatFindings } from './lib/findings.mjs';
 import { checkImageLinks } from './lib/image-links.mjs';
-import { checkPageMetadata, expectedMetadata } from './lib/page-metadata.mjs';
-import { readSiteChecks } from './lib/site-check-config.mjs';
+import { checkCanonical, checkRobots, checkSitemaps, isNoindex } from './lib/indexing.mjs';
 import { SITE_URL } from '../src/config/site-url.mjs';
 
 const BAD_ALT = [
@@ -25,8 +28,8 @@ const BAD_ALT = [
 ];
 const CREDIT = /<!--\s*astrodeck-credit\s*-->\s*(<a\b[^>]*>[\s\S]*?<\/a>|[^<]*)/g;
 
-/** Does a root-relative URL path resolve to a file in the build output? */
-function resolves(dir, urlPath) {
+/** The build-output file (relative, `/`-separated) a root-relative URL path resolves to. */
+function fileFor(dir, urlPath) {
   let p;
   try {
     p = decodeURIComponent(urlPath);
@@ -34,11 +37,17 @@ function resolves(dir, urlPath) {
     p = urlPath;
   }
   const base = join(dir, p);
-  if (!resolve(base).startsWith(resolve(dir))) return false;
+  if (!resolve(base).startsWith(resolve(dir))) return undefined;
   const isFile = (f) => existsSync(f) && statSync(f).isFile();
-  if (p.endsWith('/') || p === '') return isFile(join(base, 'index.html'));
-  return isFile(base) || isFile(join(base, 'index.html')) || isFile(`${base}.html`);
+  const candidates =
+    p.endsWith('/') || p === ''
+      ? [join(base, 'index.html')]
+      : [base, join(base, 'index.html'), `${base}.html`];
+  const hit = candidates.find(isFile);
+  return hit && relative(dir, hit).split(sep).join('/');
 }
+
+const resolves = (dir, urlPath) => fileFor(dir, urlPath) !== undefined;
 
 function isGenericAlt(text, src) {
   if (BAD_ALT.some((re) => re.test(text))) return true;
@@ -116,18 +125,18 @@ function checkPage(html, dir, rel, opts, titles, add) {
   const h1s = root.querySelectorAll('h1').length;
   if (h1s !== 1) add('h1-count', `expected exactly one <h1>, found ${h1s}`);
   checkMetadata(root, rel, titles, add);
-  const expected = opts.metadata?.get(rel);
-  if (expected) checkPageMetadata(root, expected, add);
   checkLinks(root, dir, add);
   for (const img of root.querySelectorAll('img')) checkImg(img, add);
   checkImageLinks(root, add);
   checkForms(root, add);
   if (opts.starter) checkDemoLeftovers(html, add);
+  return root;
 }
 
 /**
  * @param {string} dir build output directory
- * @param {{ starter: boolean; metadata?: ReturnType<typeof expectedMetadata> }} opts
+ * @param {{ starter: boolean; siteUrl?: string }} opts siteUrl enables the canonical and
+ *   robots-sitemap rules
  * @returns {import('./lib/findings.mjs').Finding[]}
  */
 export function checkDist(dir, opts) {
@@ -136,14 +145,19 @@ export function checkDist(dir, opts) {
   if (!existsSync(dir))
     return [{ file: dir, rule: 'missing-dir', message: 'directory does not exist' }];
   const titles = new Map();
-  const seen = new Set();
+  const noindex = new Set();
+  const siteUrl = opts.siteUrl ? new URL(opts.siteUrl) : undefined;
+  const fileIn = (urlPath) => fileFor(dir, urlPath);
 
   for (const abs of [...walkFiles(dir, (name) => name.endsWith('.html'))].sort()) {
     const rel = relative(dir, abs).split(sep).join('/');
-    seen.add(rel);
     const add = (rule, message) => findings.push({ file: rel, rule, message });
-    checkPage(readFileSync(abs, 'utf8'), dir, rel, opts, titles, add);
+    const root = checkPage(readFileSync(abs, 'utf8'), dir, rel, opts, titles, add);
+    if (isNoindex(root)) noindex.add(rel);
+    else if (siteUrl) checkCanonical(root, rel, siteUrl, fileIn, add);
   }
+  findings.push(...checkSitemaps(dir, noindex, fileIn));
+  if (siteUrl) findings.push(...checkRobots(dir, siteUrl, fileIn));
 
   for (const [title, files] of titles)
     if (files.length > 1)
@@ -154,10 +168,6 @@ export function checkDist(dir, opts) {
           message: `title "${title}" is shared with ${files.length - 1} other page(s)`,
         });
 
-  for (const file of opts.metadata?.keys() ?? [])
-    if (!seen.has(file))
-      findings.push({ file, rule: 'seo-page-missing', message: 'expected HTML was not emitted' });
-
   return findings;
 }
 
@@ -167,8 +177,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const dir = resolve(
     args.find((a) => !a.startsWith('--')) ?? join(import.meta.dirname, '..', 'dist')
   );
-  const metadata = expectedMetadata(SITE_URL, readSiteChecks().pages);
-  const findings = checkDist(dir, { starter, metadata });
+  const findings = checkDist(dir, { starter, siteUrl: SITE_URL });
   if (findings.length) console.error(formatFindings(findings));
   console.log(`check:dist - ${findings.length} finding(s)`);
   process.exit(findings.length ? 1 : 0);

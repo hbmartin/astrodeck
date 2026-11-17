@@ -15,14 +15,13 @@
  * </MinimalLayout>
  * ```
  */
+import type { ImageMetadata } from 'astro';
 import PageDocument from '@/components/PageDocument.astro';
-
-import type { SocialImage } from '@/lib/seo';
 
 interface Props {
   title: string;
   description?: string;
-  image?: string | SocialImage;
+  image?: string | ImageMetadata;
   noindex?: boolean;
 }
 

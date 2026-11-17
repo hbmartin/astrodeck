@@ -30,12 +30,6 @@ export interface SiteConfig {
   nav: NavItem[];
   /** e.g. GitHub link in the demo */
   headerCta?: NavItem;
-  /** Optional hosted CTA. If enabled, HOSTED_CTA_URL is resolved at build time. */
-  hostedHeaderCta?: {
-    label: string;
-    allowedOrigins: readonly string[];
-    fallback: { href: string; label: string };
-  };
   footer: {
     /** Short brand blurb shown under the footer logo */
     tagline?: string;

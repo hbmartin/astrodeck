@@ -10,6 +10,7 @@
 <!-- One sentence each. Mark the source of facts, e.g. (chat) or (brief/profile.pdf p. 2). -->
 
 - Site name:
+- Production URL: <!-- Sets SITE_URL and public/robots.txt. Unknown: add it to Open questions. -->
 - What it is:
 - Audience:
 - Primary visitor action:
@@ -55,21 +56,6 @@
 ## Must-haves / no-gos
 
 -
-
-## Publishing & release
-
-- Production origin and host:
-- Visibility and approvals: <!-- Which routes are indexable, unlisted, private or omitted; who approves them. -->
-- Preview: <!-- Access, indexing and how to keep preview integrations separate. -->
-- Release checks and rollback: <!-- Evidence required, approved candidate and previous working release. -->
-
-## Integrations & fallback
-
-<!-- For each integration: enabled when, approved provider, permitted data and fallback. A
-     missing optional setting may use the fallback; invalid explicit config is an operator error. -->
-
-- Primary action fallback:
-- Integrations:
 
 ## Open questions
 

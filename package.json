@@ -31,9 +31,7 @@
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify": "node scripts/verify.mjs",
     "validate": "node scripts/verify.mjs --skip-build",
-    "check:host": "node scripts/check-host.mjs",
-    "test:e2e:smoke": "playwright test",
-    "preview:smoke": "node tests/browser/serve-built.mjs"
+    "test:e2e": "pnpm run build && playwright test"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.9",

@@ -29,6 +29,7 @@
  * Use for: Blog posts, about pages, documentation, content pages
  * Don't use for: Full-width showcases (use FullWidthLayout), auth pages (use AuthLayout)
  */
+import type { ImageMetadata } from 'astro';
 import '@/styles/globals.css';
 import Head from '@/components/Head.astro';
 import { site } from '@/config/site';
@@ -38,12 +39,10 @@ import Footer from '@/components/Footer.astro';
 import Analytics from '@vercel/analytics/astro';
 import AnimationObserver from '@/components/AnimationObserver.astro';
 
-import type { SocialImage } from '@/lib/seo';
-
 interface Props {
   title: string;
   description?: string;
-  image?: string | SocialImage;
+  image?: string | ImageMetadata;
   type?: 'website' | 'article';
   publishedTime?: Date;
   author?: string;

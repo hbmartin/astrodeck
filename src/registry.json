@@ -926,9 +926,9 @@
           "description": "Meta description for SEO and OpenGraph"
         },
         "image": {
-          "type": "string | SocialImage",
+          "type": "string | ImageMetadata",
           "required": false,
-          "description": "Social image URL or { path, alt, width, height }"
+          "description": "Social image: a public path, or an imported image (announces its real size)"
         },
         "type": {
           "type": "'website' | 'article'",
@@ -976,9 +976,9 @@
           "description": "Meta description for SEO and OpenGraph"
         },
         "image": {
-          "type": "string | SocialImage",
+          "type": "string | ImageMetadata",
           "required": false,
-          "description": "Social image URL or { path, alt, width, height }"
+          "description": "Social image: a public path, or an imported image (announces its real size)"
         },
         "noindex": {
           "type": "boolean",
@@ -1010,9 +1010,9 @@
           "description": "Meta description for SEO and OpenGraph"
         },
         "image": {
-          "type": "string | SocialImage",
+          "type": "string | ImageMetadata",
           "required": false,
-          "description": "Social image URL or { path, alt, width, height }"
+          "description": "Social image: a public path, or an imported image (announces its real size)"
         },
         "noindex": {
           "type": "boolean",

@@ -48,15 +48,6 @@ Read the [design system](.agents/skills/astrodeck-build-site/references/design-s
 before visual work. Consult the [Astro conventions](docs/agents/astro-conventions.md) when
 changing Astro templates, configuration, content collections or Tailwind setup.
 
-## Reusable launch checks
-
-- Decide content validity, editorial approval, and publication separately. Use access
-  controls or omit the route for private content; `noindex` does not make a route private.
-- Use native controls for navigation. When changing sticky or mobile navigation, verify
-  keyboard focus, completed activation, enlarged text, and the real scroll destination.
-- Run the [starter kit checks](STARTER-KIT.md) that match the change. Prove regressions
-  against observable behavior. Record skipped or unavailable checks separately from passes.
-
 ## Commands
 
 Use macOS or Linux and pnpm for installs, lockfile updates and scripts. See `engines` and
@@ -76,6 +67,8 @@ See the [README command reference](README.md#commands) for other scripts.
 - Run `pnpm run verify` for changes. After demo cleanup, use `pnpm run verify --starter` to
   also check for demo leftovers. The selected command must exit successfully and print
   `VERIFY PASSED`. The faster `pnpm run validate` skips the build and built-HTML checks.
+- After changing the header, mobile menu, theme toggle or layouts, also run `pnpm run test:e2e`
+  (once: `pnpm exec playwright install chromium`).
 - Fix failures at their source. Keep tests, rules and generated output intact.
 - For launch or whole-site handover, run vibe2prod and the manual items in the
   [quality checklist](.agents/skills/astrodeck-build-site/references/quality-checklist.md).

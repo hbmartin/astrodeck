@@ -5,18 +5,17 @@
  * Layout for showcase pages, portfolios, and galleries that need
  * full viewport width. Includes SEO meta tags.
  */
+import type { ImageMetadata } from 'astro';
 import PageDocument from '@/components/PageDocument.astro';
 import { ui } from '@/config/ui';
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import AnimationObserver from '@/components/AnimationObserver.astro';
 
-import type { SocialImage } from '@/lib/seo';
-
 interface Props {
   title: string;
   description?: string;
-  image?: string | SocialImage;
+  image?: string | ImageMetadata;
   /** Exclude the page from search engines (adds robots noindex, nofollow) */
   noindex?: boolean;
 }

@@ -5,6 +5,8 @@ Run this before telling the user a page or site is done. Every item names how it
 - **verify** = `pnpm run verify` (Oxfmt, Oxlint, Astro lint, astro check, design lint, docs lint, registry,
   tests, build, built-HTML checks). Must end with `VERIFY PASSED`.
 - **vibe2prod** = the vibe2prod skill (production-readiness audit of the built site or live URL).
+- **e2e** = `pnpm run test:e2e` (builds, then checks the mobile menu, theme toggle and skip link
+  in Chromium; once: `pnpm exec playwright install chromium`).
 - **manual** = you look at it yourself, in the browser, at the stated widths.
 
 Fix failures at the cause. Never silence a check by adding an ignore marker, deleting the rule
@@ -22,7 +24,8 @@ or editing generated output.
 
 | Item | How |
 |------|-----|
-| No demo leftovers (AstroDeck demo copy, `example.com`, template names) in pages, metadata or `site.ts` | verify (`demo-leftover`) |
+| No demo leftovers (AstroDeck demo copy, template names) in pages, metadata or `site.ts` | verify (`demo-leftover`) |
+| Production URL is set in `src/config/site-url.mjs` and `public/robots.txt`, or is the first Open question in `PROJECT.md` | verify (`robots-sitemap`), vibe2prod (`example.com` canonical) |
 | No placeholder text (lorem ipsum, "Your headline here", "Coming soon") | vibe2prod |
 | No invented testimonials, customer logos, statistics, team members, awards or prices; sections without real data are removed, not filled | manual |
 | Any remaining sample content is clearly marked as sample and uses fictional names | manual |
@@ -45,7 +48,7 @@ or editing generated output.
 |------|-----|
 | Meaningful `alt` on content images, empty `alt` on decorative ones, no filename alts | verify (`alt-quality`) |
 | Landmarks, labels, ARIA and contrast flagged by the audit are fixed | vibe2prod |
-| Keyboard: tab through each page; focus ring always visible; menus, dialog and accordion work with keys | manual |
+| Keyboard: tab through each page; focus ring always visible; menus, dialog and accordion work with keys | e2e (skip link, menu), manual |
 | Form fields have labels; errors are readable without color | manual |
 | Text contrast uses token pairs as designed | verify (`raw-palette-color`, `hex-or-arbitrary-color`), vibe2prod |
 | Reduced motion: content is visible with animations off | manual (OS setting on) |
@@ -58,7 +61,7 @@ Check each page at 375, 768, 1024 and 1280 px width.
 |------|-----|
 | No horizontal scroll, no clipped or overlapping text | manual |
 | Grids stack to one column on mobile; sections keep side padding | manual |
-| Header collapses to the mobile menu and it opens, closes and navigates | manual |
+| Header collapses to the mobile menu and it opens, closes and navigates | e2e, manual |
 | Tap targets are comfortably large (about 44 px) | manual, vibe2prod |
 | Multi-breakpoint rendering issues | vibe2prod |
 
@@ -68,6 +71,7 @@ Check each page at 375, 768, 1024 and 1280 px width.
 |------|-----|
 | Only semantic tokens are used, no per-theme color overrides | verify (`raw-palette-color`, `bw-literal`, `dark-override`) |
 | Palette values are valid OKLCH | verify (`non-oklch-token`) |
+| Theme toggle switches and remembers the choice | e2e |
 | Every page is readable in both themes: toggle and look at each section, including inverted bands, forms, dialogs | manual |
 | Images and logos with transparent or white backgrounds still look right in dark mode | manual |
 
@@ -87,6 +91,9 @@ Check each page at 375, 768, 1024 and 1280 px width.
 |------|-----|
 | Unique, non-empty `<title>` on every page | verify (`title-unique`, `title-empty`) |
 | Meta description on every page | verify (`meta-description`) |
+| Canonical and `og:url` of every indexable page point at that page on the production URL | verify (`canonical`) |
+| Pages marked `noindex` are not in the sitemap | verify (`sitemap-noindex`) |
+| Private content is omitted from the build or behind access control; `noindex` only hides a public page from search | manual |
 | Site name, URL, description, OG image set in `src/config/site.ts` and exist in `public/` | manual |
 | `robots.txt`, sitemap, canonical URLs, Open Graph and structured data are correct for the real domain | vibe2prod |
 | Blog posts (if any) have title, description, date and valid frontmatter | verify (`astro check`, build) |

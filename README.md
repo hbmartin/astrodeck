@@ -203,11 +203,6 @@ The cleanup is one-shot: once the `starter/` folder is gone, a second run does n
 If a replacement cannot be formatted safely, cleanup keeps the file as written and reports
 which files need attention.
 
-## Starter kit checks
-
-Use the [first PR checklist](FIRST-PR-CHECKLIST.md) after rebranding. The [starter kit guide](STARTER-KIT.md)
-explains the shared SEO checks, optional hosted CTA, and on-demand HTTP and browser smoke tests.
-
 ## Verify and vibe2prod
 
 ```bash
@@ -279,6 +274,7 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 | `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve it locally |
 | `pnpm run verify` | All checks (see above) |
 | `pnpm run validate` | `verify` without build |
+| `pnpm run test:e2e` | Build, then check the mobile menu, theme toggle and skip link in Chromium (once: `pnpm exec playwright install chromium`) |
 | `pnpm run theme ...` | Brand tokens with contrast gate |
 | `pnpm run starter:clean ...` | Remove the demo |
 | `pnpm run setup:audit` | Install the vibe2prod tools |

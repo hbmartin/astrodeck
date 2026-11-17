@@ -1,13 +1,13 @@
 ---
+import type { ImageMetadata } from 'astro';
 import '@/styles/globals.css';
 import Head from '@/components/Head.astro';
 import { site } from '@/config/site';
-import type { SocialImage } from '@/lib/seo';
 
 interface Props {
   title: string;
   description?: string;
-  image?: string | SocialImage;
+  image?: string | ImageMetadata;
   noindex?: boolean;
   bodyClass: string;
 }

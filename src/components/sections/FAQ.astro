@@ -29,6 +29,8 @@
  * - Change section vertical padding via py-* classes on <section>
  * - Modify animation duration in the <style> block below
  */
+import { jsonLd } from '@/lib/utils';
+
 interface FAQ {
   question: string;
   answer: string;
@@ -101,7 +103,7 @@ const structuredData = {
   </div>
 </section>
 
-<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+<script is:inline type="application/ld+json" set:html={jsonLd(structuredData)} />
 <style>
   /* Enable smooth height transitions from 0 to auto */
   .faq-list {

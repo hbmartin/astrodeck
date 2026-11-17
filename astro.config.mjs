@@ -11,8 +11,9 @@ export default defineConfig({
     sitemap({
       changefreq: 'weekly',
       priority: 0.7,
-      // Demo-only form target, not meant to be indexed
-      filter: (page) => !page.endsWith('/thanks/'),
+      // Keep noindex pages out of the sitemap (check:dist rule sitemap-noindex).
+      // These two are demo pages; 404 is excluded by the integration itself.
+      filter: (page) => !['/login/', '/thanks/'].includes(new URL(page).pathname),
       // No lastmod: a build-time date would mark every page as changed on every deploy
     }),
   ],

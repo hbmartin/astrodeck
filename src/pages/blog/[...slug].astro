@@ -51,7 +51,7 @@ const readingTime = getReadingTime(post.body ?? '');
 <BaseLayout
   title={post.data.title}
   description={post.data.description}
-  image={post.data.image?.src}
+  image={post.data.image}
   type="article"
   publishedTime={post.data.pubDate}
   author={post.data.author}

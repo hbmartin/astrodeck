@@ -21,10 +21,12 @@
  */
 import { site } from '@/config/site';
 
+import { resolveSocialImage, type SocialImage } from '@/lib/seo';
+
 interface Props {
   title: string;
   description: string;
-  image?: string;
+  image?: string | SocialImage;
   type?: 'website' | 'article';
   publishedTime?: Date;
   author?: string;
@@ -34,17 +36,20 @@ interface Props {
 const {
   title,
   description,
-  image = site.ogImage,
+  image,
   type = 'website',
   publishedTime,
   author = site.author,
   noindex = false,
 } = Astro.props;
 
-// Fallback for dev server when Astro.site might be undefined
-const siteUrl = Astro.site ?? new URL('http://localhost:4321');
-const canonicalURL = new URL(Astro.url.pathname, siteUrl);
-const socialImageURL = image ? new URL(image, siteUrl) : undefined;
+const siteUrl = Astro.site ?? new URL(site.url);
+const canonicalURL = new URL(siteUrl.origin);
+canonicalURL.pathname = Astro.url.pathname;
+const defaultImage = site.ogImage
+  ? { path: site.ogImage, alt: title, width: 1200, height: 630 }
+  : '';
+const socialImage = resolveSocialImage(image ?? defaultImage, siteUrl, title);
 
 const siteName = site.name;
 
@@ -56,7 +61,7 @@ const structuredData =
         '@type': 'BlogPosting',
         headline: title,
         description,
-        ...(socialImageURL && { image: socialImageURL.toString() }),
+        ...(socialImage && { image: socialImage.url.href }),
         url: canonicalURL.toString(),
         ...(publishedTime && { datePublished: publishedTime.toISOString() }),
         author: { '@type': 'Person', name: author },
@@ -82,7 +87,11 @@ const structuredData =
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#030303" />
 
 <!-- Structured data -->
-<script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+<script
+  is:inline
+  type="application/ld+json"
+  set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')}
+/>
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
 
@@ -91,12 +100,12 @@ const structuredData =
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-{socialImageURL && (
+{socialImage && (
   <>
-    <meta property="og:image" content={socialImageURL} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={title} />
+    <meta property="og:image" content={socialImage.url.href} />
+    {socialImage.width && <meta property="og:image:width" content={String(socialImage.width)} />}
+    {socialImage.height && <meta property="og:image:height" content={String(socialImage.height)} />}
+    <meta property="og:image:alt" content={socialImage.alt} />
   </>
 )}
 <meta property="og:site_name" content={siteName} />
@@ -110,14 +119,14 @@ const structuredData =
 )}
 
 <!-- Twitter -->
-<meta name="twitter:card" content={socialImageURL ? 'summary_large_image' : 'summary'} />
+<meta name="twitter:card" content={socialImage ? 'summary_large_image' : 'summary'} />
 <meta name="twitter:url" content={canonicalURL} />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-{socialImageURL && (
+{socialImage && (
   <>
-    <meta name="twitter:image" content={socialImageURL} />
-    <meta name="twitter:image:alt" content={title} />
+    <meta name="twitter:image" content={socialImage.url.href} />
+    <meta name="twitter:image:alt" content={socialImage.alt} />
   </>
 )}
 

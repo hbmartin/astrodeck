@@ -14,6 +14,9 @@ import { parse } from 'node-html-parser';
 import { walkFiles } from './lib/walk-files.mjs';
 import { formatFindings } from './lib/findings.mjs';
 import { checkImageLinks } from './lib/image-links.mjs';
+import { checkPageMetadata, expectedMetadata } from './lib/page-metadata.mjs';
+import { readSiteChecks } from './lib/site-check-config.mjs';
+import { SITE_URL } from '../src/config/site-url.mjs';
 
 const BAD_ALT = [
   /\.(png|jpe?g|webp|avif|gif|svg)$/i,
@@ -113,6 +116,8 @@ function checkPage(html, dir, rel, opts, titles, add) {
   const h1s = root.querySelectorAll('h1').length;
   if (h1s !== 1) add('h1-count', `expected exactly one <h1>, found ${h1s}`);
   checkMetadata(root, rel, titles, add);
+  const expected = opts.metadata?.get(rel);
+  if (expected) checkPageMetadata(root, expected, add);
   checkLinks(root, dir, add);
   for (const img of root.querySelectorAll('img')) checkImg(img, add);
   checkImageLinks(root, add);
@@ -122,7 +127,7 @@ function checkPage(html, dir, rel, opts, titles, add) {
 
 /**
  * @param {string} dir build output directory
- * @param {{ starter: boolean }} opts
+ * @param {{ starter: boolean; metadata?: ReturnType<typeof expectedMetadata> }} opts
  * @returns {import('./lib/findings.mjs').Finding[]}
  */
 export function checkDist(dir, opts) {
@@ -131,9 +136,11 @@ export function checkDist(dir, opts) {
   if (!existsSync(dir))
     return [{ file: dir, rule: 'missing-dir', message: 'directory does not exist' }];
   const titles = new Map();
+  const seen = new Set();
 
   for (const abs of [...walkFiles(dir, (name) => name.endsWith('.html'))].sort()) {
     const rel = relative(dir, abs).split(sep).join('/');
+    seen.add(rel);
     const add = (rule, message) => findings.push({ file: rel, rule, message });
     checkPage(readFileSync(abs, 'utf8'), dir, rel, opts, titles, add);
   }
@@ -147,6 +154,10 @@ export function checkDist(dir, opts) {
           message: `title "${title}" is shared with ${files.length - 1} other page(s)`,
         });
 
+  for (const file of opts.metadata?.keys() ?? [])
+    if (!seen.has(file))
+      findings.push({ file, rule: 'seo-page-missing', message: 'expected HTML was not emitted' });
+
   return findings;
 }
 
@@ -156,7 +167,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const dir = resolve(
     args.find((a) => !a.startsWith('--')) ?? join(import.meta.dirname, '..', 'dist')
   );
-  const findings = checkDist(dir, { starter });
+  const metadata = expectedMetadata(SITE_URL, readSiteChecks().pages);
+  const findings = checkDist(dir, { starter, metadata });
   if (findings.length) console.error(formatFindings(findings));
   console.log(`check:dist - ${findings.length} finding(s)`);
   process.exit(findings.length ? 1 : 0);

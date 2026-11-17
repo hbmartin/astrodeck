@@ -11,10 +11,12 @@ import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import AnimationObserver from '@/components/AnimationObserver.astro';
 
+import type { SocialImage } from '@/lib/seo';
+
 interface Props {
   title: string;
   description?: string;
-  image?: string;
+  image?: string | SocialImage;
   /** Exclude the page from search engines (adds robots noindex, nofollow) */
   noindex?: boolean;
 }

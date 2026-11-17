@@ -48,15 +48,6 @@ Read the [design system](.agents/skills/astrodeck-build-site/references/design-s
 before visual work. Consult the [Astro conventions](docs/agents/astro-conventions.md) when
 changing Astro templates, configuration, content collections or Tailwind setup.
 
-## Reusable launch checks
-
-- Decide content validity, editorial approval, and publication separately. Use access
-  controls or omit the route for private content; `noindex` does not make a route private.
-- Use native controls for navigation. When changing sticky or mobile navigation, verify
-  keyboard focus, completed activation, enlarged text, and the real scroll destination.
-- Run the [starter kit checks](STARTER-KIT.md) that match the change. Prove regressions
-  against observable behavior. Record skipped or unavailable checks separately from passes.
-
 ## Commands
 
 Use macOS or Linux and pnpm for installs, lockfile updates and scripts. See `engines` and

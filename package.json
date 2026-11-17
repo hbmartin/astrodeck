@@ -30,10 +30,7 @@
     "setup:audit": "node scripts/setup-audit.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify": "node scripts/verify.mjs",
-    "validate": "node scripts/verify.mjs --skip-build",
-    "check:host": "node scripts/check-host.mjs",
-    "test:e2e:smoke": "playwright test",
-    "preview:smoke": "node tests/browser/serve-built.mjs"
+    "validate": "node scripts/verify.mjs --skip-build"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.9",
@@ -62,7 +59,6 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/compiler-rs": "0.5.3",
-    "@playwright/test": "1.65.1",
     "@types/markdown-it": "^14.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

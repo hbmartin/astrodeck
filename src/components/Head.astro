@@ -20,13 +20,11 @@ import FontPreload from '@/components/FontPreload.astro';
 import ThemeScript from '@/components/ThemeScript.astro';
 import { pageTitle } from '@/config/site';
 
-import type { SocialImage } from '@/lib/seo';
-
 interface Props {
   /** Plain page title — the brand suffix comes from site.titleTemplate */
   title: string;
   description: string;
-  image?: string | SocialImage;
+  image?: string;
   type?: 'website' | 'article';
   publishedTime?: Date;
   author?: string;

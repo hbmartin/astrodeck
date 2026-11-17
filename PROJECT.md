@@ -59,21 +59,6 @@
 
 -
 
-## Publishing & release
-
-- Production origin and host:
-- Visibility and approvals: <!-- Which routes are indexable, unlisted, private or omitted; who approves them. -->
-- Preview: <!-- Access, indexing and how to keep preview integrations separate. -->
-- Release checks and rollback: <!-- Evidence required, approved candidate and previous working release. -->
-
-## Integrations & fallback
-
-<!-- For each integration: enabled when, approved provider, permitted data and fallback. A
-     missing optional setting may use the fallback; invalid explicit config is an operator error. -->
-
-- Primary action fallback:
-- Integrations:
-
 ## Open questions
 
 <!-- Missing facts and conflicts, with who has to answer. Nothing here may appear on the site. -->

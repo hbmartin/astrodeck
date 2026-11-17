@@ -17,12 +17,10 @@
  */
 import PageDocument from '@/components/PageDocument.astro';
 
-import type { SocialImage } from '@/lib/seo';
-
 interface Props {
   title: string;
   description?: string;
-  image?: string | SocialImage;
+  image?: string;
   noindex?: boolean;
 }
 

@@ -6,7 +6,6 @@
  */
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
-import { boundedImageWidths } from '@/lib/starter/image-widths.mjs';
 
 interface Props {
   tagline?: string;
@@ -18,10 +17,6 @@ interface Props {
 }
 
 const { tagline, title, description, features, image, imageSide = 'right' } = Astro.props;
-const widths =
-  image && typeof image.src !== 'string'
-    ? boundedImageWidths(image.src.width, [480, 800, 1200])
-    : [];
 const imageLeft = !!image && imageSide === 'left';
 ---
 
@@ -77,8 +72,8 @@ const imageLeft = !!image && imageSide === 'left';
             <Image
               src={image.src}
               alt={image.alt}
-              widths={widths.length ? widths : undefined}
-              sizes={widths.length ? '(min-width: 1024px) 480px, 100vw' : undefined}
+              widths={[480, 800, 1200]}
+              sizes="(min-width: 1024px) 480px, 100vw"
               class="aspect-[4/3] w-full object-cover"
             />
           )}

@@ -15,7 +15,6 @@ import HeaderNavLinks from '@/components/HeaderNavLinks.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import Logo from './Logo.astro';
 import { site } from '@/config/site';
-import { resolveHeaderCta } from '@/lib/starter/hosted-action.mjs';
 import { ui } from '@/config/ui';
 
 interface Props {
@@ -25,8 +24,7 @@ interface Props {
 
 const { variant = 'boxed' } = Astro.props;
 
-const hosted = site.hostedHeaderCta;
-const cta = hosted ? resolveHeaderCta(import.meta.env.HOSTED_CTA_URL, hosted) : site.headerCta;
+const cta = site.headerCta;
 
 const containerClass =
   variant === 'fullWidth' ? 'w-full px-4' : 'container max-w-5xl mx-auto px-4 sm:px-6';

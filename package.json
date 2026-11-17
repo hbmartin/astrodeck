@@ -30,7 +30,8 @@
     "setup:audit": "node scripts/setup-audit.mjs",
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify": "node scripts/verify.mjs",
-    "validate": "node scripts/verify.mjs --skip-build"
+    "validate": "node scripts/verify.mjs --skip-build",
+    "test:e2e": "pnpm run build && playwright test"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.9",
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@astrojs/compiler-rs": "0.5.3",
+    "@playwright/test": "1.65.1",
     "@types/markdown-it": "^14.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

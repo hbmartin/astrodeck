@@ -53,3 +53,16 @@ jobs:
       - name: Verify starter
         working-directory: ${{ runner.temp }}/starter
         run: pnpm run verify --starter
+      - name: Install Chromium
+        working-directory: ${{ runner.temp }}/starter
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser checks (menu, theme toggle, skip link)
+        working-directory: ${{ runner.temp }}/starter
+        run: pnpm run test:e2e
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: starter-playwright-traces
+          path: ${{ runner.temp }}/starter/test-results/
+          if-no-files-found: ignore

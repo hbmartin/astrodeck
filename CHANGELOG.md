@@ -25,7 +25,9 @@ All notable changes to AstroDeck are documented in this file.
 
 - Sitemap exclusions also support slashless routes. Built-output checks require canonical and Open Graph URLs in the document head, read sitemap XML and nested indexes, and require `robots.txt` to advertise an emitted sitemap.
 
-- Browser checks verify skip-link focus and keyboard menu closing. Customized homepages using `MinimalLayout` report the three shared-header checks as skipped; demo and clean-starter CI require all four tests to pass.
+- Sitemap page URLs use the `SITE_URL` origin, including `customPages` served outside the build. Local references stay within the output directory. Robots parsing accepts a UTF-8 BOM, and diagnostics identify the file containing an invalid directive or sitemap entry.
+
+- Browser checks verify skip-link focus and browser history, plus menu opening and closing by click and keyboard. When desktop navigation has links, corresponding links must be visible in the open mobile menu. Empty navigation lists are supported. Customized homepages using `MinimalLayout` report the three shared-header checks as skipped; demo and clean-starter CI require all four tests to pass.
 
 ### Added
 

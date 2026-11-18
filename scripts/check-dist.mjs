@@ -12,11 +12,12 @@
  * its description at least 50; no description is longer than 160 characters.
  * Usage: node scripts/check-dist.mjs [--starter] [dir=dist]   (exit 1 on any finding)
  */
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, relative, resolve, sep, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'node-html-parser';
 import { walkFiles } from './lib/walk-files.mjs';
+import { builtFile } from './lib/build-paths.mjs';
 import { formatFindings } from './lib/findings.mjs';
 import { checkImageLinks } from './lib/image-links.mjs';
 import { checkCanonical, isNoindex } from './lib/indexing.mjs';
@@ -39,14 +40,15 @@ function fileFor(dir, urlPath) {
     p = urlPath;
   }
   const base = join(dir, p);
-  if (!resolve(base).startsWith(resolve(dir))) return undefined;
-  const isFile = (f) => existsSync(f) && statSync(f).isFile();
   const candidates =
     p.endsWith('/') || p === ''
       ? [join(base, 'index.html')]
       : [base, join(base, 'index.html'), `${base}.html`];
-  const hit = candidates.find(isFile);
-  return hit && relative(dir, hit).split(sep).join('/');
+  for (const candidate of candidates) {
+    const hit = builtFile(dir, relative(dir, candidate).split(sep).join('/'));
+    if (hit !== undefined) return hit;
+  }
+  return undefined;
 }
 
 const resolves = (dir, urlPath) => fileFor(dir, urlPath) !== undefined;

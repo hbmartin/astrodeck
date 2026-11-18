@@ -12,6 +12,14 @@ async function openSharedLayout(page) {
   );
 }
 
+async function expectMenuLinks(menu, hrefs) {
+  for (const [index, href] of hrefs.entries()) {
+    const link = menu.getByRole('link').nth(index);
+    await expect(link).toHaveAttribute('href', href);
+    await expect(link).toBeVisible();
+  }
+}
+
 test('the homepage serves visible main content and a page heading', async ({ page }) => {
   const response = await page.goto('/');
   expect(response?.ok()).toBe(true);
@@ -29,12 +37,16 @@ test.describe('on a phone', () => {
     await openSharedLayout(page);
     const button = page.locator('#mobile-menu-button');
     const menu = page.locator('#mobile-menu');
+    const navigationHrefs = await page
+      .locator('header nav a[href]')
+      .evaluateAll((links) => links.map((link) => link.getAttribute('href')));
     await expect(button).toHaveAttribute('aria-expanded', 'false');
     await expect(menu).toBeHidden();
 
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(menu).toBeVisible();
+    await expectMenuLinks(menu, navigationHrefs);
 
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -44,6 +56,7 @@ test.describe('on a phone', () => {
     await page.keyboard.press('Enter');
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(menu).toBeVisible();
+    await expectMenuLinks(menu, navigationHrefs);
 
     await page.keyboard.press('Enter');
     await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -74,7 +87,7 @@ test.describe('in light mode', () => {
   });
 });
 
-test('the skip link is the first tab stop and focuses the main content', async ({ page }) => {
+test('the skip link focuses the main content and preserves browser history', async ({ page }) => {
   await openSharedLayout(page);
   const main = page.getByRole('main');
   await expect(main).toHaveCount(1);
@@ -87,4 +100,42 @@ test('the skip link is the first tab stop and focuses the main content', async (
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#main-content$/);
   await expect(main).toBeFocused();
+  await expect.poll(() => page.evaluate(() => globalThis.history.state)).not.toBeNull();
+
+  const homeUrl = page.url();
+  const homeTitle = await page.title();
+  const heading = main.getByRole('heading', { level: 1 });
+  const homeHeading = await heading.innerText();
+  const homeLocation = new URL(homeUrl);
+  const navigationLinks = page.locator('header nav a[href]');
+  const hrefs = await navigationLinks.evaluateAll((links) =>
+    links.map((link) => link.getAttribute('href'))
+  );
+  const onwardIndex = hrefs.findIndex((href) => {
+    const target = new URL(href, homeUrl);
+    return (
+      !/^[a-z][a-z\d+.-]*:/i.test(href) &&
+      target.origin === homeLocation.origin &&
+      target.pathname !== homeLocation.pathname
+    );
+  });
+  if (onwardIndex === -1) return;
+
+  await navigationLinks.nth(onwardIndex).click();
+  await expect(page).not.toHaveURL(homeUrl);
+  await expect(page).not.toHaveTitle(homeTitle);
+  await expect(heading).toBeVisible();
+  const onwardUrl = page.url();
+  const onwardTitle = await page.title();
+  const onwardHeading = await heading.innerText();
+
+  await page.goBack();
+  await expect(page).toHaveURL(homeUrl);
+  await expect(page).toHaveTitle(homeTitle);
+  await expect(heading).toHaveText(homeHeading);
+
+  await page.goForward();
+  await expect(page).toHaveURL(onwardUrl);
+  await expect(page).toHaveTitle(onwardTitle);
+  await expect(heading).toHaveText(onwardHeading);
 });

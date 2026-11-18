@@ -4,9 +4,10 @@
  * Rules: h1-count, title-empty, title-unique, meta-description, meta-length, internal-link,
  * link-scheme, alt-quality, image-link-name, form-novalidate, sitemap-noindex, canonical,
  * robots-sitemap, demo-leftover (starter mode only).
- * canonical: every indexable page has one canonical on the SITE_URL origin that points at the
- * page itself (and og:url matches it). sitemap-noindex: no noindex page is listed in a sitemap.
- * robots-sitemap: robots.txt names a sitemap of this build on the SITE_URL origin.
+ * canonical: every indexable page has one self-referencing canonical on the SITE_URL origin
+ * and one matching og:url in head. sitemap-noindex: no noindex page is listed in a sitemap.
+ * robots-sitemap: emitted sitemaps need a robots.txt declaration; every declared sitemap and
+ * nested index reference resolves to sitemap XML in this build on the SITE_URL origin.
  * meta-length mirrors the vibe2prod gates S1/S2: the home page title has 30-60 characters and
  * its description at least 50; no description is longer than 160 characters.
  * Usage: node scripts/check-dist.mjs [--starter] [dir=dist]   (exit 1 on any finding)
@@ -18,7 +19,8 @@ import { parse } from 'node-html-parser';
 import { walkFiles } from './lib/walk-files.mjs';
 import { formatFindings } from './lib/findings.mjs';
 import { checkImageLinks } from './lib/image-links.mjs';
-import { checkCanonical, checkRobots, checkSitemaps, isNoindex } from './lib/indexing.mjs';
+import { checkCanonical, isNoindex } from './lib/indexing.mjs';
+import { checkSitemaps } from './lib/sitemaps.mjs';
 import { SITE_URL } from '../src/config/site-url.mjs';
 
 const BAD_ALT = [
@@ -156,8 +158,7 @@ export function checkDist(dir, opts) {
     if (isNoindex(root)) noindex.add(rel);
     else if (siteUrl) checkCanonical(root, rel, siteUrl, fileIn, add);
   }
-  findings.push(...checkSitemaps(dir, noindex, fileIn));
-  if (siteUrl) findings.push(...checkRobots(dir, siteUrl, fileIn));
+  findings.push(...checkSitemaps(dir, noindex, fileIn, siteUrl));
 
   for (const [title, files] of titles)
     if (files.length > 1)

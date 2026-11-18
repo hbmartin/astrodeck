@@ -50,7 +50,7 @@ const canonicalURL = new URL(Astro.url.pathname, siteUrl);
 const imagePath = typeof image === 'string' ? image : image?.src;
 const socialImageURL = imagePath ? new URL(imagePath, siteUrl) : undefined;
 // Only an imported image has known dimensions; a wrong size is worse than none.
-const socialImageSize = typeof image === 'object' ? image : undefined;
+const socialImageSize = image && typeof image !== 'string' ? image : undefined;
 
 const siteName = site.name;
 

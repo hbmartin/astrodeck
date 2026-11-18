@@ -8,6 +8,8 @@ All notable changes to AstroDeck are documented in this file.
 
 - AstroDeck development and verification require macOS or Linux. Demo and starter CI jobs run on Ubuntu.
 
+- Layout social images accept a URL string or an Astro image import (`ImageMetadata`). Replace an `image={{ path, alt, width, height }}` prop with `image={path}` or import the image and pass `image={cover}`. Imports supply their intrinsic dimensions, including SVGs. Social image alt text uses the page title.
+
 ### Fixes
 - Starter cleanup warns when a replacement cannot be formatted safely and continues formatting the other files. Astro lint accepts type-only overload declarations, and the Claude hook checks the edit payload when it cannot read the file.
 
@@ -20,6 +22,10 @@ All notable changes to AstroDeck are documented in this file.
 - `og:image:width` and `og:image:height` are only announced when known: layouts accept an imported image (blog posts pass their banner), and public-path images no longer claim 1200 x 630.
 
 - The noindex `/login` demo page is no longer listed in the sitemap.
+
+- Sitemap exclusions also support slashless routes. Built-output checks require canonical and Open Graph URLs in the document head, read sitemap XML and nested indexes, and require `robots.txt` to advertise an emitted sitemap.
+
+- Browser checks verify skip-link focus and keyboard menu closing. Customized homepages using `MinimalLayout` report the three shared-header checks as skipped; demo and clean-starter CI require all four tests to pass.
 
 ### Added
 

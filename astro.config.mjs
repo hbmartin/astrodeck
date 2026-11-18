@@ -13,7 +13,7 @@ export default defineConfig({
       priority: 0.7,
       // Keep noindex pages out of the sitemap (check:dist rule sitemap-noindex).
       // These two are demo pages; 404 is excluded by the integration itself.
-      filter: (page) => !['/login/', '/thanks/'].includes(new URL(page).pathname),
+      filter: (page) => !['/login', '/thanks'].includes(new URL(page).pathname.replace(/\/$/, '')),
       // No lastmod: a build-time date would mark every page as changed on every deploy
     }),
   ],

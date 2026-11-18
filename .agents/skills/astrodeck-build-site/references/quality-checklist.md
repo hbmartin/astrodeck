@@ -5,8 +5,10 @@ Run this before telling the user a page or site is done. Every item names how it
 - **verify** = `pnpm run verify` (Oxfmt, Oxlint, Astro lint, astro check, design lint, docs lint, registry,
   tests, build, built-HTML checks). Must end with `VERIFY PASSED`.
 - **vibe2prod** = the vibe2prod skill (production-readiness audit of the built site or live URL).
-- **e2e** = `pnpm run test:e2e` (builds, then checks the mobile menu, theme toggle and skip link
-  in Chromium; once: `pnpm exec playwright install chromium`).
+- **e2e** = `pnpm run test:e2e` (builds, then checks the real homepage, mobile menu, theme toggle
+  and skip-link focus in Chromium; once: `pnpm exec playwright install chromium`). A customized
+  homepage using `MinimalLayout` reports the three shared-header checks as skipped. Demo and
+  themed clean-starter CI set `ASTRODECK_KIT_CHECKS=1` and require all four tests to pass.
 - **manual** = you look at it yourself, in the browser, at the stated widths.
 
 Fix failures at the cause. Never silence a check by adding an ignore marker, deleting the rule
@@ -91,8 +93,9 @@ Check each page at 375, 768, 1024 and 1280 px width.
 |------|-----|
 | Unique, non-empty `<title>` on every page | verify (`title-unique`, `title-empty`) |
 | Meta description on every page | verify (`meta-description`) |
-| Canonical and `og:url` of every indexable page point at that page on the production URL | verify (`canonical`) |
+| Every indexable page has one canonical and one matching `og:url` in its head pointing at that page on the production URL | verify (`canonical`) |
 | Pages marked `noindex` are not in the sitemap | verify (`sitemap-noindex`) |
+| When a sitemap is emitted, `robots.txt` advertises a built sitemap or sitemap index on the production origin; all declared targets and nested indexes resolve to sitemap XML | verify (`robots-sitemap`) |
 | Private content is omitted from the build or behind access control; `noindex` only hides a public page from search | manual |
 | Site name, URL, description, OG image set in `src/config/site.ts` and exist in `public/` | manual |
 | `robots.txt`, sitemap, canonical URLs, Open Graph and structured data are correct for the real domain | vibe2prod |

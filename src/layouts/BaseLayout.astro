@@ -81,12 +81,13 @@ const enableAnalytics = site.features.analytics && !!process.env.VERCEL;
   <body class="min-h-screen flex flex-col antialiased">
     <a
       href="#main-content"
+      data-astro-reload
       class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[60] bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium"
     >
       {ui.skipToContent}
     </a>
     <Header />
-    <main id="main-content" class="flex-1">
+    <main id="main-content" tabindex="-1" class="flex-1">
       <slot />
     </main>
     <Footer />

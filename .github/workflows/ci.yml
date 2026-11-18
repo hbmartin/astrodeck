@@ -26,6 +26,19 @@ jobs:
         run: pnpm run verify
         env:
           ASTRODECK_KIT_CHECKS: '1'
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser checks (homepage, menu, theme toggle, skip link)
+        run: pnpm run test:e2e
+        env:
+          ASTRODECK_KIT_CHECKS: '1'
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-playwright-traces
+          path: test-results/
+          if-no-files-found: ignore
 
   starter:
     name: Clean starter verifies
@@ -56,9 +69,11 @@ jobs:
       - name: Install Chromium
         working-directory: ${{ runner.temp }}/starter
         run: pnpm exec playwright install --with-deps chromium
-      - name: Browser checks (menu, theme toggle, skip link)
+      - name: Browser checks (homepage, menu, theme toggle, skip link)
         working-directory: ${{ runner.temp }}/starter
         run: pnpm run test:e2e
+        env:
+          ASTRODECK_KIT_CHECKS: '1'
       - name: Upload Playwright traces
         if: failure()
         uses: actions/upload-artifact@v4

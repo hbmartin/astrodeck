@@ -29,7 +29,7 @@ const { title, description, image, noindex } = Astro.props;
 ---
 
 <PageDocument {title} {description} {image} {noindex} bodyClass="min-h-screen antialiased">
-  <main id="main-content" class="min-h-screen">
+  <main id="main-content" data-layout="minimal" class="min-h-screen">
     <slot />
   </main>
 </PageDocument>

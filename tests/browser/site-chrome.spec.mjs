@@ -1,6 +1,24 @@
-// Interactive parts of the shared layout: mobile menu, theme toggle and skip link.
-// Selectors use ids, roles and hrefs, not English text, because sites translate src/config/ui.ts.
+// The real homepage and the interactive parts of its shared layout.
+// Selectors use ids, roles and hrefs because sites translate src/config/ui.ts.
+import process from 'node:process';
 import { expect, test } from '@playwright/test';
+
+async function openSharedLayout(page) {
+  await page.goto('/');
+  const minimal = await page.locator('main[data-layout="minimal"]').count();
+  test.skip(
+    minimal === 1 && process.env.ASTRODECK_KIT_CHECKS !== '1',
+    'MinimalLayout intentionally omits the shared header, theme toggle and skip link.'
+  );
+}
+
+test('the homepage serves visible main content and a page heading', async ({ page }) => {
+  const response = await page.goto('/');
+  expect(response?.ok()).toBe(true);
+  const main = page.getByRole('main');
+  await expect(main).toBeVisible();
+  await expect(main.getByRole('heading', { level: 1 })).toBeVisible();
+});
 
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 375, height: 812 } });
@@ -8,7 +26,7 @@ test.describe('on a phone', () => {
   test('the menu button opens and closes the mobile menu by click and keyboard', async ({
     page,
   }) => {
-    await page.goto('/');
+    await openSharedLayout(page);
     const button = page.locator('#mobile-menu-button');
     const menu = page.locator('#mobile-menu');
     await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -16,7 +34,7 @@ test.describe('on a phone', () => {
 
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'true');
-    await expect(menu.getByRole('link').first()).toBeVisible();
+    await expect(menu).toBeVisible();
 
     await button.click();
     await expect(button).toHaveAttribute('aria-expanded', 'false');
@@ -26,6 +44,10 @@ test.describe('on a phone', () => {
     await page.keyboard.press('Enter');
     await expect(button).toHaveAttribute('aria-expanded', 'true');
     await expect(menu).toBeVisible();
+
+    await page.keyboard.press('Enter');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(menu).toBeHidden();
   });
 });
 
@@ -33,7 +55,7 @@ test.describe('in light mode', () => {
   test.use({ colorScheme: 'light' });
 
   test('the theme toggle switches to dark and remembers the choice', async ({ page }) => {
-    await page.goto('/');
+    await openSharedLayout(page);
     const html = page.locator('html');
     const toggle = page.getByRole('banner').getByRole('switch');
     await expect(html).not.toHaveClass(/\bdark\b/);
@@ -52,8 +74,11 @@ test.describe('in light mode', () => {
   });
 });
 
-test('the skip link is the first tab stop and jumps to the main content', async ({ page }) => {
-  await page.goto('/');
+test('the skip link is the first tab stop and focuses the main content', async ({ page }) => {
+  await openSharedLayout(page);
+  const main = page.getByRole('main');
+  await expect(main).toHaveCount(1);
+  await expect(main).toHaveAttribute('id', 'main-content');
   await page.keyboard.press('Tab');
   const skip = page.locator('a[href="#main-content"]');
   await expect(skip).toBeFocused();
@@ -61,4 +86,5 @@ test('the skip link is the first tab stop and jumps to the main content', async 
 
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#main-content$/);
+  await expect(main).toBeFocused();
 });

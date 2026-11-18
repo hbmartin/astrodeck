@@ -5,6 +5,7 @@
 import { findElements, elementName, attribute } from './html-tree.mjs';
 
 const tokens = (value = '') => value.toLowerCase().split(/[\s,]+/u);
+const relTokens = (value = '') => value.toLowerCase().split(/[\t\n\f\r ]+/u);
 
 /** True when a robots meta tag asks search engines not to index the page. */
 export function isNoindex(root) {
@@ -20,7 +21,8 @@ export function checkCanonical(root, rel, siteUrl, fileFor, add) {
   const head = findElements(root, (node) => elementName(node) === 'head')[0];
   const links = findElements(
     head,
-    (node) => elementName(node) === 'link' && tokens(attribute(node, 'rel')).includes('canonical')
+    (node) =>
+      elementName(node) === 'link' && relTokens(attribute(node, 'rel')).includes('canonical')
   );
   if (links.length !== 1)
     return add('canonical', `expected one <link rel="canonical">, found ${links.length}`);

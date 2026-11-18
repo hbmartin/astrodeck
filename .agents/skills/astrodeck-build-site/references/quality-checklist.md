@@ -7,7 +7,8 @@ Run this before telling the user a page or site is done. Every item names how it
 - **vibe2prod** = the vibe2prod skill (production-readiness audit of the built site or live URL).
 - **e2e** = `pnpm run test:e2e` (builds, then checks the real homepage, mobile menu, theme toggle
   and skip-link focus in Chromium; Back/Forward is a named step when a same-tab, same-origin
-  HTML navigation target exists, otherwise it reports an explained skipped step; once: `pnpm exec playwright install chromium`).
+  HTML document target exists, excluding no-content responses and attachments. Otherwise it prints
+  the skip reason and records an explained skipped step; once: `pnpm exec playwright install chromium`).
   Menu opening and closing are checked by click and keyboard. When desktop navigation has links,
   corresponding links must be visible in the open mobile menu. Empty lists are supported.
   A customized homepage using `MinimalLayout` reports the three shared-header checks as skipped. Demo and
@@ -98,7 +99,8 @@ Check each page at 375, 768, 1024 and 1280 px width.
 | Unique, non-empty `<title>` on every page | verify (`title-unique`, `title-empty`) |
 | Meta description on every page | verify (`meta-description`) |
 | Every indexable page has one canonical and one matching `og:url` in its head pointing at that page on the production URL | verify (`canonical`) |
-| Sitemap XML is complete and valid, including programmatic checks without a production origin | verify (`robots-sitemap`) |
+| Sitemap XML is well-formed, including programmatic checks without a production origin | verify (`robots-sitemap`) |
+| When a sitemap is used, every indexable built page is listed | manual |
 | Pages marked `noindex` are not in the sitemap | verify (`sitemap-noindex`) |
 | Every sitemap page URL uses the `SITE_URL` origin; same-origin `customPages` may be served outside this build | verify (`robots-sitemap`) |
 | When a sitemap is emitted, `robots.txt` advertises a built sitemap or sitemap index on the production origin; all declared targets and nested indexes resolve to sitemap XML | verify (`robots-sitemap`) |

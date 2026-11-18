@@ -1,8 +1,22 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import MarkdownIt from 'markdown-it';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { absoluteSourceLinks } from '../src/lib/documentation-links.mjs';
+import { documentationLinksPlugin } from '../scripts/lib/documentation-links-plugin.mjs';
 
 const SOURCE = 'https://github.com/hbmartin/astrodeck/blob/main/';
+const markdown = new MarkdownIt();
+
+function destinations(text) {
+  return markdown
+    .parse(text, {})
+    .flatMap((token) => token.children ?? [])
+    .filter((token) => ['link_open', 'image'].includes(token.type))
+    .map((token) => token.attrGet(token.type === 'image' ? 'src' : 'href'));
+}
 
 test('documentation links resolve relative to each source with queries and fragments', () => {
   assert.equal(
@@ -44,14 +58,140 @@ test('external links, fragment links and code examples remain intact', () => {
 
 test('nested image links, reference definitions and titled or bracketed destinations are rewritten', () => {
   const markdown =
-    '[![License](https://img.example/badge)](LICENSE)\n[Guide]: ../guide.md "Read this"\n[Space](<my guide.md> "Read") [Parens](guide(a).md)';
+    '[![License](https://img.example/badge)](LICENSE)\n\n[Guide]: ../guide.md "Read this"\n\n[Space](<my guide.md> "Read") [Parens](guide(a).md)';
   assert.equal(
     absoluteSourceLinks(markdown, 'docs/README.md'),
-    `[![License](https://img.example/badge)](${SOURCE}docs/LICENSE)\n[Guide]: ${SOURCE}guide.md "Read this"\n[Space](<${SOURCE}docs/my%20guide.md> "Read") [Parens](${SOURCE}docs/guide(a).md)`
+    `[![License](https://img.example/badge)](${SOURCE}docs/LICENSE)\n\n[Guide]: ${SOURCE}guide.md "Read this"\n\n[Space](<${SOURCE}docs/my%20guide.md> "Read") [Parens](${SOURCE}docs/guide\\(a\\).md)`
   );
 });
 
 test('unfinished Markdown destinations are not rewritten as links', () => {
   const markdown = '[unfinished](README.md\n[bad title](README.md "unterminated)';
   assert.equal(absoluteSourceLinks(markdown, 'AGENTS.md'), markdown);
+});
+
+test('unmatched backtick runs do not conceal real links', () => {
+  const input = '` [Guide](README.md) ``';
+  const output = absoluteSourceLinks(input, 'AGENTS.md');
+  assert.equal(output, input.replace('README.md', `${SOURCE}README.md`));
+  assert.deepEqual(destinations(output), [`${SOURCE}README.md`]);
+});
+
+test('plain marker lookalikes and paragraph continuations remain unchanged', () => {
+  for (const input of [
+    'example](README.md)',
+    'paragraph\n[Guide]: README.md',
+    '[Fake][guide]\n[guide]: README.md',
+  ]) {
+    assert.deepEqual(destinations(input), []);
+    assert.equal(absoluteSourceLinks(input, 'AGENTS.md'), input);
+  }
+});
+
+test('escaped parentheses and entity text retain their parsed destination meaning', () => {
+  const cases = [
+    [String.raw`[Guide](guide\(draft.md)`, `${SOURCE}guide(draft.md`],
+    [String.raw`[Guide](guide\)draft.md)`, `${SOURCE}guide)draft.md`],
+    ['[Guide](guide(a).md)', `${SOURCE}guide(a).md`],
+    ['[Guide](file?x=&amp;copy;)', `${SOURCE}file?x=&copy;`],
+    [String.raw`[Guide](file?x=\\path)`, `${SOURCE}file?x=%5Cpath`],
+  ];
+  for (const [input, expected] of cases) {
+    const output = absoluteSourceLinks(input, 'AGENTS.md');
+    assert.deepEqual(destinations(output), [expected], input);
+    assert.equal(destinations(output).length, destinations(input).length);
+  }
+});
+
+test('destination text cannot create overlapping edits in outer links', () => {
+  const input = '[Guide](<draft[api](v1).md>)';
+  const output = absoluteSourceLinks(input, 'AGENTS.md');
+  assert.equal(output, `[Guide](<${SOURCE}draft[api](v1).md>)`);
+  assert.deepEqual(destinations(output), [`${SOURCE}draft%5Bapi%5D(v1).md`]);
+  const external = '[Guide](<https://example.test/draft[api](v1).md>)';
+  assert.equal(absoluteSourceLinks(external, 'AGENTS.md'), external);
+});
+
+test('multiline code spans stay literal while following links are rewritten', () => {
+  const input = '`code starts\n[Example](README.md)\nends` [Real](README.md)';
+  const output = absoluteSourceLinks(input, 'AGENTS.md');
+  assert.equal(output, input.replace('[Real](README.md)', `[Real](${SOURCE}README.md)`));
+  assert.deepEqual(destinations(output), [`${SOURCE}README.md`]);
+});
+
+test('multiline links and definitions preserve their original container syntax', () => {
+  const cases = [
+    '[Guide](\nREADME.md)',
+    '[Guide](\n<README.md>\n "Read this")',
+    '> [Guide]:\n>   README.md "Read this"\n>\n> [Guide]',
+    '- [Guide]:\n    README.md "Read this"\n\n  [Guide]',
+  ];
+  for (const input of cases) {
+    const output = absoluteSourceLinks(input, 'AGENTS.md');
+    assert.equal(output, input.replace('README.md', `${SOURCE}README.md`));
+    assert.deepEqual(destinations(output), [`${SOURCE}README.md`], input);
+  }
+});
+
+test('nested images and links receive separate destination edits', () => {
+  const input = '[![Cover](images/cover.png "Cover")](README.md "Read")';
+  const output = absoluteSourceLinks(input, 'docs/README.md');
+  assert.equal(
+    output,
+    `[![Cover](${SOURCE}docs/images/cover.png "Cover")](${SOURCE}docs/README.md "Read")`
+  );
+  assert.deepEqual(destinations(output), [
+    `${SOURCE}docs/README.md`,
+    `${SOURCE}docs/images/cover.png`,
+  ]);
+});
+
+test('reference usages remain unchanged and unused definitions are still rewritten', () => {
+  const input = '[Full][guide] [guide][] [guide]\n\n[guide]: README.md "Guide"\n[unused]: other.md';
+  const output = absoluteSourceLinks(input, 'AGENTS.md');
+  assert.equal(
+    output,
+    `[Full][guide] [guide][] [guide]\n\n[guide]: ${SOURCE}README.md "Guide"\n[unused]: ${SOURCE}other.md`
+  );
+  assert.deepEqual(destinations(output), Array(3).fill(`${SOURCE}README.md`));
+});
+
+test('source offsets preserve initial BOMs, Unicode, tabs and line endings', () => {
+  for (const bom of ['', '\uFEFF', '\uFEFF\uFEFF']) {
+    for (const ending of ['\n', '\r\n', '\r']) {
+      const input = `${bom}😀\t[Guide](README.md "Title 😀")${ending}${ending}[Next](other.md)${ending}`;
+      const output = absoluteSourceLinks(input, 'AGENTS.md');
+      assert.equal(
+        output,
+        input.replace('README.md', `${SOURCE}README.md`).replace('other.md', `${SOURCE}other.md`)
+      );
+      assert.deepEqual(destinations(output), [`${SOURCE}README.md`, `${SOURCE}other.md`]);
+    }
+  }
+});
+
+test('external and fragment destination escapes remain byte-for-byte intact', () => {
+  const input = String.raw`[Web](https://example.test/a\(b\)?x=&amp;copy;) [Here](#a\(b\)) [CDN](//example.test/a\(b\))`;
+  assert.equal(absoluteSourceLinks(input, 'AGENTS.md'), input);
+});
+
+test('the build plugin emits watched source documents as static string modules', (t) => {
+  const root = mkdtempSync(join(tmpdir(), 'astrodeck-source-links-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, 'docs'));
+  const file = join(root, 'docs', 'guide.md');
+  writeFileSync(file, '\uFEFF[Read](../README.md)\r\n');
+  const watched = [];
+  const plugin = documentationLinksPlugin();
+  plugin.configResolved({ root });
+  assert.equal(plugin.load(`${file}?raw`), undefined);
+  const module = plugin.load.call(
+    { addWatchFile: (path) => watched.push(path) },
+    `${file}?source-links&raw`
+  );
+  assert.equal(
+    JSON.parse(module.slice('export default '.length, -1)),
+    `\uFEFF[Read](${SOURCE}README.md)\r\n`
+  );
+  assert.deepEqual(watched, [file]);
 });

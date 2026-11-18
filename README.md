@@ -65,7 +65,8 @@ pnpm install --frozen-lockfile
 pnpm run dev                                 # http://localhost:4321
 ```
 
-For a new site, detach it from the starter before your first push:
+Before publishing a new site, create its destination Git repository. Replace the example URL
+below with that repository's actual URL, then detach the site from the starter before your first push:
 
 ```bash
 git remote remove origin
@@ -251,8 +252,9 @@ native buttons containing images.
 `pnpm run test:e2e` builds and tests the real homepage in Chromium. It checks the response,
 main landmark and heading, then the mobile menu, theme toggle and skip-link focus and browser
 history. Back/Forward checks run in a named step when navigation exposes a same-tab,
-same-origin HTML page; otherwise that step reports an explained skip while focus checks still
-run. Menu opening and closing are checked by click and keyboard. When desktop navigation
+same-origin HTML document, excluding no-content responses and attachments. Otherwise the command
+prints the reason and records a skipped step while focus checks still run. Menu opening and
+closing are checked by click and keyboard. When desktop navigation
 has links, the checks require corresponding links to be visible in the open mobile menu.
 Empty navigation lists are supported. A customized homepage using `MinimalLayout` reports
 the three shared-header tests as skipped. CI sets

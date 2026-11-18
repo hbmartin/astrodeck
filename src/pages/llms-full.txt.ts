@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
-// Root-document aliases keep build-time raw imports resolvable by Astro and static checks.
-import agents from '@root/AGENTS.md?raw';
-import readme from '@root/README.md?raw';
-import conventions from '@root/docs/agents/astro-conventions.md?raw';
-import { absoluteSourceLinks } from '@/lib/documentation-links.mjs';
+// The build plugin rewrites source links and emits static strings, without a runtime parser.
+import agents from '@root/AGENTS.md?source-links&raw';
+import readme from '@root/README.md?source-links&raw';
+import conventions from '@root/docs/agents/astro-conventions.md?source-links&raw';
 
 /**
  * /llms-full.txt — the complete project documentation as plain text for LLMs.
@@ -24,19 +23,19 @@ export const GET: APIRoute = ({ site }) => {
     '',
     '# Part 1: AGENTS.md (index for coding agents)',
     '',
-    absoluteSourceLinks(agents.trim(), 'AGENTS.md'),
+    agents.trim(),
     '',
     '---',
     '',
     '# Part 2: README.md (human documentation)',
     '',
-    absoluteSourceLinks(readme.trim(), 'README.md'),
+    readme.trim(),
     '',
     '---',
     '',
     '# Part 3: Astro and Tailwind conventions',
     '',
-    absoluteSourceLinks(conventions.trim(), 'docs/agents/astro-conventions.md'),
+    conventions.trim(),
     '',
   ].join('\n');
 

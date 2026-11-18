@@ -14,9 +14,16 @@ export function attribute(node, name) {
 }
 
 function* descendants(root) {
-  for (const child of root.childNodes ?? []) {
+  const stack = [{ children: root.childNodes ?? [], index: 0 }];
+  while (stack.length) {
+    const frame = stack.at(-1);
+    const child = frame.children[frame.index++];
+    if (!child) {
+      stack.pop();
+      continue;
+    }
     if (child.tagName) yield child;
-    yield* descendants(child);
+    if (child.childNodes?.length) stack.push({ children: child.childNodes, index: 0 });
   }
 }
 
@@ -25,10 +32,17 @@ export function findElements(root, predicate) {
 }
 
 export function findById(root, id) {
-  return findElements(root, (node) => attribute(node, 'id') === id)[0];
+  for (const node of descendants(root)) if (attribute(node, 'id') === id) return node;
 }
 
 export function textContent(node) {
-  if (node.nodeName === '#text') return node.value;
-  return (node.childNodes ?? []).map(textContent).join('');
+  const chunks = [];
+  const stack = [node];
+  while (stack.length) {
+    const current = stack.pop();
+    if (current.nodeName === '#text') chunks.push(current.value);
+    const children = current.childNodes ?? [];
+    for (let index = children.length - 1; index >= 0; index--) stack.push(children[index]);
+  }
+  return chunks.join('');
 }

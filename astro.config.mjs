@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { SITE_URL } from './src/config/site-url.mjs';
 import { includeDemoPage } from './scripts/lib/sitemap-filter.mjs';
+import { documentationLinksPlugin } from './scripts/lib/documentation-links-plugin.mjs';
 
 // Set a subpath here when needed; sitemap exclusions use the same base.
 const base = '/';
@@ -23,6 +24,6 @@ export default defineConfig({
     }),
   ],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), documentationLinksPlugin()],
   },
 });

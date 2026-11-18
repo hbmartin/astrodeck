@@ -250,6 +250,39 @@ test('immutable inference keeps source order, shadowing and uncertain writes con
   );
 });
 
+test('same-region constant writes affect later reads without erasing earlier diagnostics', () => {
+  const diagnostic = ['astro/no-deprecated-astro-resolve'];
+  for (const write of ['runtime = {}', 'runtime = Astro', 'runtime++', '[runtime!] = others']) {
+    assert.deepEqual(
+      rules(astro(`const runtime = Astro; runtime.resolve(); if (false) { ${write}; }`)),
+      diagnostic,
+      write
+    );
+    assert.deepEqual(
+      rules(astro(`const runtime = Astro; runtime.resolve(); ${write}; runtime.resolve();`)),
+      diagnostic,
+      write
+    );
+    assert.deepEqual(
+      rules(astro(`const runtime = Astro; ${write}; runtime.resolve();`)),
+      [],
+      write
+    );
+  }
+  assert.deepEqual(
+    rules(
+      astro(
+        'for (const item of items) { const runtime = Astro; runtime.resolve(); if (cond) runtime = {}; runtime.resolve(); }'
+      )
+    ),
+    diagnostic
+  );
+  assert.deepEqual(
+    rules(astro('const runtime = Astro; function replace() { runtime = {}; } runtime.resolve();')),
+    []
+  );
+});
+
 test('writes nested in TypeScript assignment wrappers invalidate aliases', () => {
   for (const write of [
     '[runtime!] = others',

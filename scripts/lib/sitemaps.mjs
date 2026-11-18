@@ -1,7 +1,8 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { basename, join, relative, sep } from 'node:path';
 import sax from 'sax';
 import { walkFiles } from './walk-files.mjs';
+import { builtFile } from './build-paths.mjs';
 
 const NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 const ENTRY = { urlset: 'url', sitemapindex: 'sitemap' };
@@ -80,13 +81,10 @@ function sitemapFiles(dir) {
 }
 
 function readSitemap(dir, name, files) {
-  if (files.has(name)) return files.get(name);
-  const path = join(dir, name);
-  if (relative(dir, path).split(sep).join('/') !== name) return undefined;
-  if (!existsSync(path) || !statSync(path).isFile()) return undefined;
-  const sitemap = parseSitemap(readFileSync(path, 'utf8'));
-  files.set(name, sitemap);
-  return sitemap;
+  const actual = builtFile(dir, name);
+  if (actual === undefined) return undefined;
+  if (!files.has(actual)) files.set(actual, parseSitemap(readFileSync(join(dir, actual), 'utf8')));
+  return [actual, files.get(actual)];
 }
 
 function sitemapUrl(value, siteUrl) {
@@ -96,7 +94,7 @@ function sitemapUrl(value, siteUrl) {
     !['http:', 'https:'].includes(url.protocol) ||
     url.username ||
     url.password ||
-    url.hash
+    value.includes('#')
   )
     return undefined;
   if (siteUrl && url.origin !== siteUrl.origin) return undefined;
@@ -106,9 +104,7 @@ function sitemapUrl(value, siteUrl) {
 function targetSitemap(value, dir, files, siteUrl, add) {
   const url = sitemapUrl(value, siteUrl);
   if (!url) {
-    add(
-      `Sitemap ${value || '(empty)'} must be an absolute URL on SITE_URL (${siteUrl?.origin}); update public/robots.txt`
-    );
+    add(`Sitemap ${value || '(empty)'} must be an absolute URL on SITE_URL (${siteUrl?.origin})`);
     return;
   }
   let path;
@@ -119,18 +115,22 @@ function targetSitemap(value, dir, files, siteUrl, add) {
     return;
   }
   // Referenced sitemaps may use a custom name without an .xml suffix.
-  const sitemap = readSitemap(dir, path, files);
-  if (!sitemap) add(`Sitemap ${value} is not a built XML sitemap`);
-  else if (sitemap.error || !Object.hasOwn(ENTRY, sitemap.kind))
+  const target = readSitemap(dir, path, files);
+  if (!target) {
+    add(`Sitemap ${value} is not a built XML sitemap`);
+    return;
+  }
+  const [, sitemap] = target;
+  if (sitemap.error || !Object.hasOwn(ENTRY, sitemap.kind))
     add(
       `Sitemap ${value} is invalid: ${sitemap.error ?? 'expected a urlset or sitemapindex root'}`
     );
-  else return [path, sitemap];
+  else return target;
 }
 
 function checkRobots(dir, discovered, include, add) {
   const path = join(dir, 'robots.txt');
-  const robots = existsSync(path) ? readFileSync(path, 'utf8') : '';
+  const robots = existsSync(path) ? readFileSync(path, 'utf8').replace(/^\uFEFF/u, '') : '';
   const directives = [...robots.replace(/#.*$/gmu, '').matchAll(/^[\t ]*sitemap[\t ]*:(.*)$/gimu)];
   if (discovered.size && !directives.length)
     add(
@@ -144,7 +144,15 @@ function checkRobots(dir, discovered, include, add) {
 function checkEntries(name, sitemap, noindexFiles, fileFor, siteUrl, add) {
   for (const location of sitemap.locations) {
     const url = sitemapUrl(location, siteUrl);
-    if (!url) continue;
+    if (!url) {
+      if (siteUrl)
+        add(
+          name,
+          'robots-sitemap',
+          `Page URL ${location} must be an absolute HTTP(S) URL on SITE_URL (${siteUrl.origin}) without credentials or a fragment`
+        );
+      continue;
+    }
     const file = fileFor(url.pathname);
     if (file && noindexFiles.has(file))
       add(
@@ -168,7 +176,13 @@ export function checkSitemaps(dir, noindexFiles, fileFor, siteUrl) {
   );
   const include = (value, source) => {
     const target = targetSitemap(value, dir, files, siteUrl, (message) => {
-      if (siteUrl) add(source, 'robots-sitemap', message);
+      if (siteUrl) {
+        const remediation =
+          source === 'robots.txt'
+            ? 'update public/robots.txt'
+            : `correct ${source} or its generating configuration`;
+        add(source, 'robots-sitemap', `${message}; ${remediation}`);
+      }
     });
     if (target) discovered.set(...target);
   };

@@ -135,7 +135,7 @@ test('indexing rules flag wrong canonicals, listed noindex pages and a foreign s
       'team/index.html canonical: expected one <link rel="canonical">, found 2',
       'thanks/index.html sitemap-noindex: noindex page is listed in sitemap-0.xml; exclude it with the sitemap filter in astro.config.mjs',
       'robots.txt robots-sitemap: Sitemap https://example.com/sitemap-0.xml must be an absolute URL on SITE_URL (https://acme.test); update public/robots.txt',
-      'robots.txt robots-sitemap: Sitemap https://acme.test/gone.xml is not a built XML sitemap',
+      'robots.txt robots-sitemap: Sitemap https://acme.test/gone.xml is not a built XML sitemap; update public/robots.txt',
     ].sort()
   );
 });
@@ -244,8 +244,150 @@ test('nested sitemap XML decodes locations and distinguishes page and extension 
   const findings = indexing(dir);
   assert.deepEqual(
     findings.map((f) => [f.file, f.rule]),
-    [['a&b/index.html', 'sitemap-noindex']]
+    [
+      ['a&b/index.html', 'sitemap-noindex'],
+      ['maps/pages', 'robots-sitemap'],
+    ]
   );
+});
+
+test('robots and index references cannot escape the output directory', async (t) => {
+  for (const source of ['robots', 'index']) {
+    await t.test(source, () => {
+      const outside = `${ORIGIN}/..%2Foutside.xml`;
+      const files = {
+        'outside.xml': sitemap('/'),
+        'dist/index.html': page({ canonical: `${ORIGIN}/` }),
+        'dist/robots.txt': `Sitemap: ${outside}\n`,
+      };
+      if (source === 'index') {
+        files['dist/robots.txt'] = `Sitemap: ${ORIGIN}/sitemap-index.xml\n`;
+        files['dist/sitemap-index.xml'] = sitemapIndex('/..%2Foutside.xml');
+      }
+      const dir = writeBuild(t, files);
+      const findings = indexing(join(dir, 'dist'));
+      assert.ok(findings.some((f) => f.rule === 'robots-sitemap' && f.message.includes(outside)));
+    });
+  }
+});
+
+test('internal links cannot resolve into a sibling with the build directory prefix', (t) => {
+  const href = '/..%2Fdist-sibling%2Foutside.html';
+  const dir = writeBuild(t, {
+    'dist/index.html': page().replace('</body>', `<a href="${href}">Outside</a></body>`),
+    'dist-sibling/outside.html': page(),
+  });
+  const findings = checkDist(join(dir, 'dist'), { starter: false }).filter(
+    (f) => f.rule === 'internal-link'
+  );
+  assert.deepEqual(
+    findings.map((f) => f.message),
+    [`${href} does not resolve to a file`]
+  );
+});
+
+test('sitemap references and HTML links enforce directory and filename case', async (t) => {
+  for (const path of ['/maps/Pages.xml', '/Maps/pages.xml']) {
+    await t.test(path, () => {
+      const dir = writeBuild(t, {
+        'index.html': page().replace('</body>', `<a href="${path}">Map</a></body>`),
+        'Maps/Pages.xml': sitemap('/'),
+        'robots.txt': `Sitemap: ${ORIGIN}${path}\n`,
+      });
+      const findings = checkDist(dir, { starter: false, siteUrl: ORIGIN });
+      assert.ok(findings.some((f) => f.rule === 'internal-link' && f.message.includes(path)));
+      assert.ok(findings.some((f) => f.rule === 'robots-sitemap' && f.message.includes(path)));
+    });
+  }
+});
+
+test('HTML aliases and percent-encoded filenames retain their resolution behavior', (t) => {
+  const paths = [
+    '/',
+    '/guide',
+    '/guide/',
+    '/guide.html',
+    '/space%20name.txt',
+    '/100%25.txt',
+    '/%2520.txt',
+  ];
+  const links = paths.map((path) => `<a href="${path}">Page</a>`).join('');
+  const dir = writeBuild(t, {
+    'index.html': page({ canonical: `${ORIGIN}/` }).replace('</body>', `${links}</body>`),
+    'guide/index.html': page({ canonical: `${ORIGIN}/guide` }),
+    'guide.html': page({ canonical: `${ORIGIN}/guide.html` }),
+    'space name.txt': '',
+    '100%.txt': '',
+    '%20.txt': '',
+  });
+  const findings = checkDist(dir, { starter: false, siteUrl: ORIGIN });
+  assert.deepEqual(
+    findings.filter((f) => f.rule === 'internal-link' || INDEXING.has(f.rule)),
+    []
+  );
+});
+
+test('normalized Unicode URLs and encoded sitemap names find actual build files', (t) => {
+  const dir = writeBuild(t, {
+    'index.html': page({ canonical: `${ORIGIN}/` }),
+    'cafe\u0301/index.html': page({ canonical: `${ORIGIN}/caf%C3%A9/` }),
+    'Maps/space name.xml': sitemap('/', '/caf%C3%A9/'),
+    'Maps/100%.xml': sitemap('/'),
+    'Maps/%20.xml': sitemap('/'),
+    'robots.txt': `Sitemap: ${ORIGIN}/Maps/space%20name.xml\nSitemap: ${ORIGIN}/Maps/100%25.xml\nSitemap: ${ORIGIN}/Maps/%2520.xml\n`,
+  });
+  assert.deepEqual(indexing(dir), []);
+});
+
+test('page sitemap locations must be absolute HTTP(S) URLs on the production origin', async (t) => {
+  const invalid = [
+    'not-a-url',
+    '/thanks/',
+    'ftp://acme.test/thanks/',
+    'http://acme.test/thanks/',
+    'https://other.test/thanks/',
+    `${ORIGIN}/thanks/#section`,
+    `${ORIGIN}/thanks/#`,
+    `https://user:password@acme.test/thanks/`,
+  ];
+  for (const location of invalid) {
+    await t.test(location, () => {
+      const dir = writeBuild(t, {
+        'index.html': page({ canonical: `${ORIGIN}/` }),
+        'thanks/index.html': page({ robots: 'noindex' }),
+        'sitemap.xml': `<urlset><url><loc>${location}</loc></url></urlset>`,
+        'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\n`,
+      });
+      const findings = indexing(dir);
+      assert.equal(findings.length, 1);
+      assert.equal(findings[0].file, 'sitemap.xml');
+      assert.equal(findings[0].rule, 'robots-sitemap');
+      assert.ok(findings[0].message.includes(location));
+    });
+  }
+});
+
+test('BOM-prefixed robots accepts same-origin custom pages outside the build', (t) => {
+  const dir = writeBuild(t, {
+    'index.html': page({ canonical: `${ORIGIN}/` }),
+    'sitemap.xml': sitemap('/', '/account/'),
+    'robots.txt': `\uFEFFSitemap: ${ORIGIN}/sitemap.xml\n`,
+  });
+  assert.deepEqual(indexing(dir), []);
+});
+
+test('invalid sitemap references identify the source to correct', (t) => {
+  const dir = writeBuild(t, {
+    'index.html': page({ canonical: `${ORIGIN}/` }),
+    'sitemap-index.xml': sitemapIndex('/missing.xml'),
+    'robots.txt': `Sitemap: ${ORIGIN}/sitemap-index.xml\nSitemap: https://other.test/pages.xml\n`,
+  });
+  const findings = indexing(dir);
+  const robots = findings.find((f) => f.file === 'robots.txt');
+  const index = findings.find((f) => f.file === 'sitemap-index.xml');
+  assert.match(robots.message, /update public\/robots\.txt/u);
+  assert.match(index.message, /correct sitemap-index\.xml or its generating configuration/u);
+  assert.doesNotMatch(index.message, /public\/robots\.txt/u);
 });
 
 test('malformed sitemap structure is reported even with a valid robots URL', async (t) => {

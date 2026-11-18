@@ -6,8 +6,10 @@ Run this before telling the user a page or site is done. Every item names how it
   tests, build, built-HTML checks). Must end with `VERIFY PASSED`.
 - **vibe2prod** = the vibe2prod skill (production-readiness audit of the built site or live URL).
 - **e2e** = `pnpm run test:e2e` (builds, then checks the real homepage, mobile menu, theme toggle
-  and skip-link focus in Chromium; once: `pnpm exec playwright install chromium`). A customized
-  homepage using `MinimalLayout` reports the three shared-header checks as skipped. Demo and
+  and skip-link focus and browser history in Chromium; once: `pnpm exec playwright install chromium`).
+  Menu opening and closing are checked by click and keyboard. When desktop navigation has links,
+  corresponding links must be visible in the open mobile menu. Empty lists are supported.
+  A customized homepage using `MinimalLayout` reports the three shared-header checks as skipped. Demo and
   themed clean-starter CI set `ASTRODECK_KIT_CHECKS=1` and require all four tests to pass.
 - **manual** = you look at it yourself, in the browser, at the stated widths.
 
@@ -39,7 +41,7 @@ or editing generated output.
 | Item | How |
 |------|-----|
 | No dead `href="#"` or `action="#"` | verify (`dead-href`, `dead-action`) |
-| Every internal link resolves to a built page | verify (`internal-link`) |
+| Every internal link resolves to a built page within the output directory | verify (`internal-link`) |
 | Exactly one `h1` per page, headings in order | verify (`h1-count`), manual for order |
 | Navigation and footer lists match the pages that exist | manual |
 | 404 page exists and links home | manual |
@@ -95,6 +97,7 @@ Check each page at 375, 768, 1024 and 1280 px width.
 | Meta description on every page | verify (`meta-description`) |
 | Every indexable page has one canonical and one matching `og:url` in its head pointing at that page on the production URL | verify (`canonical`) |
 | Pages marked `noindex` are not in the sitemap | verify (`sitemap-noindex`) |
+| Every sitemap page URL uses the `SITE_URL` origin; same-origin `customPages` may be served outside this build | verify (`robots-sitemap`) |
 | When a sitemap is emitted, `robots.txt` advertises a built sitemap or sitemap index on the production origin; all declared targets and nested indexes resolve to sitemap XML | verify (`robots-sitemap`) |
 | Private content is omitted from the build or behind access control; `noindex` only hides a public page from search | manual |
 | Site name, URL, description, OG image set in `src/config/site.ts` and exist in `public/` | manual |

@@ -221,11 +221,18 @@ Use `alt=""` for decorative images. Verify runs offline and reports which step f
 Every indexable page needs one canonical and one matching `og:url` in the document head.
 When the build emits a sitemap, `public/robots.txt` must advertise a built sitemap or sitemap
 index with a `Sitemap:` URL on the production origin. Verification checks sitemap XML and
-nested indexes and keeps `noindex` pages out of them.
+nested indexes and keeps `noindex` pages out of them. Every sitemap page URL must use the
+`SITE_URL` origin. Same-origin `customPages` entries may point to pages served outside this
+build. Local references must stay inside the build output directory. The checker accepts a
+UTF-8 BOM at the start of `robots.txt`, and findings identify the file containing the invalid
+directive or sitemap entry.
 
 `pnpm run test:e2e` builds and tests the real homepage in Chromium. It checks the response,
-main landmark and heading, then the mobile menu, theme toggle and skip-link focus. A customized
-homepage using `MinimalLayout` reports the three shared-header tests as skipped. CI sets
+main landmark and heading, then the mobile menu, theme toggle and skip-link focus and browser
+history. Menu opening and closing are checked by click and keyboard. When desktop navigation
+has links, the checks require corresponding links to be visible in the open mobile menu.
+Empty navigation lists are supported. A customized homepage using `MinimalLayout` reports
+the three shared-header tests as skipped. CI sets
 `ASTRODECK_KIT_CHECKS=1` for the demo and themed clean starter so all four tests must pass.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the

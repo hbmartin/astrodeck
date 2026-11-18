@@ -31,4 +31,53 @@ export const imageNameCases = [
   { name: 'reference targets do not chain', body: '<span id="first" aria-labelledby="second"></span><span id="second">Open menu</span><button id="control" aria-labelledby="first"><img alt=""></button>', named: false },
   { name: 'two empty references terminate', body: '<span id="first" aria-labelledby="second"></span><span id="second" aria-labelledby="first"></span><button id="control" aria-labelledby="first"><img alt=""></button>', named: false },
   { name: 'hidden ARIA reference retains hidden text', body: '<div hidden><span id="label"><span hidden>Open menu</span></span></div><button id="control" aria-labelledby="label"><img alt=""></button>', named: true },
+  { name: 'referenced button ignores its empty native label', body: '<label for="source"></label><button id="source">Open</button><a id="control" href="/" aria-labelledby="source"><img alt=""></a>', named: true },
+  { name: 'referenced button ignores its hidden native label', body: '<label for="source" hidden>Hidden label</label><button id="source">Open</button><a id="control" href="/" aria-labelledby="source"><img alt=""></a>', named: true },
+  { name: 'descendant button ignores its empty native label', body: '<label for="source"></label><a id="control" href="/"><img alt=""><button id="source">Open</button></a>', named: true },
+  { name: 'descendant div title does not name its link', body: '<a id="control" href="/"><img alt=""><div title="Open"></div></a>', named: false },
+  { name: 'descendant span title does not name its button', body: '<button id="control"><img alt=""><span title="Open"></span></button>', named: false },
+  { name: 'descendant i title does not name its link', body: '<a id="control" href="/"><i title="Open"><img alt=""></i></a>', named: false },
+  { name: 'direct reference permits title fallback', body: '<span id="source" title="Open"></span><button id="control" aria-labelledby="source"><img alt=""></button>', named: true },
+  { name: 'descendant section permits title fallback', body: '<button id="control"><img alt=""><section title="Open"></section></button>', named: true },
+  { name: 'child ARIA name remains effective', body: '<button id="control"><img alt=""><span aria-label="Open"></span></button>', named: true },
+  { name: 'hidden input cannot name an ancestor', body: '<button id="control"><img alt=""><input type="hidden" aria-label="Open" value="Open"></button>', named: false },
+  { name: 'hidden input value cannot name a reference', body: '<input id="source" type="hidden" value="Open"><button id="control" aria-labelledby="source"><img alt=""></button>', named: false },
+  { name: 'direct hidden input reference permits ARIA name', body: '<input id="source" type="hidden" aria-label="Open"><button id="control" aria-labelledby="source"><img alt=""></button>', named: true },
+  { name: 'direct hidden input reference permits title', body: '<input id="source" type="hidden" title="Open"><button id="control" aria-labelledby="source"><img alt=""></button>', named: true },
+  { name: 'first presentation role wins', body: '<button id="control"><img role="none presentation" alt="Open"></button>', named: false },
+  { name: 'unknown role permits presentation fallback', body: '<button id="control"><img role="unknown presentation" alt="Open"></button>', named: false },
+  { name: 'recognized image role wins before presentation', body: '<button id="control"><img role="img presentation" alt="Open"></button>', named: true },
+  { name: 'abstract role permits presentation fallback', body: '<button id="control"><img role="widget presentation" alt="Open"></button>', named: false },
+  { name: 'ASCII whitespace separates fallback roles', body: '<button id="control"><img role="unknown\t\n\f\r presentation" alt="Open"></button>', named: false },
+  { name: 'non-ASCII whitespace does not separate fallback roles', body: '<button id="control"><img role="unknown\u00a0presentation" alt="Open"></button>', named: true },
 ];
+
+// These are intentionally separate from parity cases: CSS changes the browser name, while
+// the HTML-only checker must decline to report a certain missing-name finding in every case.
+const untilFoundDisplays = [
+  { name: 'inline default', tag: 'span', display: 'inline' },
+  { name: 'block default', tag: 'div', display: 'block' },
+  { name: 'block with inline override', tag: 'div', display: 'inline', override: true },
+  { name: 'inline with block override', tag: 'span', display: 'block', override: true },
+];
+
+export const untilFoundNameCases = untilFoundDisplays.flatMap((fixture) => {
+  const opening = `<${fixture.tag} id="source" hidden="until-found"${fixture.override ? ` style="display:${fixture.display}"` : ''}>`;
+  const closing = `</${fixture.tag}>`;
+  return [
+    {
+      ...fixture,
+      name: `${fixture.name} name source`,
+      named: fixture.display === 'inline',
+      ignored: false,
+      body: `<button id="control"><img alt="">${opening}Open${closing}</button>`,
+    },
+    {
+      ...fixture,
+      name: `${fixture.name} control ancestor`,
+      named: false,
+      ignored: fixture.display === 'block',
+      body: `${opening}<button id="control"><img alt=""></button>${closing}`,
+    },
+  ];
+});

@@ -7,7 +7,7 @@
 
 # AstroDeck
 
-[![Version](https://img.shields.io/badge/version-4.0.1-blue.svg)](https://github.com/hbmartin/astrodeck/releases)
+[![Version](https://img.shields.io/badge/version-4.0.1-blue.svg)](CHANGELOG.md)
 [![Astro](https://img.shields.io/badge/Astro-7.x-orange.svg)](https://astro.build)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -65,20 +65,34 @@ pnpm install --frozen-lockfile
 pnpm run dev                                 # http://localhost:4321
 ```
 
-Before publishing a new site, create its destination Git repository. Replace the example URL
-below with that repository's actual URL, then detach the site from the starter before your first push:
+Let your agent run the workflow, or work by hand: set `src/config/site.ts`, run
+`pnpm run theme`, compose pages from `src/components/sections/`, and finish with `pnpm run verify`.
+
+After building and verifying your site, create an empty destination Git repository. In the examples below,
+replace `https://github.com/YOUR_USERNAME/YOUR_SITE.git` with that repository's actual URL.
+
+**From a clone:** keep the starter history, replace its remote, and commit your site before pushing:
 
 ```bash
 git remote remove origin
 git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
+git add .
+git commit -m "Build site"
+git push -u origin HEAD
 ```
 
-This keeps the starter history. For independent history, use the source ZIP (which has no
-`.git` directory), then run `git init`, commit your site and add your own remote. Contributors
-should keep their fork remote and follow [CONTRIBUTING.md](CONTRIBUTING.md).
+**From a source ZIP:** the extracted folder has no `.git` directory. In that folder, initialize
+independent history, commit your site, and add the destination remote before pushing:
 
-Then let your agent run the workflow, or work by hand: set `src/config/site.ts`, run
-`pnpm run theme`, compose pages from `src/components/sections/`, finish with `pnpm run verify`.
+```bash
+git init -b main
+git add .
+git commit -m "Build site"
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
+git push -u origin main
+```
+
+Contributors should keep their fork remote and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can write its own
 `AGENTS.md` over the kit's. Use the main branch source ZIP or `git clone`.
@@ -249,6 +263,10 @@ are reported even for programmatic checks without `siteUrl`. The `build-symlink`
 rules report rejected links and filesystem failures; `image-button-name` reports unnamed
 native buttons containing images.
 
+Static image-control naming checks leave uncertain cases unreported. For example,
+`hidden="until-found"` visibility depends on computed CSS, so an internal UNKNOWN result is not
+proof that a control has a name. Review CSS-dependent cases in a browser.
+
 `pnpm run test:e2e` builds and tests the real homepage in Chromium. It checks the response,
 main landmark and heading, then the mobile menu, theme toggle and skip-link focus and browser
 history. Back/Forward checks run in a named step when navigation exposes a same-tab,
@@ -259,6 +277,12 @@ has links, the checks require corresponding links to be visible in the open mobi
 Empty navigation lists are supported. A customized homepage using `MinimalLayout` reports
 the three shared-header tests as skipped. CI sets
 `ASTRODECK_KIT_CHECKS=1` for the demo and themed clean starter so all four tests must pass.
+
+`pnpm run test:browser-oracle` separately compares the image-control naming fixtures with
+Chromium's accessibility tree. It covers deterministic naming cases and explicitly checks the
+conservative treatment of CSS-dependent `hidden="until-found"` fixtures. It runs without an
+Astro build and requires Chromium (`pnpm exec playwright install chromium`). It complements
+the offline verification checks and the four homepage tests.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured
@@ -319,6 +343,7 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 | `pnpm run validate` | Interim checks; prints `VALIDATE PASSED`, skips build and built HTML |
 | `pnpm run check:fallow` | Strict dependency, dead code, complexity and duplication checks |
 | `pnpm run test:e2e` | Build, then check the homepage, mobile menu, theme toggle and skip link in Chromium (once: `pnpm exec playwright install chromium`) |
+| `pnpm run test:browser-oracle` | Compare image-control naming fixtures with Chromium's accessibility tree, without a site build (requires Chromium) |
 | `pnpm run theme ...` | Brand tokens with contrast gate; `--primary`, `--accent`, `--neutral`, `--radius`, `--from`, `--dry-run` (examples above) |
 | `pnpm run icons` | Generate PNG icons and a social image from `public/favicon.svg` |
 | `pnpm run starter:clean ...` | Remove the demo; `--dry-run` previews, `--yes` confirms, `--keep-blog` retains the blog |
@@ -333,6 +358,10 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 Cloudflare Pages, GitHub Pages or your own server. Set `SITE_URL` in `src/config/site-url.mjs`
 and update the `Sitemap:` URL in `public/robots.txt` first; canonical URLs, sitemap and RSS
 use `SITE_URL`.
+
+The shipped templates support deployment at the domain root. Full subpath deployment requires
+adapting root-relative navigation, assets and endpoint URLs; setting Astro's `base` alone is
+insufficient.
 
 `vercel.json` adds security headers on Vercel; on other hosts configure equivalent headers.
 `features.analytics` in the site config loads Vercel Web Analytics; keep it `false` elsewhere.

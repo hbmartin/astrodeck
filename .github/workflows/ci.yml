@@ -32,6 +32,8 @@ jobs:
         run: pnpm run test:e2e
         env:
           ASTRODECK_KIT_CHECKS: '1'
+      - name: Chromium accessible-name oracle
+        run: pnpm run test:browser-oracle
       - name: Upload Playwright traces
         if: failure()
         uses: actions/upload-artifact@v4

@@ -31,7 +31,8 @@
     "test": "node --test \"tests/**/*.test.mjs\"",
     "verify": "node scripts/verify.mjs",
     "validate": "node scripts/verify.mjs --skip-build",
-    "test:e2e": "pnpm run build && playwright test"
+    "test:e2e": "pnpm run build && playwright test",
+    "test:browser-oracle": "playwright test --config playwright.oracle.config.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.9",

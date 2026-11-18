@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseDocument } from '../scripts/lib/html-tree.mjs';
+import { parseDocument, findFirstElement, elementName } from '../scripts/lib/html-tree.mjs';
 import { checkImageControls } from '../scripts/lib/image-links.mjs';
-import { imageNameCases } from './fixtures/image-name-cases.mjs';
+import { imageNameCases, untilFoundNameCases } from './fixtures/image-name-cases.mjs';
 
 function findings(markup) {
   const result = [];
@@ -163,8 +163,38 @@ test('unsupported native control values remain uncertain when used as name sourc
 });
 
 test('supported native image-control names match the browser oracle fixtures', () => {
-  for (const fixture of imageNameCases)
-    assert.deepEqual(findings(fixture.body), fixture.named ? [] : BUTTON_ERROR, fixture.name);
+  for (const fixture of imageNameCases) {
+    const expected = fixture.body.includes('<a id="control"') ? LINK_ERROR : BUTTON_ERROR;
+    assert.deepEqual(findings(fixture.body), fixture.named ? [] : expected, fixture.name);
+  }
+});
+
+test('documents without native image controls do not construct a name context', () => {
+  const root = parseDocument('<div></div><button>Text only</button><img alt="">');
+  const unrelated = findFirstElement(root, (node) => elementName(node) === 'div');
+  Object.defineProperty(unrelated, 'attrs', {
+    get() {
+      return assert.fail(
+        'name context should be lazy for documents without relevant image controls'
+      );
+    },
+  });
+  checkImageControls(root, () => assert.fail('no native image control exists'));
+});
+
+test('until-found visibility remains uncertain regardless of inline or block CSS', () => {
+  for (const fixture of untilFoundNameCases)
+    assert.deepEqual(findings(fixture.body), [], fixture.name);
+  assert.deepEqual(
+    findings('<button><img alt=""><div hidden="until-found">Uncertain</div>Known name</button>'),
+    []
+  );
+  assert.deepEqual(
+    findings(
+      '<button><img alt=""><div hidden><span hidden="until-found">Hidden</span></div></button>'
+    ),
+    BUTTON_ERROR
+  );
 });
 
 test('deeply nested names use all 5000 levels without recursion or truncation', () => {

@@ -1,4 +1,4 @@
-import { attribute, elementName, findElements } from './html-tree.mjs';
+import { attribute, elementName, findElements, findFirstElement } from './html-tree.mjs';
 import { imageControlNames } from './image-names.mjs';
 
 function imageControl(node) {
@@ -8,10 +8,11 @@ function imageControl(node) {
 
 /** Check native image controls without guessing accessible names for embedded widgets. */
 export function checkImageControls(root, add) {
-  const names = imageControlNames(root);
+  let names;
   for (const control of findElements(root, imageControl)) {
+    if (!findFirstElement(control, (node) => elementName(node) === 'img')) continue;
+    names ??= imageControlNames(root);
     if (names.isHidden(control)) continue;
-    if (!findElements(control, (node) => elementName(node) === 'img').length) continue;
     if (!names.isEmpty(control)) continue;
     const link = elementName(control) === 'a';
     add(

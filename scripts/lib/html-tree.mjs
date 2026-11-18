@@ -31,8 +31,8 @@ export function findElements(root, predicate) {
   return [...descendants(root)].filter(predicate);
 }
 
-export function findById(root, id) {
-  for (const node of descendants(root)) if (attribute(node, 'id') === id) return node;
+export function findFirstElement(root, predicate) {
+  for (const node of descendants(root)) if (predicate(node)) return node;
 }
 
 export function textContent(node) {

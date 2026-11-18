@@ -1,4 +1,4 @@
-import { attribute, elementName, findElements } from './html-tree.mjs';
+import { attribute, elementName, findElements, findFirstElement } from './html-tree.mjs';
 
 const EMPTY = 0;
 const NAMED = 1;
@@ -20,6 +20,26 @@ const EMBEDDED = new Set([
 ]);
 const LABELABLE = new Set(['button', 'input', 'meter', 'output', 'progress', 'select', 'textarea']);
 const PRESENTATION = new Set(['none', 'presentation']);
+// Concrete ARIA roles: fallback lists use the first recognized token, not the whole attribute.
+const ROLES = new Set(
+  `alert alertdialog application article banner blockquote button caption cell checkbox code
+  columnheader combobox complementary contentinfo definition deletion dialog
+  directory document emphasis feed figure form generic grid gridcell group heading img
+  insertion link list listbox listitem log main mark marquee math menu menubar menuitem
+  menuitemcheckbox menuitemradio meter navigation none note option paragraph presentation progressbar
+  radio radiogroup region row rowgroup rowheader scrollbar search searchbox
+  separator slider spinbutton status strong subscript suggestion
+  superscript switch tab table tablist tabpanel term textbox time timer toolbar tooltip tree treegrid
+  treeitem graphics-document graphics-object graphics-symbol
+  doc-abstract doc-acknowledgments doc-afterword doc-appendix doc-backlink doc-biblioentry
+  doc-bibliography doc-biblioref doc-chapter doc-colophon doc-conclusion doc-cover doc-credit
+  doc-credits doc-dedication doc-endnote doc-endnotes doc-epigraph doc-epilogue doc-errata
+  doc-example doc-footnote doc-foreword doc-glossary doc-glossref doc-index doc-introduction
+  doc-noteref doc-notice doc-pagebreak doc-pagefooter doc-pageheader doc-pagelist doc-part
+  doc-preface doc-prologue doc-pullquote doc-qna doc-subtitle doc-tip doc-toc`.split(/\s+/u)
+);
+// Chromium ignores generic div/span/i tooltips when naming an ancestor from content.
+const TITLELESS_DESCENDANTS = new Set(['div', 'span', 'i']);
 
 const textState = (value) => (value?.trim() ? NAMED : EMPTY);
 const combine = (left, right) => {
@@ -27,9 +47,13 @@ const combine = (left, right) => {
   return left === UNKNOWN || right === UNKNOWN ? UNKNOWN : EMPTY;
 };
 
+function untilFound(node) {
+  return attribute(node, 'hidden')?.toLowerCase() === 'until-found';
+}
+
 function ownHidden(node) {
   return (
-    attribute(node, 'hidden') !== undefined ||
+    (attribute(node, 'hidden') !== undefined && !untilFound(node)) ||
     attribute(node, 'aria-hidden')?.toLowerCase() === 'true'
   );
 }
@@ -48,7 +72,7 @@ function associateLabels(nodes, ids) {
     if (elementName(node) !== 'label') continue;
     const target =
       attribute(node, 'for') === undefined
-        ? findElements(node, labelable)[0]
+        ? findFirstElement(node, labelable)
         : ids.get(attribute(node, 'for'));
     if (!target || !labelable(target)) continue;
     if (!labels.has(target)) labels.set(target, []);
@@ -62,9 +86,14 @@ function documentContext(root) {
   const ids = new Map();
   const hidden = new WeakMap();
   const serials = new WeakMap();
+  const uncertainVisibility = new WeakMap();
   for (const [index, node] of nodes.entries()) {
     serials.set(node, index + 1);
     hidden.set(node, ownHidden(node) || hidden.get(node.parentNode) === true);
+    uncertainVisibility.set(
+      node,
+      untilFound(node) || uncertainVisibility.get(node.parentNode) === true
+    );
     const id = attribute(node, 'id');
     if (id && !ids.has(id)) ids.set(id, node);
   }
@@ -72,14 +101,19 @@ function documentContext(root) {
     ids,
     hidden,
     serials,
+    uncertainVisibility,
     labels: associateLabels(nodes, ids),
     cache: new WeakMap(),
     active: new WeakMap(),
   };
 }
 
-const task = (node, { reference = false, includeHidden = false, exclude } = {}) => ({
+const task = (
   node,
+  { context = 'descendant', reference = false, includeHidden = false, exclude } = {}
+) => ({
+  node,
+  context,
   reference,
   includeHidden,
   exclude,
@@ -92,12 +126,23 @@ function references(node, state) {
     .map((id) => state.ids.get(id))
     .filter(Boolean)
     .map((target) =>
-      task(target, { reference: true, includeHidden: state.hidden.get(target) === true })
+      task(target, {
+        context: 'reference',
+        reference: true,
+        includeHidden: state.hidden.get(target) === true,
+      })
     );
 }
 
+function explicitRole(node) {
+  return attribute(node, 'role')
+    ?.toLowerCase()
+    .split(/[\t\n\f\r ]+/u)
+    .find((role) => ROLES.has(role));
+}
+
 function presentationState(node) {
-  if (!PRESENTATION.has(attribute(node, 'role')?.toLowerCase())) return;
+  if (!PRESENTATION.has(explicitRole(node))) return;
   const restores = ['tabindex', 'aria-label', 'aria-labelledby', 'aria-describedby'];
   if (restores.some((name) => attribute(node, name) !== undefined)) return;
   const unsupported = node.attrs.some(
@@ -114,24 +159,42 @@ function imageSources(node) {
   return [group([literal(textState(attribute(node, 'title')))], true)];
 }
 
+function nativeLabelSources(current, state) {
+  const { node } = current;
+  if (current.context !== 'control' || elementName(node) !== 'button' || !state.labels.has(node))
+    return;
+  const labels = state.labels.get(node).map((label) =>
+    task(label, {
+      context: 'reference',
+      reference: current.reference,
+      exclude: node,
+    })
+  );
+  return [group(labels, true)];
+}
+
 function contentSources(current, state) {
   const { node } = current;
   const name = elementName(node);
   if (name === 'img') return imageSources(node);
-  if (name === 'button' && state.labels.has(node)) {
-    const labels = state.labels.get(node).map((label) =>
-      task(label, {
-        reference: current.reference,
-        exclude: node,
-      })
-    );
-    return [group(labels, true)];
-  }
+  if (hiddenInput(node)) return [group([literal(textState(attribute(node, 'title')))], true)];
+  const labels = nativeLabelSources(current, state);
+  if (labels) return labels;
   if (!name || EMBEDDED.has(name) || name.includes('-')) return [group([literal(UNKNOWN)], true)];
   return [
-    group((node.childNodes ?? []).map((child) => task(child, current))),
-    group([literal(textState(attribute(node, 'title')))]),
+    group(
+      (node.childNodes ?? []).map((child) => task(child, { ...current, context: 'descendant' }))
+    ),
+    group([literal(titleState(current))]),
   ];
+}
+
+function titleState({ node, context }) {
+  const title = textState(attribute(node, 'title'));
+  if (context !== 'descendant' || title === EMPTY) return title;
+  if (TITLELESS_DESCENDANTS.has(elementName(node)) && !explicitRole(node)) return EMPTY;
+  // Other descendant tooltip contexts depend on semantics outside this supported subset.
+  return UNKNOWN;
 }
 
 function sources(current, state) {
@@ -144,12 +207,25 @@ function sources(current, state) {
   return [...result, ...contentSources(current, state)];
 }
 
+function hiddenInput(node) {
+  return elementName(node) === 'input' && attribute(node, 'type')?.toLowerCase() === 'hidden';
+}
+
+function excludedSource(current, state) {
+  const { node } = current;
+  if (node === current.exclude) return true;
+  const hidden = state.hidden.get(node) ?? state.hidden.get(node.parentNode);
+  if (!current.includeHidden && hidden) return true;
+  return current.context !== 'reference' && hiddenInput(node);
+}
+
 function immediate(current, state) {
   if (current.value !== undefined) return current.value;
+  if (excludedSource(current, state)) return EMPTY;
   const { node } = current;
-  if (node === current.exclude) return EMPTY;
-  const hidden = state.hidden.get(node) ?? state.hidden.get(node.parentNode);
-  if (!current.includeHidden && hidden) return EMPTY;
+  // until-found relies on CSS display/content-visibility; parsed HTML cannot establish visibility.
+  if (state.uncertainVisibility.get(node) ?? state.uncertainVisibility.get(node.parentNode))
+    return UNKNOWN;
   if (node.nodeName === '#text') return textState(node.value);
   if (!node.tagName || NON_CONTENT.has(elementName(node))) return EMPTY;
 }
@@ -157,7 +233,7 @@ function immediate(current, state) {
 function cacheEntry(current, state) {
   const { node } = current;
   if (!state.cache.has(node)) state.cache.set(node, new Map());
-  const key = `${current.reference}/${current.includeHidden}/${state.serials.get(current.exclude) ?? 0}`;
+  const key = `${current.context}/${current.reference}/${current.includeHidden}/${state.serials.get(current.exclude) ?? 0}`;
   return { node, values: state.cache.get(node), key };
 }
 
@@ -190,7 +266,7 @@ function finish(stack, value, state) {
 }
 
 function evaluate(node, state) {
-  const first = start(task(node), state);
+  const first = start(task(node, { context: 'control' }), state);
   if (!first.entry) return first.value;
   const stack = [first];
   let result = EMPTY;

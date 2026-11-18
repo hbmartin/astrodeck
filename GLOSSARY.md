@@ -1,5 +1,7 @@
 # AstroDeck glossary
 
+**Accessible name**. The name assistive technology uses to identify a control. It may come from visible text, image alt text or an explicit label and should describe the control's destination or action.
+
 **Build output**. Files produced by a production build and prepared for deployment.
 
 **Clean starter**. The project after demo cleanup. It contains a minimal home page and a 404 page, with an optional blog.

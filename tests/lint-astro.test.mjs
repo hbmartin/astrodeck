@@ -145,6 +145,21 @@ test('namespace-local variables and erased declarations preserve the outer bindi
   );
 });
 
+test('constructor parameter properties shadow outer Astro aliases', () => {
+  for (const parameter of [
+    'private runtime: object',
+    'public runtime: object',
+    'protected runtime: object',
+    'readonly runtime: object',
+    'private readonly runtime: object = {}',
+  ]) {
+    const source = astro(
+      `const runtime = Astro; class Widget { constructor(${parameter}) { runtime.resolve(); } } runtime.resolve();`
+    );
+    assert.deepEqual(rules(source), ['astro/no-deprecated-astro-resolve'], parameter);
+  }
+});
+
 test('uncertain writes only resolve when the branch and execution order establish the value', () => {
   const resolve = ['astro/no-deprecated-astro-resolve'];
   assert.deepEqual(

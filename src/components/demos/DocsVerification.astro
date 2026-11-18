@@ -134,8 +134,9 @@ pnpm run check:registry`}
 <p class="text-sm text-muted-foreground mt-6">
   <code class={ic}>pnpm run test:e2e</code> runs four homepage tests for content, menu, theme and
   skip-link focus. Back/Forward runs as a named step when a same-tab, same-origin HTML navigation
-  target exists; otherwise only that step reports an explained skip. MinimalLayout homepages skip
-  the three shared-header tests outside kit mode.
+  document target exists, excluding no-content responses and attachments. Otherwise the command
+  prints the reason and records only that step as skipped. MinimalLayout homepages skip the three
+  shared-header tests outside kit mode.
 </p>
 
 <!-- vibe2prod -->

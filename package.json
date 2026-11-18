@@ -67,6 +67,8 @@
     "@types/sanitize-html": "^2.16.1",
     "culori": "^4.0.2",
     "fallow": "3.43.1",
+    "micromark": "^4.0.3",
+    "micromark-util-decode-string": "^2.0.1",
     "oxfmt": "0.79.0",
     "oxlint": "1.94.0",
     "parse5": "^8.1.1",

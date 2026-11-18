@@ -16,6 +16,7 @@ function scanDirectory(root, name, state) {
     if (entry.isSymbolicLink()) state.rejectLink(path);
     else if (entry.isDirectory()) scanDirectory(root, path, state);
     else if (entry.isFile()) state.paths.add(path);
+    else state.rejectEntry(path);
   }
 }
 
@@ -57,6 +58,14 @@ export function createBuildInventory(dir, filesystem = {}) {
         file: name || '.',
         rule: 'build-symlink',
         message: 'build output must contain regular files and directories, not symbolic links',
+      });
+    },
+    rejectEntry(name) {
+      blocked.add(name);
+      findings.push({
+        file: name || '.',
+        rule: 'build-io',
+        message: 'unsupported build entry; expected a regular file or directory',
       });
     },
   };

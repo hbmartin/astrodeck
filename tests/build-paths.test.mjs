@@ -11,6 +11,8 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:net';
 import { createBuildInventory } from '../scripts/lib/build-paths.mjs';
 
 function fixture(t) {
@@ -161,4 +163,31 @@ test('operational scan and read errors become stable, memoized findings', (t) =>
   assert.match(inventory.findings[0].message, /read directory \(EACCES\)/u);
   assert.match(inventory.findings[1].message, /read file \(EIO\)/u);
   assert.equal(createBuildInventory(join(dir, 'absent')).findings[0].rule, 'missing-dir');
+});
+
+test('unsupported FIFO and socket entries are blocked without being opened', async (t) => {
+  // Keep Unix socket paths below macOS's limit, including the temporary directory prefix.
+  const dir = mkdtempSync('/tmp/astrodeck-entries-');
+  const server = createServer();
+  t.after(async () => {
+    if (server.listening) await new Promise((resolve) => server.close(resolve));
+    rmSync(dir, { recursive: true, force: true });
+  });
+  const result = spawnSync('mkfifo', [join(dir, 'stream.xml')], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  await new Promise((resolve, reject) =>
+    server.once('error', reject).listen(join(dir, 'state.sock'), resolve)
+  );
+  const inventory = createBuildInventory(dir, {
+    readFileSync() {
+      assert.fail('unsupported entries must never be opened');
+    },
+  });
+  assert.deepEqual(inventory.files, []);
+  for (const name of ['stream.xml', 'state.sock'])
+    assert.equal(inventory.readText(name).status, 'blocked');
+  assert.equal(inventory.findings.length, 2);
+  assert.ok(
+    inventory.findings.every((f) => f.rule === 'build-io' && /unsupported/u.test(f.message))
+  );
 });

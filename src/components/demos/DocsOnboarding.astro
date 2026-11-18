@@ -109,19 +109,30 @@ const skillRoutes = [
         codeClass="text-sm font-mono"
         code={`git clone --branch main --single-branch https://github.com/hbmartin/astrodeck.git my-site
 cd my-site
-git remote remove origin
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
 pnpm install --frozen-lockfile
 pnpm run dev`}
       />
       <p class="text-sm text-muted-foreground mt-3">
-        These commands keep the starter history and set your own remote before a first push. For
-        independent history, use the source ZIP, run <code class={ic}>git init</code>, commit your
-        site and add your own remote. Contributors keep their fork remote and follow
-        CONTRIBUTING.md. The ZIP also includes the lockfile. Then let your agent run the workflow,
-        or work by hand: set <code class={ic}>src/config/site.ts</code>, run{' '}
-        <code class={ic}>pnpm run theme</code>, compose pages from sections and finish with{' '}
-        <code class={ic}>pnpm run verify</code>.
+        These commands keep the starter history and start a local preview. The source ZIP also
+        includes the lockfile. Then let your agent run the workflow, or work by hand: set{' '}
+        <code class={ic}>src/config/site.ts</code>, run <code class={ic}>pnpm run theme</code>,
+        compose pages from sections and finish with <code class={ic}>pnpm run verify</code>.
+      </p>
+      <h4 class="font-semibold mt-6 mb-3">Before publishing a new site</h4>
+      <p class="text-sm text-muted-foreground mb-3">
+        Create your destination Git repository first. Replace the example URL below with that
+        repository's actual URL before running these commands:
+      </p>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`git remote remove origin
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        For independent history, use the source ZIP, run <code class={ic}>git init</code>, commit
+        your site and add your own remote. Contributors keep their fork remote and follow
+        CONTRIBUTING.md.
       </p>
       <p class="text-sm text-muted-foreground mt-3">
         Avoid <code class={ic}>npm create astro -- --template holger1411/astrodeck</code>:

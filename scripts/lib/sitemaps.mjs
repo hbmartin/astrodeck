@@ -17,6 +17,16 @@ function validateCharacters(xml) {
   }
 }
 
+function sitemapFailure(parser, names, error) {
+  const unfinishedRoot =
+    parser.state === sax.STATE.OPEN_TAG ? parser.tagName.split(':').at(-1) : undefined;
+  return {
+    kind: names.find((name) => name !== undefined) ?? unfinishedRoot,
+    locations: [],
+    error: error.message.split('\n')[0],
+  };
+}
+
 /** Parse XML once, retaining only the tree needed to distinguish sitemap locations. */
 function parseSitemap(xml) {
   const roots = [];
@@ -62,11 +72,7 @@ function parseSitemap(xml) {
       .map((node) => sitemapLocation(node, root.namespace));
     return { kind: root.name, locations };
   } catch (error) {
-    return {
-      kind: roots[0]?.name ?? rootName ?? declaredRoot,
-      locations: [],
-      error: error.message.split('\n')[0],
-    };
+    return sitemapFailure(parser, [roots[0]?.name, rootName, declaredRoot], error);
   }
 }
 

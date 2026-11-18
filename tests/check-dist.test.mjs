@@ -167,6 +167,30 @@ test('canonical and og:url must each appear once inside head', async (t) => {
   }
 });
 
+test('canonical rel uses ASCII-whitespace tokens while robots still accepts commas', (t) => {
+  for (const rel of [
+    'canonical,alternate',
+    'canonical\u00a0alternate',
+    'canonical\u000balternate',
+  ]) {
+    const dir = writeBuild(t, {
+      'index.html': page({ canonical: `${ORIGIN}/` }).replace('rel="canonical"', `rel="${rel}"`),
+    });
+    assert.deepEqual(
+      indexing(dir).map((f) => f.rule),
+      ['canonical'],
+      rel
+    );
+  }
+  for (const rel of ['alternate canonical', 'alternate\tCANONICAL', 'alternate\ncanonical\f']) {
+    const dir = writeBuild(t, {
+      'index.html': page({ canonical: `${ORIGIN}/` }).replace('rel="canonical"', `rel="${rel}"`),
+      'private.html': page({ robots: 'nofollow,noindex' }),
+    });
+    assert.deepEqual(indexing(dir), [], rel);
+  }
+});
+
 const sitemapIndex = (...paths) =>
   `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${paths.map((p) => `<sitemap><loc>${ORIGIN}${p}</loc></sitemap>`).join('')}</sitemapindex>`;
 
@@ -467,6 +491,10 @@ test('a malformed target referenced repeatedly is reported once at the target fi
 
 test('unreferenced sitemap roots are discovered before attribute or DOCTYPE errors', (t) => {
   for (const xml of [
+    '<urlset',
+    '<sitemapindex',
+    '<s:urlset',
+    '<?xml version="1.0"?>\n<!-- comment --><urlset',
     '<urlset x="&bad;"><url><loc>https://acme.test/</loc></url></urlset>',
     '<urlset x="1" x="2"/>',
     '<!DOCTYPE s:urlset><s:urlset xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9"/>',
@@ -482,6 +510,14 @@ test('unreferenced sitemap roots are discovered before attribute or DOCTYPE erro
       assert.equal(findings[0].file, 'archive/maps.xml');
       assert.match(findings[0].message, /invalid sitemap/u);
     }
+  }
+});
+
+test('unfinished sitemap-looking text inside unrelated XML is not a discovered sitemap', (t) => {
+  for (const xml of ['<rss', '<rss><urlset', '<!-- <urlset', '<![CDATA[<urlset', '<urlsetting']) {
+    const dir = writeBuild(t, { 'archive/maps.xml': xml });
+    assert.deepEqual(indexing(dir), [], xml);
+    assert.deepEqual(indexing(dir, { starter: false }), [], xml);
   }
 });
 

@@ -105,10 +105,9 @@ test('the skip link focuses the main content and preserves browser history', asy
 
   await test.step('Back and Forward restore the URL, title and heading', async (step) => {
     const navigation = await historyNavigation(page);
-    step.skip(
-      !navigation,
-      'No same-tab navigation link leads to another successful same-origin HTML page.'
-    );
+    const reason = 'No same-tab navigation link leads to another successful same-origin HTML page.';
+    if (!navigation) console.log(`Back/Forward skipped: ${reason}`);
+    step.skip(!navigation, reason);
     await checkBrowserHistory(page, navigation);
   });
 });

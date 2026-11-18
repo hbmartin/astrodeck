@@ -1,6 +1,6 @@
 # Contributing to AstroDeck
 
-Thank you for helping to improve AstroDeck. Bug reports, documentation fixes, new sections,
+Thank you for helping to improve AstroDeck. Bug fixes, documentation fixes, new sections,
 better skills and eval results from your coding agent are all welcome.
 
 Please be respectful and constructive in all interactions.
@@ -97,10 +97,10 @@ Maintainers: the release steps, including the check of the cleaned starter, are 
 - Update `README.md`, the docs page (`src/pages/docs.astro`) and `CHANGELOG.md` when behaviour
   or commands change. Every claim must be backed by the code.
 
-## Bug reports and feature proposals
+## Bug fixes and feature proposals
 
 The current repository is [hbmartin/astrodeck](https://github.com/hbmartin/astrodeck). Its issue
-tracker is disabled. For a pull request fixing a bug, include reproduction steps, expected and
+tracker is disabled; contributions use pull requests. For a pull request fixing a bug, include reproduction steps, expected and
 actual behaviour, screenshots if visual, and your environment (OS, browser, Node and AstroDeck
 versions, plus the coding agent and model for workflow bugs).
 

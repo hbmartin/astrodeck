@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseDocument } from '../scripts/lib/html-tree.mjs';
 import { checkImageControls } from '../scripts/lib/image-links.mjs';
+import { imageNameCases } from './fixtures/image-name-cases.mjs';
 
 function findings(markup) {
   const result = [];
@@ -97,9 +98,9 @@ test('label-reference precedence distinguishes missing targets from valid empty 
   );
   assert.deepEqual(
     findings(
-      '<span id="empty"></span><button aria-labelledby="empty" aria-label="Ignored fallback"><img alt=""></button>'
+      '<span id="empty"></span><button aria-labelledby="empty" aria-label="Actual fallback"><img alt=""></button>'
     ),
-    BUTTON_ERROR
+    []
   );
   assert.deepEqual(
     findings(
@@ -109,7 +110,7 @@ test('label-reference precedence distinguishes missing targets from valid empty 
   );
 });
 
-test('unsupported embedded widgets remain unknown unless explicit naming establishes an empty name', () => {
+test('unsupported embedded widgets remain unknown after empty reference fallback', () => {
   for (const widget of [
     '<svg role="img"><title>Icon</title></svg>',
     '<custom-control></custom-control>',
@@ -120,7 +121,7 @@ test('unsupported embedded widgets remain unknown unless explicit naming establi
       findings(
         `<span id="empty"></span><button aria-labelledby="empty"><img alt="">${widget}</button>`
       ),
-      BUTTON_ERROR
+      []
     );
   }
   assert.deepEqual(
@@ -142,4 +143,53 @@ test('script and template content cannot name active controls or create image co
     ),
     []
   );
+});
+
+test('unsupported native control values remain uncertain when used as name sources', () => {
+  for (const source of [
+    '<input id="label" value="Open menu">',
+    '<textarea id="label">Open menu</textarea>',
+    '<select id="label"><option selected></option><option>Other</option></select>',
+    '<meter id="label" value="0.5">Fallback</meter>',
+    '<progress id="label" value="0.5">Fallback</progress>',
+  ]) {
+    assert.deepEqual(
+      findings(`${source}<button aria-labelledby="label"><img alt=""></button>`),
+      [],
+      source
+    );
+  }
+  assert.deepEqual(findings('<button><img alt=""><input value="Open menu"></button>'), []);
+});
+
+test('supported native image-control names match the browser oracle fixtures', () => {
+  for (const fixture of imageNameCases)
+    assert.deepEqual(findings(fixture.body), fixture.named ? [] : BUTTON_ERROR, fixture.name);
+});
+
+test('deeply nested names use all 5000 levels without recursion or truncation', () => {
+  const open = '<span>'.repeat(5000);
+  const close = '</span>'.repeat(5000);
+  for (const [content, expected] of [
+    ['<img alt="">', BUTTON_ERROR],
+    ['<img alt="Open menu">', []],
+    ['<img alt=""><custom-widget></custom-widget>', []],
+  ])
+    assert.deepEqual(findings(`<button>${open}${content}${close}</button>`), expected);
+  assert.deepEqual(
+    findings(
+      `<span id="label">${open}Open menu${close}</span><button aria-labelledby="label"><img alt=""></button>`
+    ),
+    []
+  );
+});
+
+test('complex native-label reference cycles stay uncertain instead of becoming false findings', () => {
+  for (const alt of ['Open menu', ''])
+    assert.deepEqual(
+      findings(
+        `<label for="control" aria-labelledby="control"></label><button id="control"><img alt="${alt}"></button>`
+      ),
+      []
+    );
 });

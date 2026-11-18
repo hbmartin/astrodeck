@@ -1,8 +1,8 @@
-import MarkdownIt from 'markdown-it';
+import { parse, postprocess, preprocess } from 'micromark';
+import { decodeString } from 'micromark-util-decode-string';
 
-const markdown = new MarkdownIt();
-const { parseLinkDestination, parseLinkTitle } = markdown.helpers;
 const SOURCE = 'https://github.com/hbmartin/astrodeck/blob/main/';
+const DESTINATIONS = new Set(['resourceDestinationString', 'definitionDestinationString']);
 
 function absoluteDestination(value, source) {
   if (!value || /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/iu.test(value)) return value;
@@ -10,72 +10,47 @@ function absoluteDestination(value, source) {
   return new globalThis.URL(value.replace(/^\//u, ''), base).href;
 }
 
-function codeEnd(line, start, marker) {
-  let next = start + marker.length;
-  for (;;) {
-    const end = line.indexOf(marker, next);
-    if (end === -1) return next;
-    next = end + marker.length;
-    if (line[end - 1] !== '`' && line[next] !== '`') return next;
-  }
+function serializeDestination(value, literal) {
+  const escaped = value.replaceAll('&', '&amp;').replaceAll('\\', '\\\\');
+  return literal ? escaped : escaped.replace(/[()]/gu, '\\$&');
 }
 
-function linkCloses(line, end) {
-  let position = end;
-  while (/[\t ]/u.test(line[position] ?? '')) position++;
-  if (line[position] === ')') return true;
-  const title = parseLinkTitle(line, position, line.length);
-  if (!title.ok) return false;
-  return /^[\t ]*\)/u.test(line.slice(title.pos));
-}
-
-function replacement(line, start, source, inline) {
-  const destination = parseLinkDestination(line, start, line.length);
-  if (!destination.ok || (inline && !linkCloses(line, destination.pos))) return undefined;
-  const value = absoluteDestination(destination.str, source);
-  if (value === destination.str) return undefined;
+function destinationEdit(text, source, token, context, bom) {
+  const decoded = decodeString(context.sliceSerialize(token));
+  const value = absoluteDestination(decoded, source);
+  if (value === decoded) return undefined;
+  const start = token.start.offset + bom;
   return {
     start,
-    end: destination.pos,
-    value: line[start] === '<' ? `<${value}>` : value,
+    end: token.end.offset + bom,
+    value: serializeDestination(value, text[start - 1] === '<'),
   };
 }
 
-function rewriteLine(line, source) {
-  const changes = [];
-  const definition = line.match(/^ {0,3}\[[^\]]+\]:[\t ]*/u);
-  if (definition) {
-    const change = replacement(line, definition[0].length, source, false);
-    if (change) changes.push(change);
+function applyEdits(text, edits) {
+  let boundary = text.length;
+  for (const edit of edits.sort((a, b) => b.start - a.start)) {
+    if (edit.end > boundary) throw new Error('overlapping Markdown destinations');
+    text = text.slice(0, edit.start) + edit.value + text.slice(edit.end);
+    boundary = edit.start;
   }
-  const markers = /(`+)|\]\([\t ]*/gu;
-  for (let match; (match = markers.exec(line));) {
-    if (match[1]) {
-      markers.lastIndex = codeEnd(line, match.index, match[1]);
-      continue;
-    }
-    const change = replacement(line, markers.lastIndex, source, true);
-    if (change) changes.push(change);
-  }
-  for (const change of changes.reverse())
-    line = line.slice(0, change.start) + change.value + line.slice(change.end);
-  return line;
-}
-
-function codeLines(text) {
-  const lines = new Set();
-  for (const token of markdown.parse(text, {})) {
-    if (!['fence', 'code_block'].includes(token.type)) continue;
-    for (let line = token.map[0]; line < token.map[1]; line++) lines.add(line);
-  }
-  return lines;
+  return text;
 }
 
 /** Make repository-relative Markdown links usable outside their source file. */
 export function absoluteSourceLinks(text, source) {
-  const fences = codeLines(text);
-  return text
-    .split('\n')
-    .map((line, index) => (fences.has(index) ? line : rewriteLine(line, source)))
-    .join('\n');
+  const events = postprocess(
+    parse()
+      .document()
+      .write(preprocess()(text, undefined, true))
+  );
+  // Micromark drops exactly one initial BOM from its offset accounting, not the source text.
+  const bom = text.startsWith('\uFEFF') ? 1 : 0;
+  const edits = [];
+  for (const [kind, token, context] of events) {
+    if (kind !== 'exit' || !DESTINATIONS.has(token.type)) continue;
+    const edit = destinationEdit(text, source, token, context, bom);
+    if (edit) edits.push(edit);
+  }
+  return applyEdits(text, edits);
 }

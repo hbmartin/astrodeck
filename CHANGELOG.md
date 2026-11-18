@@ -16,6 +16,14 @@ All notable changes to AstroDeck are documented in this file.
 
 ### Fixes
 
+- Built-output checks handle deeply nested HTML without recursive stack overflow. Image-control names follow browser-confirmed label and image naming behavior, including empty ARIA references and inactive `noscript` content.
+
+- Astro diagnostics preserve reads before later constant writes. Unsupported filesystem entries produce `build-io` findings without being opened; canonical relationships use HTML token rules, and truncated sitemap roots are recognized before the first opening-tag event.
+
+- Documentation link export rewrites parsed destination spans while preserving surrounding Markdown, code, line endings and Unicode. Escaped, nested and multiline destinations no longer corrupt links or leave valid relative links unchanged.
+
+- Browser history discovery skips no-content responses and HTML attachments, and default terminal output prints why a history step was skipped. Sitemap page coverage is identified as a manual check; onboarding separates local previews from publishing and remote setup.
+
 - Built HTML uses browser-compatible tree construction, so canonical and Open Graph tags after body-starting content cannot masquerade as head metadata. Accessible-name checks handle hidden ancestors, semantic wrappers and native image buttons.
 
 - Sitemap parsing rejects truncated XML and incomplete trailing markup. Malformed documents are reported once against the target file, including checks without `siteUrl`; invalid references identify their robots file or sitemap index. Sitemap exclusions respect configured base prefixes.

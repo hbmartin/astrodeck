@@ -225,16 +225,16 @@ function findBinding(scope, name) {
 function recordEvent(binding, frame, site, value, initializer = false) {
   if (!binding) return;
   const { scope, control } = frame;
-  if (binding.region !== scope.region || (binding.constant && !initializer)) {
+  if (binding.region !== scope.region) {
     binding.capturedWrite = true;
     return;
   }
   // A loop write may reach a read earlier in source on the next iteration.
   binding.events.push({
-    position: binding.constant && initializer ? site.end : (control.loop?.start ?? site.end),
+    position: binding.constant ? site.end : (control.loop?.start ?? site.end),
     scope,
     control,
-    node: value,
+    node: binding.constant && !initializer ? undefined : value,
     constant: binding.constant,
     initializer,
   });

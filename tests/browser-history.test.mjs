@@ -97,3 +97,27 @@ test('history navigation is unavailable for a home-only menu', async () => {
   assert.equal(await historyNavigation(h.page), undefined);
   assert.deepEqual(h.requests, []);
 });
+
+test('history probes skip successful responses that do not navigate to a document', async (t) => {
+  const rejected = [
+    { status: 204 },
+    { status: 205 },
+    { 'content-disposition': 'attachment' },
+    { 'content-disposition': 'Attachment; filename="export.html"' },
+    { 'content-disposition': '\t ATTACHMENT ; filename="export.html"' },
+  ];
+  for (const response of rejected) {
+    await t.test(JSON.stringify(response), async () => {
+      const h = navigationFixture([{ href: '/export' }, { href: '/docs' }], {
+        '/export': { 'content-type': 'text/html', ...response },
+        '/docs': {
+          'content-type': 'text/html',
+          'content-disposition': 'inline; filename="docs.html"',
+        },
+      });
+      assert.deepEqual(await historyNavigation(h.page), { index: 1 });
+      assert.deepEqual(h.requests, ['https://acme.test/export', 'https://acme.test/docs']);
+      assert.equal(h.disposed(), 2);
+    });
+  }
+});

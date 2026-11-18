@@ -12,6 +12,16 @@ function navigationUrl(link, home) {
     return target;
 }
 
+function isHtmlDocument(status, headers, successful) {
+  const disposition = headers['content-disposition']?.split(';', 1)[0].trim().toLowerCase();
+  return (
+    successful &&
+    ![204, 205].includes(status) &&
+    disposition !== 'attachment' &&
+    /^\s*text\/html(?:\s*;|$)/iu.test(headers['content-type'] ?? '')
+  );
+}
+
 async function isLocalHtml(request, target, home) {
   for (let redirects = 0; redirects < 6; redirects++) {
     if (target.origin !== home.origin) return false;
@@ -25,11 +35,7 @@ async function isLocalHtml(request, target, home) {
       target = URL.parse(headers.location, target);
       if (!target) return false;
     } else {
-      return (
-        successful &&
-        target.pathname !== home.pathname &&
-        /^\s*text\/html(?:\s*;|$)/iu.test(headers['content-type'] ?? '')
-      );
+      return target.pathname !== home.pathname && isHtmlDocument(status, headers, successful);
     }
   }
   return false;

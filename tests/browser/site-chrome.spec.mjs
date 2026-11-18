@@ -2,6 +2,7 @@
 // Selectors use ids, roles and hrefs because sites translate src/config/ui.ts.
 import process from 'node:process';
 import { expect, test } from '@playwright/test';
+import { checkBrowserHistory, historyNavigation } from './history.mjs';
 
 async function openSharedLayout(page) {
   await page.goto('/');
@@ -102,40 +103,12 @@ test('the skip link focuses the main content and preserves browser history', asy
   await expect(main).toBeFocused();
   await expect.poll(() => page.evaluate(() => globalThis.history.state)).not.toBeNull();
 
-  const homeUrl = page.url();
-  const homeTitle = await page.title();
-  const heading = main.getByRole('heading', { level: 1 });
-  const homeHeading = await heading.innerText();
-  const homeLocation = new URL(homeUrl);
-  const navigationLinks = page.locator('header nav a[href]');
-  const hrefs = await navigationLinks.evaluateAll((links) =>
-    links.map((link) => link.getAttribute('href'))
-  );
-  const onwardIndex = hrefs.findIndex((href) => {
-    const target = new URL(href, homeUrl);
-    return (
-      !/^[a-z][a-z\d+.-]*:/i.test(href) &&
-      target.origin === homeLocation.origin &&
-      target.pathname !== homeLocation.pathname
+  await test.step('Back and Forward restore the URL, title and heading', async (step) => {
+    const navigation = await historyNavigation(page);
+    step.skip(
+      !navigation,
+      'No same-tab navigation link leads to another successful same-origin HTML page.'
     );
+    await checkBrowserHistory(page, navigation);
   });
-  if (onwardIndex === -1) return;
-
-  await navigationLinks.nth(onwardIndex).click();
-  await expect(page).not.toHaveURL(homeUrl);
-  await expect(page).not.toHaveTitle(homeTitle);
-  await expect(heading).toBeVisible();
-  const onwardUrl = page.url();
-  const onwardTitle = await page.title();
-  const onwardHeading = await heading.innerText();
-
-  await page.goBack();
-  await expect(page).toHaveURL(homeUrl);
-  await expect(page).toHaveTitle(homeTitle);
-  await expect(heading).toHaveText(homeHeading);
-
-  await page.goForward();
-  await expect(page).toHaveURL(onwardUrl);
-  await expect(page).toHaveTitle(onwardTitle);
-  await expect(heading).toHaveText(onwardHeading);
 });

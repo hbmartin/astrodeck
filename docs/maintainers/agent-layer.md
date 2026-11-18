@@ -10,6 +10,7 @@ drift. Users never need this file; it is removed by `pnpm run starter:clean`.
 | Index | `AGENTS.md` (≤ 250 lines, target ~200) | Always, by every supported tool |
 | Brief | `PROJECT.md` (template in `.agents/skills/astrodeck-build-site/references/brief-template.md`, also `starter/PROJECT.md`) | Always (the index tells agents to read it) |
 | Skills | `.agents/skills/<name>/SKILL.md` | On demand (auto-invoked by description, or opened via the index table) |
+| Conventions | `docs/agents/astro-conventions.md` | Before changing Astro templates, configuration, dependencies, entrypoints, content collections or Tailwind |
 | References | `.agents/skills/<name>/references/**` | On demand, named by the skill body |
 | Tool pointers | `CLAUDE.md`, `.github/copilot-instructions.md`, `.gemini/settings.json` | Per tool; no duplicated rules |
 | Claude extras | `.claude/agents/astrodeck-reviewer.md`, `.claude/hooks/guard-conventions.mjs`, `.claude/settings.json` | Claude Code only, never required by the workflow |
@@ -34,9 +35,9 @@ the skill for each task and carry the golden rules.
 
 ## Mirror
 
-Claude Code reads skills only from `.claude/skills/`; Codex, Cursor, Copilot, Gemini CLI and
-Windsurf read `.agents/skills/`. AstroDeck's mirrors use regular files so they survive ZIP
-extraction.
+Claude Code reads `.claude/skills/`; Codex, Gemini CLI and Windsurf read `.agents/skills/`.
+Cursor and Copilot support both locations, as described in `docs/agents/supported-agents.md`.
+AstroDeck's mirrors use regular files so they survive ZIP extraction.
 
 - Edit `.agents/skills/`, then run `pnpm run sync:agents` to copy the managed skills, remove
   their stale mirror files, and regenerate `.claude/skills/README.md`. Claude-only skills and

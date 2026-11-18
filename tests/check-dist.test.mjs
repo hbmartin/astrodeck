@@ -1,9 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { checkDist } from '../scripts/check-dist.mjs';
+import { createBuildInventory } from '../scripts/lib/build-paths.mjs';
+import { checkSitemaps } from '../scripts/lib/sitemaps.mjs';
 
 const FIX = join(import.meta.dirname, 'fixtures');
 const rules = (findings) => [...new Set(findings.map((f) => f.rule))].sort();
@@ -134,7 +136,7 @@ test('indexing rules flag wrong canonicals, listed noindex pages and a foreign s
       'index.html canonical: canonical https://example.com/ is not on SITE_URL (https://acme.test)',
       'team/index.html canonical: expected one <link rel="canonical">, found 2',
       'thanks/index.html sitemap-noindex: noindex page is listed in sitemap-0.xml; exclude it with the sitemap filter in astro.config.mjs',
-      'robots.txt robots-sitemap: Sitemap https://example.com/sitemap-0.xml must be an absolute URL on SITE_URL (https://acme.test); update public/robots.txt',
+      'robots.txt robots-sitemap: Sitemap https://example.com/sitemap-0.xml must be on SITE_URL (https://acme.test); update public/robots.txt',
       'robots.txt robots-sitemap: Sitemap https://acme.test/gone.xml is not a built XML sitemap; update public/robots.txt',
     ].sort()
   );
@@ -327,11 +329,11 @@ test('HTML aliases and percent-encoded filenames retain their resolution behavio
   );
 });
 
-test('normalized Unicode URLs and encoded sitemap names find actual build files', (t) => {
+test('exact Unicode URLs and encoded sitemap names find actual build files', (t) => {
   const dir = writeBuild(t, {
     'index.html': page({ canonical: `${ORIGIN}/` }),
-    'cafe\u0301/index.html': page({ canonical: `${ORIGIN}/caf%C3%A9/` }),
-    'Maps/space name.xml': sitemap('/', '/caf%C3%A9/'),
+    'cafe\u0301/index.html': page({ canonical: `${ORIGIN}/cafe%CC%81/` }),
+    'Maps/space name.xml': sitemap('/', '/cafe%CC%81/'),
     'Maps/100%.xml': sitemap('/'),
     'Maps/%20.xml': sitemap('/'),
     'robots.txt': `Sitemap: ${ORIGIN}/Maps/space%20name.xml\nSitemap: ${ORIGIN}/Maps/100%25.xml\nSitemap: ${ORIGIN}/Maps/%2520.xml\n`,
@@ -419,5 +421,131 @@ test('without siteUrl only sitemap-noindex runs', (t) => {
   assert.deepEqual(
     indexing(dir, { starter: false }).map((f) => `${f.file} ${f.rule}`),
     ['thanks/index.html sitemap-noindex']
+  );
+});
+
+test('truncated documents and incomplete trailing markup fail with and without siteUrl', async (t) => {
+  const documents = [
+    '<urlset>',
+    '<urlset><url><loc>https://acme.test/</loc></url>',
+    '<urlset></urlset',
+    ...['<', '<!--', '<?pi', '<!'].map((suffix) => `<urlset/>${suffix}`),
+    '<!DOCTYPE urlset><urlset/>',
+  ];
+  for (const xml of documents) {
+    await t.test(xml, () => {
+      const dir = writeBuild(t, {
+        'sitemap.xml': xml,
+        'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\n`,
+      });
+      for (const opts of [{ starter: false }, { starter: false, siteUrl: ORIGIN }]) {
+        const findings = indexing(dir, opts);
+        assert.equal(findings.length, 1);
+        assert.equal(findings[0].file, 'sitemap.xml');
+        assert.match(findings[0].message, /invalid sitemap:.*repair sitemap\.xml/u);
+        assert.doesNotMatch(findings[0].message, /public\/robots/u);
+      }
+    });
+  }
+});
+
+test('a malformed target referenced repeatedly is reported once at the target file', (t) => {
+  const dir = writeBuild(t, {
+    'sitemap-index.xml': sitemapIndex('/maps/broken', '/maps/broken', '/sitemap-index.xml'),
+    'another.xml': sitemapIndex('/maps/broken'),
+    'maps/broken': '<urlset><url/></urlset>',
+    'unrelated.xml': '<rss><unfinished>',
+    'robots.txt': `Sitemap: ${ORIGIN}/sitemap-index.xml\nSitemap: ${ORIGIN}/maps/broken\n`,
+  });
+  for (const opts of [{ starter: false }, { starter: false, siteUrl: ORIGIN }]) {
+    const findings = indexing(dir, opts);
+    assert.equal(findings.length, 1);
+    assert.equal(findings[0].file, 'maps/broken');
+    assert.match(findings[0].message, /repair maps\/broken or its generating configuration/u);
+  }
+});
+
+test('unreferenced sitemap roots are discovered before attribute or DOCTYPE errors', (t) => {
+  for (const xml of [
+    '<urlset x="&bad;"><url><loc>https://acme.test/</loc></url></urlset>',
+    '<urlset x="1" x="2"/>',
+    '<!DOCTYPE s:urlset><s:urlset xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9"/>',
+  ]) {
+    const dir = writeBuild(t, {
+      'archive/maps.xml': xml,
+      'sitemap.xml': sitemap('/'),
+      'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\n`,
+    });
+    for (const opts of [{ starter: false }, { starter: false, siteUrl: ORIGIN }]) {
+      const findings = indexing(dir, opts);
+      assert.equal(findings.length, 1);
+      assert.equal(findings[0].file, 'archive/maps.xml');
+      assert.match(findings[0].message, /invalid sitemap/u);
+    }
+  }
+});
+
+test('reference diagnostics explain credentials and fragments without blaming the origin', (t) => {
+  const dir = writeBuild(t, {
+    'sitemap.xml': sitemapIndex('/pages.xml#fragment'),
+    'pages.xml': sitemap('/'),
+    'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\nSitemap: https://user:pass@acme.test/pages.xml\n`,
+  });
+  const findings = indexing(dir);
+  assert.equal(findings.length, 2);
+  const credentials = findings.find((f) => f.file === 'robots.txt');
+  const fragment = findings.find((f) => f.file === 'sitemap.xml');
+  assert.match(credentials.message, /must not contain credentials; update public\/robots/u);
+  assert.match(fragment.message, /must not contain a fragment; correct sitemap\.xml/u);
+  assert.ok(findings.every((f) => !f.message.includes('must be on SITE_URL')));
+});
+
+test('sitemap I/O errors are not misreported as invalid XML or missing robots', (t) => {
+  const dir = writeBuild(t, {
+    'sitemap.xml': sitemap('/'),
+    'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\n`,
+  });
+  for (const unreadable of ['robots.txt', 'sitemap.xml']) {
+    const inventory = createBuildInventory(dir, {
+      readFileSync(path) {
+        if (path.endsWith(unreadable))
+          throw Object.assign(new Error('permission denied'), { code: 'EACCES' });
+        return unreadable === 'robots.txt' ? sitemap('/') : `Sitemap: ${ORIGIN}/sitemap.xml\n`;
+      },
+    });
+    assert.deepEqual(
+      checkSitemaps(inventory, new Set(), () => undefined, new URL(ORIGIN)),
+      []
+    );
+    assert.equal(inventory.findings.length, 1);
+    assert.equal(inventory.findings[0].file, unreadable);
+    assert.equal(inventory.findings[0].rule, 'build-io');
+  }
+});
+
+test('build symlinks produce findings even when no page links to them', (t) => {
+  const dir = writeBuild(t, { 'index.html': page({ canonical: `${ORIGIN}/` }) });
+  symlinkSync('index.html', join(dir, 'copy.html'));
+  symlinkSync('missing', join(dir, 'unused-directory'));
+  const findings = checkDist(dir, { starter: false, siteUrl: ORIGIN });
+  assert.deepEqual(
+    findings.filter((f) => f.rule.startsWith('build-')).map((f) => f.rule),
+    ['build-symlink', 'build-symlink']
+  );
+});
+
+test('normalization-equivalent URLs do not hide incorrect canonical or sitemap file spelling', (t) => {
+  const dir = writeBuild(t, {
+    'cafe\u0301/index.html': page({ canonical: `${ORIGIN}/caf%C3%A9/` }).replace(
+      '</body>',
+      '<a href="/caf%C3%A9/">Cafe</a></body>'
+    ),
+    'cafe\u0301.xml': sitemap('/'),
+    'robots.txt': `Sitemap: ${ORIGIN}/caf%C3%A9.xml\n`,
+  });
+  const findings = checkDist(dir, { starter: false, siteUrl: ORIGIN });
+  assert.deepEqual(
+    rules(findings.filter((f) => INDEXING.has(f.rule) || f.rule === 'internal-link')),
+    ['canonical', 'internal-link', 'robots-sitemap']
   );
 });

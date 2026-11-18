@@ -13,7 +13,8 @@ never push.
    the working-tree diff: `git diff HEAD` plus untracked files from `git status --short` (if
    the project is not a Git repository, review the files the caller lists).
 2. Rules, read before reviewing:
-   - `AGENTS.md` (golden rules) and `PROJECT.md` (the brief; facts must come from here)
+   - `AGENTS.md` (rules and routing) and `PROJECT.md` (facts and explicit user-approved exceptions)
+   - `docs/agents/astro-conventions.md`
    - `.agents/skills/astrodeck-build-site/references/design-system.md`
    - `.agents/skills/astrodeck-build-site/references/content-rules.md`
    - `src/registry.json` for section props and `useWhen`
@@ -40,7 +41,9 @@ never push.
 ## Run
 
 `pnpm run verify` (or `pnpm run verify --starter` when no `starter/` folder exists). Report the
-step table. If a step cannot run, say which and why.
+step table. After changes to the header, mobile menu, theme toggle or layouts, also run
+`pnpm run test:e2e` and report its result, including explained skips. `pnpm run validate` is
+interim feedback and cannot replace full verification. If a check cannot run, say which and why.
 
 ## Report format
 

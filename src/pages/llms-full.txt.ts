@@ -1,12 +1,14 @@
 import type { APIRoute } from 'astro';
-// Vite ?raw imports inline the file contents at build time
-import agents from '../../AGENTS.md?raw';
-import readme from '../../README.md?raw';
+// Root-document aliases keep build-time raw imports resolvable by Astro and static checks.
+import agents from '@root/AGENTS.md?raw';
+import readme from '@root/README.md?raw';
+import conventions from '@root/docs/agents/astro-conventions.md?raw';
+import { absoluteSourceLinks } from '@/lib/documentation-links.mjs';
 
 /**
  * /llms-full.txt — the complete project documentation as plain text for LLMs.
- * Built from AGENTS.md and README.md at build time, so it never drifts from
- * the files coding agents and humans actually read.
+ * Built from the index, README and framework conventions with source-relative links
+ * rewritten as absolute repository URLs at build time.
  */
 export const GET: APIRoute = ({ site }) => {
   const origin = (site ?? new URL('https://www.astrodeck.dev')).origin;
@@ -22,13 +24,19 @@ export const GET: APIRoute = ({ site }) => {
     '',
     '# Part 1: AGENTS.md (index for coding agents)',
     '',
-    agents.trim(),
+    absoluteSourceLinks(agents.trim(), 'AGENTS.md'),
     '',
     '---',
     '',
     '# Part 2: README.md (human documentation)',
     '',
-    readme.trim(),
+    absoluteSourceLinks(readme.trim(), 'README.md'),
+    '',
+    '---',
+    '',
+    '# Part 3: Astro and Tailwind conventions',
+    '',
+    absoluteSourceLinks(conventions.trim(), 'docs/agents/astro-conventions.md'),
     '',
   ].join('\n');
 

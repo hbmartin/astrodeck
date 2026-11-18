@@ -148,7 +148,7 @@ const faqs = [
     badge={{ label: 'v4.0 — Open Source & MIT', href: '/changelog' }}
     title="Build your website with your coding agent."
     subtitle="Download source ZIP, open it in <mark>Claude Code, Codex, Cursor or another coding agent</mark>, and describe your site — in one sentence or with a full brief. The agent follows a <mark>guided workflow</mark> from brief to finished pages, and the result is checked by <mark>pnpm run verify</mark> and the bundled <mark>vibe2prod</mark> audit."
-    prompt="Clone the main branch of https://github.com/hbmartin/astrodeck into a new folder, run pnpm install --frozen-lockfile and follow its AGENTS.md. Then build my website for: [your business or project in one sentence]. If I give you a brief or a DESIGN.md, put it in brief/ and use it."
+    prompt="Clone the main branch of https://github.com/hbmartin/astrodeck into a new folder, remove its origin remote for my new site, run pnpm install --frozen-lockfile and follow its AGENTS.md. Then build my website for: [your business or project in one sentence]. If I give you a brief or a DESIGN.md, put it in brief/ and use it."
     primaryCta={{
       href: 'https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip',
       label: 'Download source ZIP',
@@ -176,7 +176,7 @@ const faqs = [
       <a href="https://agents.md" target="_blank" rel="noopener noreferrer">
         AGENTS.md
       </a>{' '}
-      index that names the golden rules and the right skill for each task, and portable{' '}
+      index that names implementation rules and the right skill for each task, and portable{' '}
       <a href="https://agentskills.io" target="_blank" rel="noopener noreferrer">
         Agent Skills
       </a>{' '}

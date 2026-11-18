@@ -24,8 +24,9 @@ working.
 
 ## Conventions
 
-The rules for code, design and content live in one place: `AGENTS.md` (golden rules, commands,
-Astro 7 / Tailwind 4 gotchas) and the references of the build-site skill:
+Start with `AGENTS.md` for implementation rules, verification commands and task routing.
+Framework details live in `docs/agents/astro-conventions.md`; design and content details live
+in the references of the build-site skill:
 
 - Design system (tokens, typography, spacing, radius, motion):
   `.agents/skills/astrodeck-build-site/references/design-system.md`
@@ -96,18 +97,16 @@ Maintainers: the release steps, including the check of the cleaned starter, are 
 - Update `README.md`, the docs page (`src/pages/docs.astro`) and `CHANGELOG.md` when behaviour
   or commands change. Every claim must be backed by the code.
 
-## Reporting bugs
+## Bug reports and feature proposals
 
-Search the [issues](https://github.com/holger1411/astrodeck/issues) first. A good report has:
-steps to reproduce, expected and actual behaviour, screenshots if visual, and your environment
-(OS, browser, Node version, AstroDeck version, coding agent and model if the bug is in the agent
-workflow).
+The current repository is [hbmartin/astrodeck](https://github.com/hbmartin/astrodeck). Its issue
+tracker is disabled. For a pull request fixing a bug, include reproduction steps, expected and
+actual behaviour, screenshots if visual, and your environment (OS, browser, Node and AstroDeck
+versions, plus the coding agent and model for workflow bugs).
 
-## Suggesting features
-
-Open an [issue](https://github.com/holger1411/astrodeck/issues/new) with the use case, the
-proposed solution and alternatives you considered. AstroDeck focuses on content and marketing
-websites built with a coding agent; dashboards, app backends and CMS features are out of scope.
+For a feature proposal, explain the use case, solution and alternatives in the pull request.
+AstroDeck focuses on content and marketing websites built with a coding agent; dashboards,
+app backends and CMS features are out of scope.
 
 ## License
 

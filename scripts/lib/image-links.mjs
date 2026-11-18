@@ -1,59 +1,85 @@
-const IMAGE_CONTENT = new Set(['a', 'img', 'picture', 'source', 'span', 'div', 'br', 'wbr']);
+import { attribute, elementName, findById, findElements } from './html-tree.mjs';
+
 const NON_CONTENT = new Set(['script', 'style', 'template']);
+const EMBEDDED = new Set(['canvas', 'iframe', 'object', 'embed', 'audio', 'video']);
 
 function isHidden(element) {
-  return element.hasAttribute('hidden') || element.getAttribute('aria-hidden') === 'true';
+  for (let current = element; current; current = current.parentNode) {
+    if (
+      attribute(current, 'hidden') !== undefined ||
+      attribute(current, 'aria-hidden')?.toLowerCase() === 'true'
+    )
+      return true;
+  }
+  return false;
 }
 
 function imageName(image) {
-  const role = image.getAttribute('role');
+  const role = attribute(image, 'role');
   if (role === 'none' || role === 'presentation') return '';
-  return image.getAttribute('aria-label')?.trim() || image.getAttribute('alt')?.trim() || '';
+  return attribute(image, 'aria-label')?.trim() || attribute(image, 'alt')?.trim() || '';
+}
+
+/** null means an unsupported widget may provide a name that static HTML cannot establish. */
+function combineNames(names) {
+  const text = names
+    .filter((name) => name !== null)
+    .join(' ')
+    .trim();
+  return text || (names.includes(null) ? null : '');
+}
+
+function unsupportedContent(name) {
+  return !name || EMBEDDED.has(name) || name.includes('-');
 }
 
 function contentName(node, includeHidden = false) {
-  if (node.nodeType === 3) return node.text;
-  if (node.nodeType !== 1 || NON_CONTENT.has(node.rawTagName)) return '';
+  if (node.nodeName === '#text') return node.value;
+  if (!node.tagName || NON_CONTENT.has(elementName(node))) return '';
   if (!includeHidden && isHidden(node)) return '';
-  if (node.rawTagName === 'img') return imageName(node);
-  return node.childNodes
-    .map((child) => contentName(child, includeHidden))
-    .join(' ')
-    .trim();
+  const name = elementName(node);
+  if (name === 'img') return imageName(node);
+  if (unsupportedContent(name)) return null;
+  return combineNames((node.childNodes ?? []).map((child) => contentName(child, includeHidden)));
 }
 
-function referencedName(link, root) {
-  const ids = link.getAttribute('aria-labelledby')?.trim();
+function referencedName(control, root) {
+  const ids = attribute(control, 'aria-labelledby')?.trim();
   if (!ids) return undefined;
   const targets = ids
     .split(/\s+/)
-    .map((id) => root.getElementById(id))
+    .map((id) => findById(root, id))
     .filter(Boolean);
   if (!targets.length) return undefined;
-  return targets
-    .map((target) => contentName(target, isHidden(target)))
-    .join(' ')
-    .trim();
+  return combineNames(targets.map((target) => contentName(target, isHidden(target))));
 }
 
-function linkName(link, root) {
-  return (
-    referencedName(link, root) ??
-    (link.getAttribute('aria-label')?.trim() ||
-      contentName(link) ||
-      link.getAttribute('title')?.trim())
-  );
+function controlName(control, root) {
+  const referenced = referencedName(control, root);
+  if (referenced !== undefined) return referenced;
+  const label = attribute(control, 'aria-label')?.trim();
+  if (label) return label;
+  const content = contentName(control);
+  return content || attribute(control, 'title')?.trim() || content;
 }
 
-/** Check the static image-link cases without guessing names for arbitrary embedded widgets. */
-export function checkImageLinks(root, add) {
-  for (const link of root.querySelectorAll('a[href]')) {
-    if (!link.querySelector('img') || isHidden(link)) continue;
-    if (link.querySelectorAll('*').some((node) => !IMAGE_CONTENT.has(node.rawTagName))) continue;
-    if (!linkName(link, root))
-      add(
-        'image-link-name',
-        'Image link to "' + link.getAttribute('href') + '" has no accessible name'
-      );
+function imageControl(node) {
+  const name = elementName(node);
+  return name === 'button' || (name === 'a' && attribute(node, 'href') !== undefined);
+}
+
+/** Check native image controls without guessing accessible names for embedded widgets. */
+export function checkImageControls(root, add) {
+  for (const control of findElements(root, imageControl)) {
+    if (isHidden(control)) continue;
+    if (!findElements(control, (node) => elementName(node) === 'img').length) continue;
+    if (controlName(control, root) !== '') continue;
+    const link = elementName(control) === 'a';
+    add(
+      link ? 'image-link-name' : 'image-button-name',
+      link
+        ? `Image link to "${attribute(control, 'href')}" has no accessible name`
+        : 'Image button has no accessible name'
+    );
   }
 }

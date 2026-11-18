@@ -16,7 +16,7 @@ const verifySteps = [
   { id: 'build', what: 'Production build' },
   {
     id: 'dist',
-    what: 'Built HTML: one h1, unique titles, meta descriptions, internal links, alt text',
+    what: 'Built HTML, canonical and sitemap checks, image-control names and exact build files',
   },
 ];
 ---
@@ -81,8 +81,9 @@ pnpm run starter:clean --yes --keep-blog`}
       cannot run, it says so instead of passing.
     </p>
     <p class="mt-2 text-muted-foreground">
-      Use <code class={ic}>alt=""</code> for decorative images. Links that contain only images need
-      an accessible name.
+      Use <code class={ic}>alt=""</code> for decorative images. Image-only links and native buttons
+      containing images need an accessible name. Build files must match exact case and Unicode
+      spelling; symlinks are rejected.
     </p>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -110,12 +111,17 @@ pnpm run starter:clean --yes --keep-blog`}
         codeClass="text-sm font-mono"
         code={`pnpm run verify                # everything
 pnpm run verify --starter   # + demo leftovers
-pnpm run validate              # without build (fast)
+pnpm run validate              # interim; skips build and built HTML
 pnpm run check:fallow          # strict static analysis
 pnpm run lint:design           # single checks
 pnpm run lint:docs
 pnpm run check:registry`}
       />
+      <p class="text-sm text-muted-foreground mt-3">
+        The fast command prints{' '}
+        <code class={ic}>VALIDATE PASSED (build and built-HTML checks skipped)</code>
+        or <code class={ic}>VALIDATE FAILED (n)</code>. Finish with full verification.
+      </p>
       <p class="text-sm text-muted-foreground mt-3">
         The design rules behind <code class={ic}>lint:design</code> (semantic color tokens only,
         every link and form pointing somewhere real, no <code class={ic}>ViewTransitions</code>,
@@ -124,6 +130,13 @@ pnpm run check:registry`}
     </div>
   </div>
 </section>
+
+<p class="text-sm text-muted-foreground mt-6">
+  <code class={ic}>pnpm run test:e2e</code> runs four homepage tests for content, menu, theme and
+  skip-link focus. Back/Forward runs as a named step when a same-tab, same-origin HTML navigation
+  target exists; otherwise only that step reports an explained skip. MinimalLayout homepages skip
+  the three shared-header tests outside kit mode.
+</p>
 
 <!-- vibe2prod -->
 <section id="vibe2prod" class="scroll-mt-32 lg:scroll-mt-20">

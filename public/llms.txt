@@ -7,7 +7,7 @@ AstroDeck is an Astro 7 + Tailwind CSS 4 + React 19 + shadcn/ui project. Agents 
 ## Docs
 
 - [Documentation](https://www.astrodeck.dev/docs): Getting started, build-site workflow, brief, site config, theme, sections and pages, demo cleanup, verify, vibe2prod, supported agents, MCP, deploy, Astro 7 notes, migrating from 3.x
-- [Full documentation for LLMs](https://www.astrodeck.dev/llms-full.txt): AGENTS.md plus the README in one plain-text file
+- [Full documentation for LLMs](https://www.astrodeck.dev/llms-full.txt): AGENTS.md, README and Astro conventions with absolute source links in one plain-text file
 - [Changelog](https://www.astrodeck.dev/changelog): Release history
 
 ## Building blocks
@@ -19,7 +19,7 @@ AstroDeck is an Astro 7 + Tailwind CSS 4 + React 19 + shadcn/ui project. Agents 
 
 ## Source
 
-- [GitHub repository](https://github.com/hbmartin/astrodeck): Source code and issues
+- [GitHub repository](https://github.com/hbmartin/astrodeck): Current source code
 - [AGENTS.md](https://github.com/hbmartin/astrodeck/blob/main/AGENTS.md): Index for coding agents (rules, commands, task to skill)
 - [Skills](https://github.com/hbmartin/astrodeck/tree/main/.agents/skills): astrodeck-build-site, astrodeck-new-page, astrodeck-new-section, astrodeck-theme, astrodeck-cleanup, vibe2prod
 - [Main branch source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip): Download

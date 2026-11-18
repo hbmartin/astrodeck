@@ -6,11 +6,25 @@ All notable changes to AstroDeck are documented in this file.
 
 ### Breaking changes
 
+- Built-file references now require exact case and Unicode spelling; NFC/NFD-equivalent spellings are no longer interchangeable. Verification rejects every file and directory symlink in build output. Copy real files into the output and align URLs with emitted names.
+
+- `pnpm run validate` and `verify --skip-build` print `VALIDATE PASSED (build and built-HTML checks skipped)` or `VALIDATE FAILED (n)`. Only full verification prints `VERIFY PASSED`.
+
 - AstroDeck development and verification require macOS or Linux. Demo and starter CI jobs run on Ubuntu.
 
 - Layout social images accept a URL string or an Astro image import (`ImageMetadata`). Replace an `image={{ path, alt, width, height }}` prop with `image={path}` or import the image and pass `image={cover}`. Imports supply their intrinsic dimensions, including SVGs. Social image alt text uses the page title.
 
 ### Fixes
+
+- Built HTML uses browser-compatible tree construction, so canonical and Open Graph tags after body-starting content cannot masquerade as head metadata. Accessible-name checks handle hidden ancestors, semantic wrappers and native image buttons.
+
+- Sitemap parsing rejects truncated XML and incomplete trailing markup. Malformed documents are reported once against the target file, including checks without `siteUrl`; invalid references identify their robots file or sitemap index. Sitemap exclusions respect configured base prefixes.
+
+- Astro binding analysis distinguishes loop-local constants from loop-carried writes and handles guarded constant closures and TypeScript wrappers in nested assignment targets.
+
+- Fragment navigation no longer marks every section anchor as the current page. Contact fields regain a non-color invalid-state cue, and content-sized textareas retain their height cap.
+
+- Agent guidance makes suppression, content honesty, cleanup replacements and explicit project exceptions clear. Current repository links use the fork, onboarding explains independent Git setup, and the public LLM bundle includes conventions with absolute source links.
 - Starter cleanup warns when a replacement cannot be formatted safely and continues formatting the other files. Astro lint accepts type-only overload declarations, and the Claude hook checks the edit payload when it cannot read the file.
 
 - Fixed ignored-only format requests, stale demo copy feedback and timezone-dependent release dates. Verification reports complete test failures and checks accessible names for image-only links and accepts empty alt text on decorative images.
@@ -25,11 +39,13 @@ All notable changes to AstroDeck are documented in this file.
 
 - Sitemap exclusions also support slashless routes. Built-output checks require canonical and Open Graph URLs in the document head, read sitemap XML and nested indexes, and require `robots.txt` to advertise an emitted sitemap.
 
-- Sitemap page URLs use the `SITE_URL` origin, including `customPages` served outside the build. Local references stay within the output directory. Robots parsing accepts a UTF-8 BOM, and diagnostics identify the file containing an invalid directive or sitemap entry.
+- Sitemap page URLs use the `SITE_URL` origin, including `customPages` served outside the build. Local references use exact output paths. Robots parsing accepts a UTF-8 BOM, and diagnostics identify the file containing an invalid directive or sitemap entry.
 
-- Browser checks verify skip-link focus and browser history, plus menu opening and closing by click and keyboard. When desktop navigation has links, corresponding links must be visible in the open mobile menu. Empty navigation lists are supported. Customized homepages using `MinimalLayout` report the three shared-header checks as skipped; demo and clean-starter CI require all four tests to pass.
+- Browser checks verify skip-link focus, plus menu opening and closing by click and keyboard. When desktop navigation has links, corresponding links must be visible in the open mobile menu. Empty navigation lists are supported. Back/Forward checks run in a named step for suitable same-origin HTML navigation; absent targets produce an explained skipped step while focus assertions still run. Customized homepages using `MinimalLayout` report the three shared-header checks as skipped; demo and clean-starter CI require all four tests to pass.
 
 ### Added
+
+- `check:dist` rules `build-symlink`, `build-io` and `image-button-name` report rejected build links, operational filesystem failures and unnamed native buttons containing images.
 
 - `check:dist` rules `canonical` (one self-referencing canonical on the `SITE_URL` origin per indexable page, matching `og:url`), `sitemap-noindex` (no noindex page in a sitemap) and `robots-sitemap` (the `robots.txt` sitemap is on the `SITE_URL` origin and in the build).
 

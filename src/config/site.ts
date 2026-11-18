@@ -74,7 +74,7 @@ export const site: SiteConfig = {
   ],
   headerCta: {
     label: 'GitHub',
-    href: 'https://github.com/holger1411/astrodeck',
+    href: 'https://github.com/hbmartin/astrodeck',
     external: true,
   },
   footer: {
@@ -103,9 +103,8 @@ export const site: SiteConfig = {
     copyright: 'AstroDeck. MIT License. Open Source.',
     credit: { label: 'templatedeck.com', href: 'https://templatedeck.com' },
   },
-  social: [{ label: 'GitHub', href: 'https://github.com/holger1411/astrodeck' }],
+  social: [{ label: 'GitHub', href: 'https://github.com/hbmartin/astrodeck' }],
   contact: {},
-  support: { label: 'report it on GitHub', href: 'https://github.com/holger1411/astrodeck/issues' },
   ogImage: '/cover.png',
   features: { blog: true, rss: true, analytics: true },
   blogIntro:

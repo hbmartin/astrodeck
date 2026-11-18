@@ -24,6 +24,7 @@ const PATTERN_CHILDREN = new Map([
 ]);
 
 function* boundNames(node) {
+  node = unwrap(node);
   if (!node) return;
   if (node.type === 'Identifier') {
     yield node.name;
@@ -131,7 +132,7 @@ function declareVariables(scope, { kind, declarations }) {
 function enter(scope, control, node) {
   if (node.type === 'Program')
     return { scope: makeScope(null, node, true), control: STRAIGHT_LINE };
-  if (FUNCTIONS.has(node.type)) return enterFunction(scope, node);
+  if (FUNCTIONS.has(node.type)) return enterFunction(scope, control, node);
   if (LOOPS.has(node.type))
     return {
       scope: makeScope(scope, scope.region, false),
@@ -140,11 +141,11 @@ function enter(scope, control, node) {
   return { scope: enterBlock(scope, node), control };
 }
 
-function enterFunction(parent, node) {
+function enterFunction(parent, control, node) {
   const scope = makeScope(parent, node, true);
   if (node.type === 'FunctionExpression') declare(scope, node.id?.name);
   for (const param of node.params) declarePattern(scope, param);
-  return { scope, control: STRAIGHT_LINE };
+  return { scope, control: { guards: control.guards, loop: undefined } };
 }
 
 function enterBlock(parent, node) {
@@ -189,7 +190,10 @@ function childFrame(node, key, child, frame) {
   const scope = childScope(node, key, child, frame.scope);
   const { control } = frame;
   if (key === 'value' && node.type === 'PropertyDefinition' && !node.static)
-    return { scope: makeScope(scope, node, true), control: STRAIGHT_LINE };
+    return {
+      scope: makeScope(scope, node, true),
+      control: { guards: control.guards, loop: undefined },
+    };
   if (CONDITIONAL_CHILD.get(node.type)?.(key, node))
     return { scope, control: { ...control, guards: [...control.guards, child] } };
   return { scope, control };
@@ -218,20 +222,21 @@ function findBinding(scope, name) {
   }
 }
 
-function recordEvent(binding, frame, site, value) {
+function recordEvent(binding, frame, site, value, initializer = false) {
   if (!binding) return;
   const { scope, control } = frame;
-  if (binding.region !== scope.region) {
+  if (binding.region !== scope.region || (binding.constant && !initializer)) {
     binding.capturedWrite = true;
     return;
   }
   // A loop write may reach a read earlier in source on the next iteration.
   binding.events.push({
-    position: control.loop?.start ?? site.end,
+    position: binding.constant && initializer ? site.end : (control.loop?.start ?? site.end),
     scope,
     control,
     node: value,
     constant: binding.constant,
+    initializer,
   });
 }
 
@@ -241,7 +246,7 @@ function recordInitializers(frame, { declarations }) {
     if (!init) continue;
     for (const name of boundNames(id)) {
       const value = id.type === 'Identifier' ? init : undefined;
-      recordEvent(findBinding(frame.scope, name), frame, declaration, value);
+      recordEvent(findBinding(frame.scope, name), frame, declaration, value, true);
     }
   }
 }
@@ -291,7 +296,7 @@ export function bindingAt(node, scope) {
   if (binding.capturedWrite) return null;
   if (binding.region !== scope.region && !binding.constant) return null;
   const event = precedingEvent(binding, node);
-  if (!event?.node || event.control.loop) return null;
+  if (!event?.node || (event.control.loop && !(binding.constant && event.initializer))) return null;
   const guards = scope.frames.get(node)?.guards;
   return event.control.guards.every((guard) => guards?.includes(guard)) ? event : null;
 }

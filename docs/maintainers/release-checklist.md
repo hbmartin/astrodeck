@@ -1,17 +1,16 @@
 # Release checklist
 
-Run these from the repository root before every release. All commands must exit 0.
+Run these from the repository root before every release. All commands must exit 0; both full
+verification runs must print `VERIFY PASSED`. `validate` is interim feedback and cannot replace
+these gates. Install Chromium once with `pnpm exec playwright install chromium`.
 
 ## 1. Demo (this repository)
 
 ```bash
-pnpm run validate
-pnpm run build
-node scripts/check-dist.mjs
-node scripts/check-registry.mjs
-node scripts/lint-docs.mjs
-pnpm run lint:design
-pnpm test
+pnpm install --frozen-lockfile
+ASTRODECK_KIT_CHECKS=1 pnpm run verify
+ASTRODECK_KIT_CHECKS=1 pnpm run test:e2e
+pnpm run sync:agents --check
 ```
 
 ## 2. Clean starter (what users get after `starter:clean`)
@@ -25,13 +24,9 @@ rsync -a --exclude node_modules --exclude dist --exclude .git --exclude .superpo
 cd "$T"
 pnpm install --frozen-lockfile
 pnpm run starter:clean --yes
-pnpm run build
-node scripts/check-dist.mjs --starter
-pnpm run check
-node scripts/check-registry.mjs
-node scripts/lint-docs.mjs
-pnpm run lint:design
-pnpm test
+pnpm run theme --primary "#2f7d5b"
+pnpm run verify --starter
+ASTRODECK_KIT_CHECKS=1 pnpm run test:e2e
 ```
 
 Repeat the second block with `pnpm run starter:clean --yes --keep-blog` on a fresh copy.

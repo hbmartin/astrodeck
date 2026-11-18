@@ -2,8 +2,8 @@
 /**
  * Built-HTML check: scans every .html file in a build output directory.
  * Rules: h1-count, title-empty, title-unique, meta-description, meta-length, internal-link,
- * link-scheme, alt-quality, image-link-name, form-novalidate, sitemap-noindex, canonical,
- * robots-sitemap, demo-leftover (starter mode only).
+ * link-scheme, alt-quality, image-link-name, image-button-name, form-novalidate, sitemap-noindex, canonical,
+ * robots-sitemap, build-io, build-symlink, demo-leftover (starter mode only).
  * canonical: every indexable page has one self-referencing canonical on the SITE_URL origin
  * and one matching og:url in head. sitemap-noindex: no noindex page is listed in a sitemap.
  * robots-sitemap: emitted sitemaps need a robots.txt declaration; every declared sitemap and
@@ -12,14 +12,18 @@
  * its description at least 50; no description is longer than 160 characters.
  * Usage: node scripts/check-dist.mjs [--starter] [dir=dist]   (exit 1 on any finding)
  */
-import { readFileSync, existsSync } from 'node:fs';
 import { join, relative, resolve, sep, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse } from 'node-html-parser';
-import { walkFiles } from './lib/walk-files.mjs';
-import { builtFile } from './lib/build-paths.mjs';
+import {
+  parseDocument,
+  findElements,
+  elementName,
+  attribute,
+  textContent,
+} from './lib/html-tree.mjs';
+import { createBuildInventory } from './lib/build-paths.mjs';
 import { formatFindings } from './lib/findings.mjs';
-import { checkImageLinks } from './lib/image-links.mjs';
+import { checkImageControls } from './lib/image-links.mjs';
 import { checkCanonical, isNoindex } from './lib/indexing.mjs';
 import { checkSitemaps } from './lib/sitemaps.mjs';
 import { SITE_URL } from '../src/config/site-url.mjs';
@@ -32,7 +36,7 @@ const BAD_ALT = [
 const CREDIT = /<!--\s*astrodeck-credit\s*-->\s*(<a\b[^>]*>[\s\S]*?<\/a>|[^<]*)/g;
 
 /** The build-output file (relative, `/`-separated) a root-relative URL path resolves to. */
-function fileFor(dir, urlPath) {
+function fileFor(dir, inventory, urlPath) {
   let p;
   try {
     p = decodeURIComponent(urlPath);
@@ -45,13 +49,11 @@ function fileFor(dir, urlPath) {
       ? [join(base, 'index.html')]
       : [base, join(base, 'index.html'), `${base}.html`];
   for (const candidate of candidates) {
-    const hit = builtFile(dir, relative(dir, candidate).split(sep).join('/'));
+    const hit = inventory.file(relative(dir, candidate).split(sep).join('/'));
     if (hit !== undefined) return hit;
   }
   return undefined;
 }
-
-const resolves = (dir, urlPath) => fileFor(dir, urlPath) !== undefined;
 
 function isGenericAlt(text, src) {
   if (BAD_ALT.some((re) => re.test(text))) return true;
@@ -61,8 +63,8 @@ function isGenericAlt(text, src) {
 }
 
 function checkImg(img, add) {
-  const alt = img.getAttribute('alt');
-  const src = img.getAttribute('src') ?? '';
+  const alt = attribute(img, 'alt');
+  const src = attribute(img, 'src') ?? '';
   if (alt === undefined) return add('alt-quality', `<img src="${src}"> has no alt attribute`);
   const text = alt.trim();
   if (alt && !text) add('alt-quality', `whitespace-only alt (src ${src})`);
@@ -71,14 +73,16 @@ function checkImg(img, add) {
 }
 
 function checkMetadata(root, rel, titles, add) {
-  const title = root.querySelector('title')?.text.trim() ?? '';
+  const titleNode = findElements(root, (node) => elementName(node) === 'title')[0];
+  const title = titleNode ? textContent(titleNode).trim() : '';
   if (!title) add('title-empty', '<title> is missing or empty');
   else titles.set(title, [...(titles.get(title) ?? []), rel]);
 
-  const description = root
-    .querySelector('meta[name="description"]')
-    ?.getAttribute('content')
-    ?.trim();
+  const meta = findElements(
+    root,
+    (node) => elementName(node) === 'meta' && attribute(node, 'name') === 'description'
+  )[0];
+  const description = meta ? attribute(meta, 'content')?.trim() : undefined;
   if (!description) add('meta-description', '<meta name="description"> is missing or empty');
   if (description?.length > 160)
     add('meta-length', `meta description is ${description.length} characters (max 160)`);
@@ -92,9 +96,13 @@ function checkHomeMetadata(title, description, add) {
     add('meta-length', `home page <title> is ${title.length} characters (30-60)`);
 }
 
-function checkLinks(root, dir, add) {
-  for (const a of root.querySelectorAll('a[href], link[href]')) {
-    const href = a.getAttribute('href') ?? '';
+function checkLinks(root, fileIn, add) {
+  const links = findElements(
+    root,
+    (node) => ['a', 'link'].includes(elementName(node)) && attribute(node, 'href') !== undefined
+  );
+  for (const a of links) {
+    const href = attribute(a, 'href') ?? '';
     // Whitespace after a tel: or mailto: scheme is invalid HTML.
     if (/^(tel|mailto):/i.test(href) && /\s/.test(href))
       add(
@@ -103,16 +111,21 @@ function checkLinks(root, dir, add) {
       );
     if (!href.startsWith('/') || href.startsWith('//')) continue;
     const path = href.split('#')[0].split('?')[0];
-    if (path && !resolves(dir, path)) add('internal-link', `${href} does not resolve to a file`);
+    if (path && fileIn(path) === undefined)
+      add('internal-link', `${href} does not resolve to a file`);
   }
 }
 
 function checkForms(root, add) {
-  for (const form of root.querySelectorAll('form[novalidate]'))
-    if (form.querySelector('[required]'))
+  const forms = findElements(
+    root,
+    (node) => elementName(node) === 'form' && attribute(node, 'novalidate') !== undefined
+  );
+  for (const form of forms)
+    if (findElements(form, (node) => attribute(node, 'required') !== undefined).length)
       add(
         'form-novalidate',
-        `<form action="${form.getAttribute('action') ?? ''}"> has required fields but novalidate (remove novalidate)`
+        `<form action="${attribute(form, 'action') ?? ''}"> has required fields but novalidate (remove novalidate)`
       );
 }
 
@@ -124,14 +137,14 @@ function checkDemoLeftovers(html, add) {
   if (hit) add('demo-leftover', `"${hit[0]}" found in rendered HTML`);
 }
 
-function checkPage(html, dir, rel, opts, titles, add) {
-  const root = parse(html);
-  const h1s = root.querySelectorAll('h1').length;
+function checkPage(html, fileIn, rel, opts, titles, add) {
+  const root = parseDocument(html);
+  const h1s = findElements(root, (node) => elementName(node) === 'h1').length;
   if (h1s !== 1) add('h1-count', `expected exactly one <h1>, found ${h1s}`);
   checkMetadata(root, rel, titles, add);
-  checkLinks(root, dir, add);
-  for (const img of root.querySelectorAll('img')) checkImg(img, add);
-  checkImageLinks(root, add);
+  checkLinks(root, fileIn, add);
+  for (const img of findElements(root, (node) => elementName(node) === 'img')) checkImg(img, add);
+  checkImageControls(root, add);
   checkForms(root, add);
   if (opts.starter) checkDemoLeftovers(html, add);
   return root;
@@ -139,28 +152,32 @@ function checkPage(html, dir, rel, opts, titles, add) {
 
 /**
  * @param {string} dir build output directory
- * @param {{ starter: boolean; siteUrl?: string }} opts siteUrl enables the canonical and
- *   robots-sitemap rules
+ * @param {{ starter: boolean; siteUrl?: string }} opts siteUrl enables canonical, origin and
+ *   robots discovery checks. Invalid sitemap documents and build files always produce findings.
  * @returns {import('./lib/findings.mjs').Finding[]}
  */
 export function checkDist(dir, opts) {
   /** @type {import('./lib/findings.mjs').Finding[]} */
   const findings = [];
-  if (!existsSync(dir))
-    return [{ file: dir, rule: 'missing-dir', message: 'directory does not exist' }];
+  const inventory = createBuildInventory(dir);
   const titles = new Map();
   const noindex = new Set();
   const siteUrl = opts.siteUrl ? new URL(opts.siteUrl) : undefined;
-  const fileIn = (urlPath) => fileFor(dir, urlPath);
+  const resolved = new Map();
+  const fileIn = (urlPath) => {
+    if (!resolved.has(urlPath)) resolved.set(urlPath, fileFor(dir, inventory, urlPath));
+    return resolved.get(urlPath);
+  };
 
-  for (const abs of [...walkFiles(dir, (name) => name.endsWith('.html'))].sort()) {
-    const rel = relative(dir, abs).split(sep).join('/');
+  for (const rel of inventory.files.filter((name) => name.endsWith('.html'))) {
+    const content = inventory.readText(rel);
+    if (content.status !== 'ok') continue;
     const add = (rule, message) => findings.push({ file: rel, rule, message });
-    const root = checkPage(readFileSync(abs, 'utf8'), dir, rel, opts, titles, add);
+    const root = checkPage(content.text, fileIn, rel, opts, titles, add);
     if (isNoindex(root)) noindex.add(rel);
     else if (siteUrl) checkCanonical(root, rel, siteUrl, fileIn, add);
   }
-  findings.push(...checkSitemaps(dir, noindex, fileIn, siteUrl));
+  findings.push(...checkSitemaps(inventory, noindex, fileIn, siteUrl));
 
   for (const [title, files] of titles)
     if (files.length > 1)
@@ -171,7 +188,7 @@ export function checkDist(dir, opts) {
           message: `title "${title}" is shared with ${files.length - 1} other page(s)`,
         });
 
-  return findings;
+  return [...findings, ...inventory.findings];
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

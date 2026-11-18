@@ -129,16 +129,16 @@ registry section fits.
 ## 7. Verify and audit
 
 - `pnpm run verify --starter` (after cleanup; checks for demo leftovers) or `pnpm run verify`
-  (demo kept). It must end with `VERIFY PASSED`. Fix causes; never silence a rule, delete a
-  test or edit generated output.
+  (demo kept). It must end with `VERIFY PASSED`. Fix causes; never suppress a finding, weaken a rule or
+  delete a test just to pass. Repair legitimate defects and regenerate output from its source.
 - `grep -rn "TODO(brief)" src` returns nothing.
 - Run the vibe2prod skill, bundled in `.agents/skills/vibe2prod/`, in local project mode on this
   project. Target verdict **READY**. If its runtime (Playwright, Lighthouse, axe) is missing,
   run `pnpm run setup:audit`; if it still cannot run, report exactly which checks were skipped.
   No verdict without tools. A sandbox that blocks Chromium or localhost (for example Codex's
   default `workspace-write`) cannot run it: ask the user to allow the audit outside the sandbox.
-- Rerun the same verification command after applying audit fixes.
 - Apply technical fixes; propose content changes to the user before making them.
+- Rerun the same verification command after applying audit fixes.
 - Work through the manual items of `references/quality-checklist.md` (widths 375/768/1024/1280,
   dark mode, keyboard, reduced motion).
 - Stop the dev server if you started it.

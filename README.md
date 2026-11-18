@@ -7,7 +7,7 @@
 
 # AstroDeck
 
-[![Version](https://img.shields.io/badge/version-4.0.1-blue.svg)](https://github.com/holger1411/astrodeck/releases)
+[![Version](https://img.shields.io/badge/version-4.0.1-blue.svg)](https://github.com/hbmartin/astrodeck/releases)
 [![Astro](https://img.shields.io/badge/Astro-7.x-orange.svg)](https://astro.build)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -65,6 +65,17 @@ pnpm install --frozen-lockfile
 pnpm run dev                                 # http://localhost:4321
 ```
 
+For a new site, detach it from the starter before your first push:
+
+```bash
+git remote remove origin
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
+```
+
+This keeps the starter history. For independent history, use the source ZIP (which has no
+`.git` directory), then run `git init`, commit your site and add your own remote. Contributors
+should keep their fork remote and follow [CONTRIBUTING.md](CONTRIBUTING.md).
+
 Then let your agent run the workflow, or work by hand: set `src/config/site.ts`, run
 `pnpm run theme`, compose pages from `src/components/sections/`, finish with `pnpm run verify`.
 
@@ -73,7 +84,7 @@ Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can wr
 
 ## What you get
 
-- **Agent-first, tool-agnostic.** `AGENTS.md` is a compact index (golden rules, commands, which
+- **Agent-first, tool-agnostic.** `AGENTS.md` is a compact index (implementation rules, commands, which
   skill to use for which task). Portable [Agent Skills](https://agentskills.io) in
   `.agents/skills/` hold the workflows. No vendor lock-in.
 - **One guided workflow.** `astrodeck-build-site` takes the agent from intake to handover.
@@ -128,7 +139,9 @@ Other tasks have their own skill:
   see `brief/README.md`. No passwords or keys: in a public repository this folder is public too.
 - **`PROJECT.md`** is the structured brief the agent writes and keeps up to date: goal and
   audience, offer, sitemap, tone and language, brand, content sources, must-haves and no-gos,
-  open questions, decisions and defaults. It governs site decisions.
+  open questions, decisions and defaults. It governs site decisions and explicit user-approved
+  implementation exceptions. Record each exception and its source; it does not silently waive
+  verification or content-honesty requirements.
 
 ## Site config and theme
 
@@ -208,7 +221,7 @@ which files need attention.
 ```bash
 pnpm run verify            # all checks; ends with VERIFY PASSED
 pnpm run verify --starter  # also fails on demo leftovers (after cleanup)
-pnpm run validate          # verify without build (fast)
+pnpm run validate          # interim checks; build and built-HTML checks skipped
 pnpm run check:fallow      # run the strict static analysis on its own
 ```
 
@@ -216,20 +229,30 @@ pnpm run check:fallow      # run the strict static analysis on its own
 `astro check`, Fallow, design lint (semantic tokens, real links and form actions), docs lint (dead paths, version and count drift),
 registry check, tests, the build and checks on the built HTML (one `h1`,
 unique titles, meta descriptions, internal links, alt text, and names for image-only links).
-Use `alt=""` for decorative images. Verify runs offline and reports which step failed.
+Use `alt=""` for decorative images. Image-only links and native buttons containing images need
+accessible names. Verify runs offline and reports which step failed. The fast `validate`
+command reports `VALIDATE PASSED (build and built-HTML checks skipped)` or `VALIDATE FAILED (n)`;
+it cannot replace a full verification run.
 
 Every indexable page needs one canonical and one matching `og:url` in the document head.
 When the build emits a sitemap, `public/robots.txt` must advertise a built sitemap or sitemap
 index with a `Sitemap:` URL on the production origin. Verification checks sitemap XML and
 nested indexes and keeps `noindex` pages out of them. Every sitemap page URL must use the
 `SITE_URL` origin. Same-origin `customPages` entries may point to pages served outside this
-build. Local references must stay inside the build output directory. The checker accepts a
-UTF-8 BOM at the start of `robots.txt`, and findings identify the file containing the invalid
-directive or sitemap entry.
+build. Local references must stay inside the build output directory and match filename case
+and Unicode spelling exactly. All file and directory symlinks in the build are rejected;
+copy real files into the output instead. The checker accepts a UTF-8 BOM at the start of
+`robots.txt`. Invalid references identify the robots file or index to fix; malformed sitemap
+XML identifies the target file once, even when several indexes reference it. XML errors
+are reported even for programmatic checks without `siteUrl`. The `build-symlink` and `build-io`
+rules report rejected links and filesystem failures; `image-button-name` reports unnamed
+native buttons containing images.
 
 `pnpm run test:e2e` builds and tests the real homepage in Chromium. It checks the response,
 main landmark and heading, then the mobile menu, theme toggle and skip-link focus and browser
-history. Menu opening and closing are checked by click and keyboard. When desktop navigation
+history. Back/Forward checks run in a named step when navigation exposes a same-tab,
+same-origin HTML page; otherwise that step reports an explained skip while focus checks still
+run. Menu opening and closing are checked by click and keyboard. When desktop navigation
 has links, the checks require corresponding links to be visible in the open mobile menu.
 Empty navigation lists are supported. A customized homepage using `MinimalLayout` reports
 the three shared-header tests as skipped. CI sets
@@ -289,14 +312,17 @@ Claude Code. Setup for Codex, Cursor and VS Code: `docs/agents/mcp-setup.md`.
 |---------|--------------|
 | `pnpm run dev` | Dev server on `http://localhost:4321` |
 | `pnpm run build` / `pnpm run preview` | Production build to `dist/` / serve it locally |
-| `pnpm run verify` | All checks (see above) |
-| `pnpm run validate` | `verify` without build |
+| `pnpm run verify` | All checks; must print `VERIFY PASSED` |
+| `pnpm run verify --starter` | Full verification plus demo-leftover checks after cleanup |
+| `pnpm run validate` | Interim checks; prints `VALIDATE PASSED`, skips build and built HTML |
+| `pnpm run check:fallow` | Strict dependency, dead code, complexity and duplication checks |
 | `pnpm run test:e2e` | Build, then check the homepage, mobile menu, theme toggle and skip link in Chromium (once: `pnpm exec playwright install chromium`) |
-| `pnpm run theme ...` | Brand tokens with contrast gate |
-| `pnpm run starter:clean ...` | Remove the demo |
+| `pnpm run theme ...` | Brand tokens with contrast gate; `--primary`, `--accent`, `--neutral`, `--radius`, `--from`, `--dry-run` (examples above) |
+| `pnpm run icons` | Generate PNG icons and a social image from `public/favicon.svg` |
+| `pnpm run starter:clean ...` | Remove the demo; `--dry-run` previews, `--yes` confirms, `--keep-blog` retains the blog |
 | `pnpm run setup:audit` | Install the vibe2prod tools |
 | `pnpm run lint:design` / `pnpm run lint:docs` / `pnpm run check:registry` | Single checks |
-| `pnpm run sync:agents` | Regenerate `.claude/skills/` from `.agents/skills/` |
+| `pnpm run sync:agents` / `pnpm run sync:agents --check` | Regenerate the Claude skill mirror / check drift |
 | `pnpm run format` / `pnpm run lint:fix` | Auto-fix formatting and lint |
 
 ## Deploy
@@ -325,7 +351,7 @@ use `SITE_URL`.
 | `src/layouts/`, `src/pages/` | Layouts and file-based routes |
 | `src/content/blog/` | Blog posts (content collection) |
 | `scripts/`, `tests/` | Verify, theme, cleanup and sync scripts with their tests |
-| `docs/agents/` | Supported agents and MCP setup |
+| `docs/agents/` | Astro/Tailwind conventions, supported agents and MCP setup |
 
 ## Upgrading from 3.x
 
@@ -355,8 +381,9 @@ from a fresh 4.0 download and move your pages and content over.
 ## Contributing
 
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, conventions and the
-pull request process. Report bugs and ideas in
-[GitHub issues](https://github.com/holger1411/astrodeck/issues).
+pull request process. The current fork
+[hbmartin/astrodeck](https://github.com/hbmartin/astrodeck) accepts pull requests; its issue
+tracker is disabled.
 
 ## License
 
@@ -373,6 +400,6 @@ follow [AGENTS.md](https://agents.md) and [Agent Skills](https://agentskills.io)
 
 ---
 
-**Links:** [GitHub](https://github.com/holger1411/astrodeck) ·
+**Links:** [GitHub](https://github.com/hbmartin/astrodeck) ·
 [Download on templatedeck.com](https://templatedeck.com/templates/astrodeck) ·
 [Live demo](https://www.astrodeck.dev/) · Made by [Holger Könemann](https://templatedeck.com)

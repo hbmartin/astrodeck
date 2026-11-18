@@ -102,14 +102,21 @@ function runStep(step) {
   return { id: step.id, ok, ms: Date.now() - start, output };
 }
 
+function completionMessage(failures, skipBuild) {
+  const mode = skipBuild ? 'VALIDATE' : 'VERIFY';
+  if (failures) return `${mode} FAILED (${failures})`;
+  return skipBuild ? 'VALIDATE PASSED (build and built-HTML checks skipped)' : 'VERIFY PASSED';
+}
+
 /**
  * Run all steps (never stops at the first failure), print the table and failure tails.
  * A step that needs the build is skipped when the `build` step failed.
  * @param {Step[]} steps
  * @param {(line: string) => void} [log]
+ * @param {{ skipBuild?: boolean }} [options]
  * @returns {number} exit code
  */
-export function run(steps, log = console.log) {
+export function run(steps, log = console.log, { skipBuild = false } = {}) {
   const results = [];
   let buildFailed = false;
   for (const step of steps) {
@@ -141,7 +148,7 @@ export function run(steps, log = console.log) {
       log(lines.slice(-TAIL_LINES).join('\n'));
     }
   }
-  log(failed.length ? `\nVERIFY FAILED (${failed.length})` : '\nVERIFY PASSED');
+  log(`\n${completionMessage(failed.length, skipBuild)}`);
   return failed.length ? 1 : 0;
 }
 
@@ -164,7 +171,7 @@ function main() {
   }
   if (engines?.node && !nodeSatisfies(process.version, engines.node))
     console.warn(`WARNING: Node ${process.version} is below the required ${engines.node}.\n`);
-  process.exit(run(steps));
+  process.exit(run(steps, console.log, { skipBuild: argv.includes('--skip-build') }));
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

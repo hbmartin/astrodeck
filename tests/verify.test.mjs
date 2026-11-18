@@ -132,3 +132,24 @@ test('run() skips steps that need the build when build fails', () => {
   assert.doesNotMatch(out, /running dist/);
   assert.match(out, /VERIFY FAILED \(1\)/);
 });
+
+test('fast validation has distinct success and failure labels with unchanged exit codes', () => {
+  for (const failed of [false, true]) {
+    const lines = [];
+    const result = run(
+      [stub('check', `process.exit(${failed ? 1 : 0})`)],
+      (line) => lines.push(line),
+      {
+        skipBuild: true,
+      }
+    );
+    assert.equal(result, failed ? 1 : 0);
+    const output = lines.join('\n');
+    assert.ok(
+      output.includes(
+        failed ? 'VALIDATE FAILED (1)' : 'VALIDATE PASSED (build and built-HTML checks skipped)'
+      )
+    );
+    assert.doesNotMatch(output, /VERIFY (PASSED|FAILED)/u);
+  }
+});

@@ -1,8 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { basename, join, relative, sep } from 'node:path';
+import { basename } from 'node:path';
 import sax from 'sax';
-import { walkFiles } from './walk-files.mjs';
-import { builtFile } from './build-paths.mjs';
 
 const NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 const ENTRY = { urlset: 'url', sitemapindex: 'sitemap' };
@@ -26,7 +23,15 @@ function parseSitemap(xml) {
   const stack = [];
   const attributes = new Set();
   const parser = sax.parser(true, { xmlns: true, strictEntities: true });
-  parser.onopentagstart = () => attributes.clear();
+  let declaredRoot;
+  let rootName;
+  parser.onerror = (error) => {
+    throw error;
+  };
+  parser.onopentagstart = (tag) => {
+    attributes.clear();
+    rootName ??= tag.name.split(':').at(-1);
+  };
   parser.onattribute = (attribute) => {
     const name = `${attribute.uri}\0${attribute.local}`;
     if (attributes.has(name)) throw new Error(`duplicate attribute ${attribute.name}`);
@@ -41,7 +46,8 @@ function parseSitemap(xml) {
   parser.ontext = parser.oncdata = (text) => {
     if (stack.length) stack.at(-1).text += text;
   };
-  parser.ondoctype = () => {
+  parser.ondoctype = (doctype) => {
+    declaredRoot = doctype.trim().split(/\s/u)[0].split(':').at(-1).toLowerCase();
     throw new Error('sitemaps must not contain a DOCTYPE');
   };
   try {
@@ -56,7 +62,11 @@ function parseSitemap(xml) {
       .map((node) => sitemapLocation(node, root.namespace));
     return { kind: root.name, locations };
   } catch (error) {
-    return { kind: roots[0]?.name, locations: [], error: error.message.split('\n')[0] };
+    return {
+      kind: roots[0]?.name ?? rootName ?? declaredRoot,
+      locations: [],
+      error: error.message.split('\n')[0],
+    };
   }
 }
 
@@ -71,20 +81,20 @@ function sitemapLocation(entry, namespace) {
 }
 
 /** XML files are keyed by their exact build paths, without HTML route aliases. */
-function sitemapFiles(dir) {
+function sitemapFiles(inventory) {
   const files = new Map();
-  for (const path of [...walkFiles(dir, (name) => /\.xml$/iu.test(name))].sort()) {
-    const name = relative(dir, path).split(sep).join('/');
-    readSitemap(dir, name, files);
-  }
+  for (const name of inventory.files.filter((path) => /\.xml$/iu.test(path)))
+    readSitemap(inventory, name, files);
   return files;
 }
 
-function readSitemap(dir, name, files) {
-  const actual = builtFile(dir, name);
-  if (actual === undefined) return undefined;
-  if (!files.has(actual)) files.set(actual, parseSitemap(readFileSync(join(dir, actual), 'utf8')));
-  return [actual, files.get(actual)];
+function readSitemap(inventory, name, files) {
+  if (files.has(name)) return { status: 'ok', name, sitemap: files.get(name) };
+  const result = inventory.readText(name);
+  if (result.status !== 'ok') return result;
+  const sitemap = parseSitemap(result.text);
+  files.set(name, sitemap);
+  return { status: 'ok', name, sitemap };
 }
 
 function sitemapUrl(value, siteUrl) {
@@ -101,36 +111,40 @@ function sitemapUrl(value, siteUrl) {
   return url;
 }
 
-function targetSitemap(value, dir, files, siteUrl, add) {
+function referenceUrlError(value, siteUrl) {
+  const url = URL.parse(value);
+  if (!url || !['http:', 'https:'].includes(url.protocol)) return 'must be an absolute HTTP(S) URL';
+  if (url.username || url.password) return 'must not contain credentials';
+  if (value.includes('#')) return 'must not contain a fragment';
+  if (siteUrl && url.origin !== siteUrl.origin) return `must be on SITE_URL (${siteUrl.origin})`;
+}
+
+function targetSitemap(value, inventory, files, siteUrl) {
+  const error = referenceUrlError(value, siteUrl);
+  if (error) return { error: `Sitemap ${value || '(empty)'} ${error}` };
   const url = sitemapUrl(value, siteUrl);
-  if (!url) {
-    add(`Sitemap ${value || '(empty)'} must be an absolute URL on SITE_URL (${siteUrl?.origin})`);
-    return;
-  }
   let path;
   try {
     path = decodeURIComponent(url.pathname).replace(/^\//u, '');
   } catch {
-    add(`Sitemap ${value} has an invalid encoded path`);
-    return;
+    return { error: `Sitemap ${value} has an invalid encoded path` };
   }
   // Referenced sitemaps may use a custom name without an .xml suffix.
-  const target = readSitemap(dir, path, files);
-  if (!target) {
-    add(`Sitemap ${value} is not a built XML sitemap`);
-    return;
-  }
-  const [, sitemap] = target;
-  if (sitemap.error || !Object.hasOwn(ENTRY, sitemap.kind))
-    add(
-      `Sitemap ${value} is invalid: ${sitemap.error ?? 'expected a urlset or sitemapindex root'}`
-    );
-  else return target;
+  const target = readSitemap(inventory, path, files);
+  if (target.status === 'blocked') return target;
+  if (target.status === 'missing') return { error: `Sitemap ${value} is not a built XML sitemap` };
+  const { sitemap } = target;
+  if (!Object.hasOwn(ENTRY, sitemap.kind) && (!sitemap.error || sitemap.kind !== undefined))
+    return {
+      error: `Sitemap ${value} is not a built XML sitemap (expected a urlset or sitemapindex root)`,
+    };
+  return target;
 }
 
-function checkRobots(dir, discovered, include, add) {
-  const path = join(dir, 'robots.txt');
-  const robots = existsSync(path) ? readFileSync(path, 'utf8').replace(/^\uFEFF/u, '') : '';
+function checkRobots(inventory, discovered, include, add) {
+  const result = inventory.readText('robots.txt');
+  if (result.status === 'blocked') return;
+  const robots = result.status === 'ok' ? result.text.replace(/^\uFEFF/u, '') : '';
   const directives = [...robots.replace(/#.*$/gmu, '').matchAll(/^[\t ]*sitemap[\t ]*:(.*)$/gimu)];
   if (discovered.size && !directives.length)
     add(
@@ -164,10 +178,10 @@ function checkEntries(name, sitemap, noindexFiles, fileFor, siteUrl, add) {
 }
 
 /** Inspect all emitted sitemaps and exact local index/robots references without network requests. */
-export function checkSitemaps(dir, noindexFiles, fileFor, siteUrl) {
+export function checkSitemaps(inventory, noindexFiles, fileFor, siteUrl) {
   const findings = [];
   const add = (file, rule, message) => findings.push({ file, rule, message });
-  const files = sitemapFiles(dir);
+  const files = sitemapFiles(inventory);
   const discovered = new Map(
     [...files].filter(
       ([name, sitemap]) =>
@@ -175,26 +189,24 @@ export function checkSitemaps(dir, noindexFiles, fileFor, siteUrl) {
     )
   );
   const include = (value, source) => {
-    const target = targetSitemap(value, dir, files, siteUrl, (message) => {
-      if (siteUrl) {
-        const remediation =
-          source === 'robots.txt'
-            ? 'update public/robots.txt'
-            : `correct ${source} or its generating configuration`;
-        add(source, 'robots-sitemap', `${message}; ${remediation}`);
-      }
-    });
-    if (target) discovered.set(...target);
+    const target = targetSitemap(value, inventory, files, siteUrl);
+    if (target.error && siteUrl) {
+      const remediation =
+        source === 'robots.txt'
+          ? 'update public/robots.txt'
+          : `correct ${source} or its generating configuration`;
+      add(source, 'robots-sitemap', `${target.error}; ${remediation}`);
+    }
+    if (target.status === 'ok') discovered.set(target.name, target.sitemap);
   };
-  if (siteUrl) checkRobots(dir, discovered, include, add);
+  if (siteUrl) checkRobots(inventory, discovered, include, add);
   for (const [name, sitemap] of discovered) {
     if (sitemap.error || !Object.hasOwn(ENTRY, sitemap.kind)) {
-      if (siteUrl)
-        add(
-          name,
-          'robots-sitemap',
-          `invalid sitemap: ${sitemap.error ?? 'expected a urlset or sitemapindex root'}`
-        );
+      add(
+        name,
+        'robots-sitemap',
+        `invalid sitemap: ${sitemap.error ?? 'expected a urlset or sitemapindex root'}; repair ${name} or its generating configuration`
+      );
       continue;
     }
     if (sitemap.kind === 'urlset') checkEntries(name, sitemap, noindexFiles, fileFor, siteUrl, add);

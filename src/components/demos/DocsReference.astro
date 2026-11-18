@@ -117,7 +117,10 @@ pnpm run verify`,
 
 const structure = [
   { path: 'AGENTS.md', what: 'Index for every coding agent: rules, commands, task → skill' },
-  { path: 'PROJECT.md', what: 'Your site brief; overrides AGENTS.md' },
+  {
+    path: 'PROJECT.md',
+    what: 'Site decisions and explicit user-approved implementation exceptions',
+  },
   { path: 'brief/', what: 'Your input material' },
   { path: '.agents/skills/', what: 'Skills (source); .claude/skills/ is a generated mirror' },
   { path: 'src/config/site.ts', what: 'Brand, navigation, footer, SEO defaults, feature flags' },
@@ -129,7 +132,7 @@ const structure = [
   { path: 'src/pages/', what: 'File-based routes' },
   { path: 'src/content/blog/', what: 'Blog posts (content collection)' },
   { path: 'scripts/, tests/', what: 'Verify, theme, cleanup and sync scripts with tests' },
-  { path: 'docs/agents/', what: 'Supported agents and MCP setup' },
+  { path: 'docs/agents/', what: 'Astro/Tailwind conventions, supported agents and MCP setup' },
 ];
 ---
 

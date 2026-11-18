@@ -1,8 +1,12 @@
 # AstroDeck glossary
 
+**Build output**. Files produced by a production build and prepared for deployment.
+
 **Clean starter**. The project after demo cleanup. It contains a minimal home page and a 404 page, with an optional blog.
 
 **Decorative image**. An image that adds no information or function to the surrounding content. Use an empty alt attribute for it.
+
+**Fragment link**. A link to a named location within a document.
 
 **Image-only link**. A link whose visible content consists of images. Its accessible name describes the destination or action.
 

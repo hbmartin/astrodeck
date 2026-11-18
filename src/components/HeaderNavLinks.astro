@@ -1,24 +1,11 @@
 ---
 import { site } from '@/config/site';
+import { navigationState } from '@/lib/navigation';
 
 interface Props {
   mobile?: boolean;
 }
 const { mobile = false } = Astro.props;
-const normalizePath = (path: string) => path.replace(/\/+$/, '') || '/';
-const path = normalizePath(Astro.url.pathname);
-
-function linkPath(href: string) {
-  if (!/^\/(?![/\\])/.test(href)) return undefined;
-  return normalizePath(new URL(href, Astro.url).pathname);
-}
-
-function getNavState(href: string) {
-  const target = linkPath(href);
-  const exact = target === path;
-  const descendant = target && target !== '/' && path.startsWith(target + '/');
-  return { exact, active: exact || descendant };
-}
 
 const base = mobile
   ? 'block px-3 py-2 rounded-md text-base font-medium transition-colors'
@@ -30,7 +17,7 @@ const inactive = mobile
 ---
 
 {site.nav.map(({ href, label }) => {
-  const { active, exact } = getNavState(href);
+  const { active, exact } = navigationState(href, Astro.url);
   return (
     <a
       href={href}

@@ -109,11 +109,16 @@ const skillRoutes = [
         codeClass="text-sm font-mono"
         code={`git clone --branch main --single-branch https://github.com/hbmartin/astrodeck.git my-site
 cd my-site
+git remote remove origin
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
 pnpm install --frozen-lockfile
 pnpm run dev`}
       />
       <p class="text-sm text-muted-foreground mt-3">
-        The main branch source ZIP also includes the lockfile. Then let your agent run the workflow,
+        These commands keep the starter history and set your own remote before a first push. For
+        independent history, use the source ZIP, run <code class={ic}>git init</code>, commit your
+        site and add your own remote. Contributors keep their fork remote and follow
+        CONTRIBUTING.md. The ZIP also includes the lockfile. Then let your agent run the workflow,
         or work by hand: set <code class={ic}>src/config/site.ts</code>, run{' '}
         <code class={ic}>pnpm run theme</code>, compose pages from sections and finish with{' '}
         <code class={ic}>pnpm run verify</code>.
@@ -212,9 +217,10 @@ pnpm run dev`}
         <code class={ic}>PROJECT.md</code> — the brief
       </h3>
       <p class="text-sm text-muted-foreground mb-3">
-        The agent writes a structured brief and keeps it up to date. It overrides the defaults in{' '}
-        <code class={ic}>AGENTS.md</code>, so later sessions and other agents continue from it.
-        Headings:
+        The agent writes a structured brief and keeps it up to date. It governs site decisions and
+        explicit user-approved exceptions to starter implementation defaults. Record each exception
+        and its source; it does not silently waive verification or content-honesty requirements.
+        Later sessions and other agents continue from it. Headings:
       </p>
       <p class="text-sm">
         Goal &amp; audience · Offer · Sitemap · Tone &amp; language · Brand · Content sources ·

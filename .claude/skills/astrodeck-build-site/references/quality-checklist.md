@@ -6,7 +6,8 @@ Run this before telling the user a page or site is done. Every item names how it
   tests, build, built-HTML checks). Must end with `VERIFY PASSED`.
 - **vibe2prod** = the vibe2prod skill (production-readiness audit of the built site or live URL).
 - **e2e** = `pnpm run test:e2e` (builds, then checks the real homepage, mobile menu, theme toggle
-  and skip-link focus and browser history in Chromium; once: `pnpm exec playwright install chromium`).
+  and skip-link focus in Chromium; Back/Forward is a named step when a same-tab, same-origin
+  HTML navigation target exists, otherwise it reports an explained skipped step; once: `pnpm exec playwright install chromium`).
   Menu opening and closing are checked by click and keyboard. When desktop navigation has links,
   corresponding links must be visible in the open mobile menu. Empty lists are supported.
   A customized homepage using `MinimalLayout` reports the three shared-header checks as skipped. Demo and
@@ -14,7 +15,7 @@ Run this before telling the user a page or site is done. Every item names how it
 - **manual** = you look at it yourself, in the browser, at the stated widths.
 
 Fix failures at the cause. Never silence a check by adding an ignore marker, deleting the rule
-or editing generated output.
+or patching generated output. Repair legitimate check defects and regenerate output from its source.
 
 ## 1. Gate
 
@@ -41,7 +42,7 @@ or editing generated output.
 | Item | How |
 |------|-----|
 | No dead `href="#"` or `action="#"` | verify (`dead-href`, `dead-action`) |
-| Every internal link resolves to a built page within the output directory | verify (`internal-link`) |
+| Local references resolve within build output with exact case and Unicode spelling; all symlinks are rejected | verify (`internal-link`, `build-symlink`, `build-io`) |
 | Exactly one `h1` per page, headings in order | verify (`h1-count`), manual for order |
 | Navigation and footer lists match the pages that exist | manual |
 | 404 page exists and links home | manual |
@@ -53,6 +54,7 @@ or editing generated output.
 | Meaningful `alt` on content images, empty `alt` on decorative ones, no filename alts | verify (`alt-quality`) |
 | Landmarks, labels, ARIA and contrast flagged by the audit are fixed | vibe2prod |
 | Keyboard: tab through each page; focus ring always visible; menus, dialog and accordion work with keys | e2e (skip link, menu), manual |
+| Image-only links and native buttons containing images have accessible names | verify (`image-link-name`, `image-button-name`) |
 | Form fields have labels; errors are readable without color | manual |
 | Text contrast uses token pairs as designed | verify (`raw-palette-color`, `hex-or-arbitrary-color`), vibe2prod |
 | Reduced motion: content is visible with animations off | manual (OS setting on) |
@@ -96,6 +98,7 @@ Check each page at 375, 768, 1024 and 1280 px width.
 | Unique, non-empty `<title>` on every page | verify (`title-unique`, `title-empty`) |
 | Meta description on every page | verify (`meta-description`) |
 | Every indexable page has one canonical and one matching `og:url` in its head pointing at that page on the production URL | verify (`canonical`) |
+| Sitemap XML is complete and valid, including programmatic checks without a production origin | verify (`robots-sitemap`) |
 | Pages marked `noindex` are not in the sitemap | verify (`sitemap-noindex`) |
 | Every sitemap page URL uses the `SITE_URL` origin; same-origin `customPages` may be served outside this build | verify (`robots-sitemap`) |
 | When a sitemap is emitted, `robots.txt` advertises a built sitemap or sitemap index on the production origin; all declared targets and nested indexes resolve to sitemap XML | verify (`robots-sitemap`) |
@@ -108,7 +111,7 @@ Check each page at 375, 768, 1024 and 1280 px width.
 
 | Item | How |
 |------|-----|
-| No inline `style`, no deep relative imports, no `tailwind.config.*`, no ViewTransitions | verify (`lint-design`) |
+| No literal inline styles (dynamic CSS variables may use expressions), deep relative imports, `tailwind.config.*` or ViewTransitions | verify (`lint-design`) |
 | New sections are registered in `src/registry.json` with props and `useWhen` | verify (`registry`) |
 | Docs you touched still reference files that exist | verify (`lint-docs`) |
 | No secrets, API keys or personal data committed | manual |

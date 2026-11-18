@@ -193,6 +193,75 @@ test('keeps Astro aliases with no writes to the binding', () => {
   );
 });
 
+test('immutable loop-local aliases and renderer hints retain their initialized values', () => {
+  const body =
+    "const runtime = Astro; const key = 'resolve'; runtime[key](); " +
+    "const renderer = 'react'; const view = <Demo client:only={renderer} />;";
+  for (const loop of [
+    `for (const item of items) { ${body} }`,
+    `for (const key in items) { ${body} }`,
+    `for (let index = 0; index < count; index++) { ${body} }`,
+    `while (cond) { ${body} }`,
+    `do { ${body} } while (cond);`,
+    `for (const item of items) { while (cond) { ${body} } }`,
+  ])
+    assert.deepEqual(rules(`{(() => { ${loop} })()}`), ['astro/no-deprecated-astro-resolve'], loop);
+  assert.deepEqual(rules(astro('for (const runtime = Astro; cond;) { runtime.resolve(); }')), [
+    'astro/no-deprecated-astro-resolve',
+  ]);
+});
+
+test('captured constants retain their lexical initialization guards', () => {
+  for (const read of [
+    'function visit() { runtime.resolve(); }',
+    'const visit = () => runtime.resolve();',
+    'class Visit { value = runtime.resolve(); }',
+    'class Visit { method() { runtime.resolve(); } }',
+    'if (other) { const visit = () => runtime.resolve(); }',
+  ]) {
+    const body = `if (cond) { const runtime = Astro; ${read} }`;
+    assert.deepEqual(rules(astro(body)), ['astro/no-deprecated-astro-resolve'], body);
+    assert.deepEqual(
+      rules(astro(`for (const item of items) { ${body} }`)),
+      ['astro/no-deprecated-astro-resolve'],
+      read
+    );
+  }
+});
+
+test('immutable inference keeps source order, shadowing and uncertain writes conservative', () => {
+  for (const code of [
+    'for (const item of items) { runtime.resolve(); const runtime = Astro; }',
+    'for (const runtime of items) { runtime.resolve(); }',
+    'for (const key in items) { Astro[key](); }',
+    'let runtime = Astro; while (cond) { runtime.resolve(); runtime = {}; }',
+    'if (cond) { let runtime = Astro; function visit() { runtime.resolve(); } }',
+    'const runtime = Astro; function replace() { runtime = {}; } runtime.resolve();',
+    'const runtime = Astro; if (cond) runtime = {}; runtime.resolve();',
+    'if (cond) { const runtime = Astro; function visit(runtime) { runtime.resolve(); } }',
+    'if (cond) { const runtime = Astro; } const visit = () => runtime.resolve();',
+  ])
+    assert.deepEqual(rules(astro(code)), [], code);
+  assert.deepEqual(
+    rules(
+      "{(() => { for (const item of items) { const view = <Demo client:only={renderer} />; const renderer = 'react'; } })()}"
+    ),
+    ['astro/missing-client-only-directive-value']
+  );
+});
+
+test('writes nested in TypeScript assignment wrappers invalidate aliases', () => {
+  for (const write of [
+    '[runtime!] = others',
+    '({ value: runtime! } = others)',
+    '[(runtime as unknown)] = others',
+    '[...runtime!] = others',
+    '[runtime! = fallback] = others',
+    '({ value: [runtime!] } = others)',
+  ])
+    assert.deepEqual(rules(astro(`let runtime = Astro; ${write}; runtime.resolve();`)), [], write);
+});
+
 test('reports an aliased getEntryBySlug import from astro:content only', () => {
   assert.deepEqual(rules(astro("import { getEntryBySlug as find } from 'astro:content';")), [
     'astro/no-deprecated-getentrybyslug',

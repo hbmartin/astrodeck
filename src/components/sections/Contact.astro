@@ -107,7 +107,7 @@ const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
           <form action={form.action} method={form.method ?? 'post'}>
             <div class="space-y-5">
               {/* Name */}
-              <div class="space-y-1.5">
+              <div class="contact-field space-y-1.5">
                 <label for="contact-name" class="text-sm font-medium leading-none">
                   {ui.contact.name}{' '}
                   <span class="text-destructive" aria-hidden="true">
@@ -125,7 +125,7 @@ const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
               </div>
 
               {/* Email */}
-              <div class="space-y-1.5">
+              <div class="contact-field space-y-1.5">
                 <label for="contact-email" class="text-sm font-medium leading-none">
                   {ui.contact.email}{' '}
                   <span class="text-destructive" aria-hidden="true">
@@ -143,7 +143,7 @@ const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
               </div>
 
               {/* Subject */}
-              <div class="space-y-1.5">
+              <div class="contact-field space-y-1.5">
                 <label for="contact-subject" class="text-sm font-medium leading-none">
                   {ui.contact.subject}
                 </label>
@@ -157,7 +157,7 @@ const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
               </div>
 
               {/* Message */}
-              <div class="space-y-1.5">
+              <div class="contact-field space-y-1.5">
                 <label for="contact-message" class="text-sm font-medium leading-none">
                   {ui.contact.message}{' '}
                   <span class="text-destructive" aria-hidden="true">
@@ -169,7 +169,7 @@ const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
                   name="message"
                   required
                   rows="5"
-                  class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[120px] supports-[field-sizing:content]:field-sizing-content supports-[field-sizing:content]:overflow-y-auto"
+                  class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-y min-h-[120px] supports-[field-sizing:content]:field-sizing-content supports-[field-sizing:content]:max-h-80 supports-[field-sizing:content]:overflow-y-auto"
                 />
               </div>
 
@@ -195,3 +195,10 @@ const telHref = phone ? `tel:${phone.replace(/[^\d+]/g, '')}` : undefined;
     </div>
   </div>
 </section>
+
+<style>
+  .contact-field:has(> :user-invalid) > label {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+</style>

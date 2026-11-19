@@ -12,6 +12,8 @@
 
 **Image-only link**. A link whose visible content consists of images. Its accessible name describes the destination or action.
 
+**Logical source path**. A document's location in a repository, independent of where its content is stored.
+
 **Production origin**. The scheme, host and port of the site's production URL.
 
 **Role fallback list**. An ordered list of accessibility roles. A browser uses the first role it recognizes.
@@ -19,3 +21,5 @@
 **Sitemap**. A file listing page URLs for search engines to discover.
 
 **Sitemap index**. A file listing the locations of other sitemaps.
+
+**Source reference**. A link or command that identifies project code.

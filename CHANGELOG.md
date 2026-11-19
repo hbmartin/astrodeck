@@ -16,6 +16,12 @@ All notable changes to AstroDeck are documented in this file.
 
 ### Fixes
 
+- Maintainer source-reference checks distinguish AstroDeck identities and explicit source roles from unrelated repositories and generic local links. Equivalent GitHub URL forms are normalized while branch, file, query and scheme differences remain checked; the clone grammar stays bounded.
+
+- Standalone reference-style images and unused Markdown definitions no longer create source findings. Shared link definitions are checked once, conflicting explicit roles receive one diagnostic, and reference-image labels and simple inline HTML retain their source roles and exact destination locations.
+
+- Relative source-document imports preserve literal `#` and `?` in importer directories. Missing-document errors identify the request and importer, and lexical repository escapes are rejected before filesystem lookup. The existing linked-importer-directory limitation is documented.
+
 - Relative source-document imports preserve logical repository paths through linked files. Errors probing an optional project-root candidate no longer prevent valid absolute-path fallback; document-load errors and repository containment remain enforced.
 
 - Kit source-reference checks recognize normalized labels and known destination shapes without relying on current headings. Markdown findings use exact destination lines and report shared definitions once. Fenced clone checks handle prompts, indentation, quoted branch options and substitutions without ignoring literal repositories because of target-directory variables or comments.

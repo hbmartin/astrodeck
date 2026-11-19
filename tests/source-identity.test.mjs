@@ -18,7 +18,7 @@ test(
     );
     for (const [file, text] of Object.entries(documents))
       assert.ok(
-        sourceReferences(text).length > 0,
+        sourceReferences(text, sourceIdentity).length > 0,
         `${file}: maintainer source references must be checked`
       );
     assert.deepEqual(sourceDrift(documents, sourceIdentity), []);
@@ -26,7 +26,10 @@ test(
 );
 
 const EXAMPLE = { repository: 'https://github.com/example/project', branch: 'next' };
-const FIXTURE_OPTIONS = { upstreamRepositories: ['https://github.com/upstream/project'] };
+const FIXTURE_OPTIONS = {
+  formerRepositories: ['https://github.com/stale/source'],
+  upstreamRepositories: ['https://github.com/upstream/project'],
+};
 
 function exampleDocuments() {
   const { repository, branch } = EXAMPLE;

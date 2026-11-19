@@ -153,11 +153,30 @@ pnpm run check:registry`}
     separate check.
   </p>
   <p class="text-sm text-muted-foreground mt-3">
-    Kit verification checks recognized source links and fenced clone commands in README,
-    CONTRIBUTING and <code class={ic}>public/llms.txt</code> against the shared repository identity.
-    It covers repository, source ZIP, registry, AGENTS and skills-tree references; unfamiliar link
-    types remain unchecked. Findings identify the URL or command to edit, with shared reference
-    definitions reported once. Customer documentation is outside these kit-only checks.
+    Kit verification checks maintainer source references in README, CONTRIBUTING and{' '}
+    <code class={ic}>public/llms.txt</code> against the shared repository identity. It recognizes
+    current and former AstroDeck source identities and explicit labels such as "Source ZIP" or
+    "AstroDeck AGENTS.md". Unrelated repositories, generic local AGENTS/skills links and unfamiliar
+    destinations without an explicit source role remain unchecked. Explicit roles take precedence
+    over upstream exemptions. Customer documentation is outside these kit-only checks.
+  </p>
+  <p class="text-sm text-muted-foreground mt-3">
+    The source checks normalize equivalent GitHub identities, default ports, fragments and trailing
+    slashes on repository roots and skills directories. Scheme, query, branch and file-path
+    differences still matter. Findings identify the destination or command to edit; shared
+    definitions are checked once, and incompatible source roles need separate definitions.
+    Standalone images and unused definitions are excluded. Labels support Markdown, reference-image
+    alt text and simple inline HTML wrappers.
+  </p>
+  <p class="text-sm text-muted-foreground mt-3">
+    Fenced clone checks cover simple single-line commands with supported clone options and an
+    optional <code class={ic}>$ </code> prompt. Unsupported forms remain unchecked, including
+    compound commands, redirections, command substitutions, continuations, global Git options before{' '}
+    <code class={ic}>clone</code>, <code class={ic}>%</code> prompts and unsupported option bundles.
+    Recognized clone sources require HTTPS and the documented repository's{' '}
+    <code class={ic}>.git</code> endpoint. Source-document exports support linked documents;
+    relative imports from an importer already resolved through a symlinked directory can lose their
+    logical identity and are unsupported.
   </p>
 </section>
 

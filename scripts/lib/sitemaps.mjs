@@ -1,8 +1,13 @@
 import { basename } from 'node:path';
 import sax from 'sax';
+import { normalizeBuildLookup } from './build-paths.mjs';
 
 const NAMESPACE = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 const ENTRY = { urlset: 'url', sitemapindex: 'sitemap' };
+
+function isSitemapDocument(name, sitemap) {
+  return Object.hasOwn(ENTRY, sitemap.kind) || /^sitemap.*\.xml$/u.test(basename(name));
+}
 
 function validateCharacters(xml) {
   for (const character of xml) {
@@ -133,7 +138,7 @@ function targetSitemap(value, inventory, files, siteUrl) {
   if (target.status === 'blocked') return target;
   if (target.status === 'missing') return { error: `Sitemap ${value} is not a built XML sitemap` };
   const { sitemap } = target;
-  if (!Object.hasOwn(ENTRY, sitemap.kind))
+  if (!isSitemapDocument(target.name, sitemap))
     return {
       error: `Sitemap ${value} is not a built XML sitemap (expected a urlset or sitemapindex root)`,
     };
@@ -166,26 +171,26 @@ function checkEntries(name, sitemap, noindexFiles, fileFor, siteUrl, add) {
         );
       continue;
     }
-    const file = fileFor(url.pathname);
-    if (file && noindexFiles.has(file))
+    const target = normalizeBuildLookup(fileFor(url.pathname));
+    if (target.status === 'ok' && noindexFiles.has(target.path))
       add(
-        file,
+        target.path,
         'sitemap-noindex',
         `noindex page is listed in ${name}; exclude it with the sitemap filter in astro.config.mjs`
       );
   }
 }
 
-/** Inspect all emitted sitemaps and exact local index/robots references without network requests. */
+/**
+ * Inspect all emitted sitemaps and exact local index/robots references without network requests.
+ * fileFor may return a relative file path/undefined or an ok/missing/blocked lookup result.
+ */
 export function checkSitemaps(inventory, noindexFiles, fileFor, siteUrl) {
   const findings = [];
   const add = (file, rule, message) => findings.push({ file, rule, message });
   const files = sitemapFiles(inventory);
   const discovered = new Map(
-    [...files].filter(
-      ([name, sitemap]) =>
-        Object.hasOwn(ENTRY, sitemap.kind) || /^sitemap.*\.xml$/u.test(basename(name))
-    )
+    [...files].filter(([name, sitemap]) => isSitemapDocument(name, sitemap))
   );
   const include = (value, source) => {
     const target = targetSitemap(value, inventory, files, siteUrl);

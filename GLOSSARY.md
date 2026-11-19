@@ -14,6 +14,8 @@
 
 **Production origin**. The scheme, host and port of the site's production URL.
 
+**Role fallback list**. An ordered list of accessibility roles. A browser uses the first role it recognizes.
+
 **Sitemap**. A file listing page URLs for search engines to discover.
 
 **Sitemap index**. A file listing the locations of other sitemaps.

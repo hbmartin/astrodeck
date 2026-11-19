@@ -1,3 +1,10 @@
+const untilFoundDisplays = [
+  { name: 'inline default', tag: 'span', display: 'inline' },
+  { name: 'block default', tag: 'div', display: 'block' },
+  { name: 'block with inline override', tag: 'div', display: 'inline', override: true },
+  { name: 'inline with block override', tag: 'span', display: 'block', override: true },
+];
+
 export const imageNameCases = [
   { name: 'noscript is inactive', body: '<button id="control"><img alt=""><noscript>Open menu</noscript></button>', named: false },
   { name: 'image reference text', body: '<span id="label">Open menu</span><button id="control"><img alt="" aria-labelledby="label"></button>', named: true },
@@ -50,17 +57,38 @@ export const imageNameCases = [
   { name: 'abstract role permits presentation fallback', body: '<button id="control"><img role="widget presentation" alt="Open"></button>', named: false },
   { name: 'ASCII whitespace separates fallback roles', body: '<button id="control"><img role="unknown\t\n\f\r presentation" alt="Open"></button>', named: false },
   { name: 'non-ASCII whitespace does not separate fallback roles', body: '<button id="control"><img role="unknown\u00a0presentation" alt="Open"></button>', named: true },
+  ...['image', 'comment', 'sectionheader', 'sectionfooter'].flatMap((role) => [
+    { name: `${role} wins before presentation`, body: `<button id="control"><img role="${role} presentation" alt="Open"></button>`, named: true },
+    { name: `presentation wins before ${role}`, body: `<button id="control"><img role="presentation ${role}" alt="Open"></button>`, named: false },
+    { name: `${role} descendant permits title fallback`, body: `<button id="control"><img alt=""><span role="${role}" title="Open"></span></button>`, named: true },
+  ]),
+  { name: 'implicit native label skips a hidden input', body: '<label>Open menu<input type="HIDDEN"><button id="control"><img alt=""></button></label>', named: true },
+  { name: 'self reference with empty native label stays empty', body: '<label for="control"></label><button id="control" aria-labelledby="control"><img alt=""></button>', named: false },
+  { name: 'self reference with empty native label retains image name', body: '<label for="control"></label><button id="control" aria-labelledby="control"><img alt="Open menu"></button>', named: true },
+  { name: 'self reference permits named native label fallback', body: '<label for="control">Open menu</label><button id="control" aria-labelledby="control"><img alt=""></button>', named: true },
+  { name: 'native label reference cycle stays empty', body: '<label for="control" aria-labelledby="control"></label><button id="control"><img alt=""></button>', named: false },
+  { name: 'native label reference cycle retains image name', body: '<label for="control" aria-labelledby="control"></label><button id="control"><img alt="Open menu"></button>', named: true },
+  ...untilFoundDisplays.flatMap((fixture) => {
+    const opening = `<${fixture.tag} hidden="until-found"${fixture.override ? ` style="display:${fixture.display}"` : ''}>`;
+    const closing = `</${fixture.tag}>`;
+    return [
+      { name: `${fixture.name} until-found empty descendant`, body: `<button id="control"><img alt="">${opening}${closing}</button>`, named: false },
+      { name: `${fixture.name} until-found whitespace descendant`, body: `<button id="control"><img alt="">${opening} \n\t ${closing}</button>`, named: false },
+    ];
+  }),
+  ...['script', 'style', 'template', 'noscript'].map((tag) => ({
+    name: `until-found ${tag} remains inactive`,
+    body: `<button id="control"><img alt=""><${tag} hidden="until-found" aria-label="Open menu">Open menu</${tag}></button>`,
+    named: false,
+  })),
+  { name: 'until-found nested empty image suppresses its title', body: '<button id="control"><img alt=""><span hidden="until-found"><span><img alt="" title="Open menu"></span></span></button>', named: false },
+  { name: 'until-found hidden descendants remain excluded', body: '<button id="control"><img alt=""><span hidden="until-found"><span hidden>Open menu</span><input type="hidden" aria-label="Open menu"></span></button>', named: false },
+  { name: 'until-found empty direct reference stays empty', body: '<span id="source" hidden="until-found"></span><button id="control" aria-labelledby="source"><img alt=""></button>', named: false },
+  { name: 'until-found empty native label suppresses content and title', body: '<label for="control" hidden="until-found"></label><button id="control" title="Open menu"><img alt="Open menu"></button>', named: false },
 ];
 
 // These are intentionally separate from parity cases: CSS changes the browser name, while
 // the HTML-only checker must decline to report a certain missing-name finding in every case.
-const untilFoundDisplays = [
-  { name: 'inline default', tag: 'span', display: 'inline' },
-  { name: 'block default', tag: 'div', display: 'block' },
-  { name: 'block with inline override', tag: 'div', display: 'inline', override: true },
-  { name: 'inline with block override', tag: 'span', display: 'block', override: true },
-];
-
 export const untilFoundNameCases = untilFoundDisplays.flatMap((fixture) => {
   const opening = `<${fixture.tag} id="source" hidden="until-found"${fixture.override ? ` style="display:${fixture.display}"` : ''}>`;
   const closing = `</${fixture.tag}>`;

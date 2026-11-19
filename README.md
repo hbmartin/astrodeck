@@ -266,6 +266,8 @@ native buttons containing images.
 Static image-control naming checks leave uncertain cases unreported. For example,
 `hidden="until-found"` visibility depends on computed CSS, so an internal UNKNOWN result is not
 proof that a control has a name. Review CSS-dependent cases in a browser.
+Provably empty naming sources still produce a finding, including empty or inert content inside
+an until-found subtree. Role fallback lists use the first role recognized by Chromium.
 
 `pnpm run test:e2e` builds and tests the real homepage in Chromium. It checks the response,
 main landmark and heading, then the mobile menu, theme toggle and skip-link focus and browser
@@ -283,6 +285,10 @@ Chromium's accessibility tree. It covers deterministic naming cases and explicit
 conservative treatment of CSS-dependent `hidden="until-found"` fixtures. It runs without an
 Astro build and requires Chromium (`pnpm exec playwright install chromium`). It complements
 the offline verification checks and the four homepage tests.
+
+Kit verification also checks maintainer repository and branch references in README,
+CONTRIBUTING and `public/llms.txt` against `src/lib/source-identity.mjs`. These documents remain
+hand-authored; outside `ASTRODECK_KIT_CHECKS=1`, customer documentation can use its own links.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured

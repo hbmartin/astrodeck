@@ -1,14 +1,24 @@
-import { readFileSync, realpathSync } from 'node:fs';
+import { readFileSync, realpathSync, statSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 const QUERY = '?source-links&raw';
 const PREFIX = '\0astrodeck:source-links:';
 
-function documentPath(id, root) {
+function documentPath(id) {
   if (!id.endsWith(QUERY)) return;
-  const path = id.slice(0, -QUERY.length);
+  return id.slice(0, -QUERY.length);
+}
+
+function importPath(id, root) {
+  const path = documentPath(id);
+  if (!path) return;
   if (path.startsWith('@root/')) return resolve(root, path.slice('@root/'.length));
-  if (isAbsolute(path)) return path;
+  if (!isAbsolute(path)) return;
+  // Vite tries a leading slash from the project root before an absolute filesystem path.
+  const fromRoot = resolve(root, `.${path}`);
+  return path.startsWith('/') && statSync(fromRoot, { throwIfNoEntry: false })?.isFile()
+    ? fromRoot
+    : path;
 }
 
 /** Resolve source-document links during the build, before runtime endpoint modules are emitted. */
@@ -22,7 +32,7 @@ export function documentationLinksPlugin() {
       root = resolve(config.root);
     },
     resolveId(id) {
-      const path = documentPath(id, root);
+      const path = importPath(id, root);
       // A virtual ID prevents Vite from replacing the document's repository identity
       // with its real path before load, while reads still follow linked content.
       if (path) return `${PREFIX}${encodeURIComponent(path)}.js`;
@@ -30,8 +40,9 @@ export function documentationLinksPlugin() {
     async load(id) {
       const path = id.startsWith(PREFIX)
         ? decodeURIComponent(id.slice(PREFIX.length, -'.js'.length))
-        : documentPath(id, root);
-      if (!path) return;
+        : documentPath(id);
+      // A load hook receives resolved IDs; never prepend the project root a second time.
+      if (!path || !isAbsolute(path)) return;
       this.addWatchFile(path);
       const realPath = realpathSync(path);
       if (realPath !== path) this.addWatchFile(realPath);

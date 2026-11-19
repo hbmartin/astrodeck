@@ -11,7 +11,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, sep } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { absoluteSourceLinks } from '../src/lib/documentation-links.mjs';
 import { sourceIdentity } from '../src/lib/source-identity.mjs';
@@ -26,6 +26,46 @@ function destinations(text) {
     .flatMap((token) => token.children ?? [])
     .filter((token) => ['link_open', 'image'].includes(token.type))
     .map((token) => token.attrGet(token.type === 'image' ? 'src' : 'href'));
+}
+
+function linkedCheckout(t) {
+  // Vite normalizes macOS /var before configResolved; retain only the checkout symlink.
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), 'astrodeck-linked-docs-')));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const actualRoot = join(directory, 'actual');
+  const root = join(directory, 'checkout');
+  mkdirSync(actualRoot);
+  symlinkSync(actualRoot, root, 'dir');
+  return { directory, actualRoot, root };
+}
+
+function astroFixture(t) {
+  const fixture = linkedCheckout(t);
+  const { actualRoot } = fixture;
+  const project = fileURLToPath(new URL('../', import.meta.url));
+  mkdirSync(join(actualRoot, 'src', 'pages'), { recursive: true });
+  mkdirSync(join(actualRoot, 'src', 'lib'));
+  symlinkSync(join(project, 'node_modules'), join(actualRoot, 'node_modules'), 'dir');
+  writeFileSync(join(actualRoot, 'package.json'), '{"type":"module"}');
+  writeFileSync(
+    join(actualRoot, 'tsconfig.json'),
+    JSON.stringify({ compilerOptions: { paths: { '@/*': ['./src/*'], '@root/*': ['./*'] } } })
+  );
+  return { ...fixture, project };
+}
+
+async function buildFixture(root) {
+  const { build } = await import('astro');
+  await build({
+    root: pathToFileURL(root + sep),
+    configFile: false,
+    logLevel: 'silent',
+    vite: { plugins: [documentationLinksPlugin()] },
+  });
+}
+
+function moduleText(module) {
+  return JSON.parse(module.slice('export default '.length, -1));
 }
 
 test('documentation links resolve relative to each source with queries and fragments', () => {
@@ -240,20 +280,13 @@ test('the build plugin emits watched source documents as static string modules',
   assert.equal(plugin.resolveId('@root/docs/guide.md?raw'), undefined);
   const id = plugin.resolveId('@root/docs/guide.md?source-links&raw');
   const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
-  assert.equal(
-    JSON.parse(module.slice('export default '.length, -1)),
-    `\uFEFF[Read](${SOURCE}README.md)\r\n`
-  );
+  assert.equal(moduleText(module), `\uFEFF[Read](${SOURCE}README.md)\r\n`);
   assert.deepEqual(watched, [...new Set([file, realpathSync(file)])]);
 });
 
 test('linked documents keep their repository path and watch their linked content', async (t) => {
-  const directory = mkdtempSync(join(tmpdir(), 'astrodeck-linked-docs-'));
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const actualRoot = join(directory, 'actual');
-  const root = join(directory, 'checkout');
+  const { directory, actualRoot, root } = linkedCheckout(t);
   mkdirSync(join(actualRoot, 'docs'), { recursive: true });
-  symlinkSync(actualRoot, root, 'dir');
   const target = join(directory, 'external.md');
   writeFileSync(target, '[Peer](peer.md)');
   const file = join(root, 'docs', 'guide.md');
@@ -263,11 +296,83 @@ test('linked documents keep their repository path and watch their linked content
   const watched = [];
   const id = plugin.resolveId('@root/docs/guide.md?source-links&raw');
   const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
-  assert.equal(
-    JSON.parse(module.slice('export default '.length, -1)),
-    `[Peer](${SOURCE}docs/peer.md)`
-  );
+  assert.equal(moduleText(module), `[Peer](${SOURCE}docs/peer.md)`);
   assert.deepEqual(watched, [file, realpathSync(target)]);
+});
+
+test('resolved absolute loads do not repeat root-relative import resolution', async (t) => {
+  const { root } = linkedCheckout(t);
+  const file = join(root, 'guide.md');
+  const fromRoot = resolve(root, `.${file}`);
+  mkdirSync(dirname(fromRoot), { recursive: true });
+  writeFileSync(file, '[Absolute](peer.md)');
+  writeFileSync(fromRoot, '[Root](other.md)');
+  const plugin = documentationLinksPlugin();
+  plugin.configResolved({ root });
+  const context = { addWatchFile() {} };
+  const loaded = await plugin.load.call(context, `${file}?source-links&raw`);
+  assert.equal(moduleText(loaded), `[Absolute](${SOURCE}peer.md)`);
+  const id = plugin.resolveId(`${file}?source-links&raw`);
+  const imported = await plugin.load.call(context, id);
+  assert.equal(
+    moduleText(imported),
+    absoluteSourceLinks('[Root](other.md)', relative(root, fromRoot).split(sep).join('/'))
+  );
+  writeFileSync(join(root, '..', 'outside.md'), '[Outside](peer.md)');
+  await assert.rejects(
+    plugin.load.call(context, `${join(root, '..', 'outside.md')}?source-links&raw`),
+    /Source document is outside the repository/u
+  );
+});
+
+test('the real Vite pipeline preserves source paths for root, alias and absolute imports', async (t) => {
+  const { directory, actualRoot, root } = astroFixture(t);
+  const content = '[Peer](peer.md)';
+  const target = join(directory, 'outside.md');
+  writeFileSync(target, content);
+  mkdirSync(join(root, 'docs'));
+  for (const path of ['README.md', 'docs/guide.md']) {
+    symlinkSync(target, join(root, path));
+  }
+  // Astro passes the canonical checkout root to Vite's configResolved hook.
+  const absolute = join(actualRoot, 'docs', 'guide.md');
+  const collision = join(actualRoot, 'docs', 'collision.md');
+  const fromRoot = resolve(actualRoot, `.${collision}`);
+  mkdirSync(dirname(fromRoot), { recursive: true });
+  writeFileSync(collision, '[Filesystem](unused.md)');
+  writeFileSync(fromRoot, '[Project](peer.md)');
+  const imports = {
+    readme: '/README.md?source-links&raw',
+    root: '/docs/guide.md?source-links&raw',
+    alias: '@root/docs/guide.md?source-links&raw',
+    absolute: `${absolute}?source-links&raw`,
+    raw: '/docs/guide.md?raw',
+    collision: `${collision}?source-links&raw`,
+    collisionRaw: `${collision}?raw`,
+  };
+  writeFileSync(
+    join(root, 'src', 'pages', 'documents.json.ts'),
+    [
+      ...Object.entries(imports).map(
+        ([name, path]) => `import ${name} from ${JSON.stringify(path)};`
+      ),
+      `export function GET() { return Response.json({ ${Object.keys(imports).join(', ')} }); }`,
+    ].join('\n')
+  );
+  await buildFixture(root);
+  const body = JSON.parse(readFileSync(join(actualRoot, 'dist', 'documents.json'), 'utf8'));
+  assert.deepEqual(body, {
+    readme: absoluteSourceLinks(content, 'README.md'),
+    root: absoluteSourceLinks(content, 'docs/guide.md'),
+    alias: absoluteSourceLinks(content, 'docs/guide.md'),
+    absolute: absoluteSourceLinks(content, 'docs/guide.md'),
+    raw: content,
+    collision: absoluteSourceLinks(
+      '[Project](peer.md)',
+      relative(actualRoot, fromRoot).split(sep).join('/')
+    ),
+    collisionRaw: '[Project](peer.md)',
+  });
 });
 
 // Cleanup removes the demo endpoint. Helper and plugin tests above remain active for customer sites.
@@ -278,20 +383,7 @@ test(
       process.env.ASTRODECK_KIT_CHECKS !== '1' && 'demo documentation export requires kit checks',
   },
   async (t) => {
-    const directory = mkdtempSync(join(tmpdir(), 'astrodeck-linked-export-'));
-    t.after(() => rmSync(directory, { recursive: true, force: true }));
-    const actualRoot = join(directory, 'actual');
-    const root = join(directory, 'checkout');
-    const project = fileURLToPath(new URL('../', import.meta.url));
-    mkdirSync(join(actualRoot, 'src', 'pages'), { recursive: true });
-    mkdirSync(join(actualRoot, 'src', 'lib'), { recursive: true });
-    symlinkSync(actualRoot, root, 'dir');
-    symlinkSync(join(project, 'node_modules'), join(actualRoot, 'node_modules'), 'dir');
-    writeFileSync(join(actualRoot, 'package.json'), '{"type":"module"}');
-    writeFileSync(
-      join(actualRoot, 'tsconfig.json'),
-      JSON.stringify({ compilerOptions: { paths: { '@/*': ['./src/*'], '@root/*': ['./*'] } } })
-    );
+    const { directory, actualRoot, root, project } = astroFixture(t);
     for (const path of ['src/pages/llms-full.txt.ts', 'src/lib/source-identity.mjs']) {
       writeFileSync(join(actualRoot, path), readFileSync(join(project, path)));
     }
@@ -302,13 +394,7 @@ test(
       mkdirSync(dirname(join(actualRoot, path)), { recursive: true });
       symlinkSync(target, join(actualRoot, path));
     }
-    const { build } = await import('astro');
-    await build({
-      root: pathToFileURL(root + sep),
-      configFile: false,
-      logLevel: 'silent',
-      vite: { plugins: [documentationLinksPlugin()] },
-    });
+    await buildFixture(root);
     const body = readFileSync(join(actualRoot, 'dist', 'llms-full.txt'), 'utf8');
     assert.ok(body.includes(`Source: ${sourceIdentity.repository}`));
     for (const path of documents) {

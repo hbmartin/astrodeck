@@ -23,12 +23,12 @@ const PRESENTATION = new Set(['none', 'presentation']);
 // Concrete ARIA roles: fallback lists use the first recognized token, not the whole attribute.
 const ROLES = new Set(
   `alert alertdialog application article banner blockquote button caption cell checkbox code
-  columnheader combobox complementary contentinfo definition deletion dialog
-  directory document emphasis feed figure form generic grid gridcell group heading img
+  columnheader combobox comment complementary contentinfo definition deletion dialog
+  directory document emphasis feed figure form generic grid gridcell group heading image img
   insertion link list listbox listitem log main mark marquee math menu menubar menuitem
   menuitemcheckbox menuitemradio meter navigation none note option paragraph presentation progressbar
   radio radiogroup region row rowgroup rowheader scrollbar search searchbox
-  separator slider spinbutton status strong subscript suggestion
+  sectionfooter sectionheader separator slider spinbutton status strong subscript suggestion
   superscript switch tab table tablist tabpanel term textbox time timer toolbar tooltip tree treegrid
   treeitem graphics-document graphics-object graphics-symbol
   doc-abstract doc-acknowledgments doc-afterword doc-appendix doc-backlink doc-biblioentry
@@ -59,11 +59,7 @@ function ownHidden(node) {
 }
 
 function labelable(node) {
-  const name = elementName(node);
-  return (
-    LABELABLE.has(name) &&
-    !(name === 'input' && attribute(node, 'type')?.toLowerCase() === 'hidden')
-  );
+  return LABELABLE.has(elementName(node)) && !hiddenInput(node);
 }
 
 function associateLabels(nodes, ids) {
@@ -104,7 +100,6 @@ function documentContext(root) {
     uncertainVisibility,
     labels: associateLabels(nodes, ids),
     cache: new WeakMap(),
-    active: new WeakMap(),
   };
 }
 
@@ -219,15 +214,22 @@ function excludedSource(current, state) {
   return current.context !== 'reference' && hiddenInput(node);
 }
 
+function uncertainVisibility(node, state) {
+  return state.uncertainVisibility.get(node) ?? state.uncertainVisibility.get(node.parentNode);
+}
+
+function visibilityState(value, node, state) {
+  return value === NAMED && uncertainVisibility(node, state) ? UNKNOWN : value;
+}
+
 function immediate(current, state) {
   if (current.value !== undefined) return current.value;
   if (excludedSource(current, state)) return EMPTY;
   const { node } = current;
-  // until-found relies on CSS display/content-visibility; parsed HTML cannot establish visibility.
-  if (state.uncertainVisibility.get(node) ?? state.uncertainVisibility.get(node.parentNode))
-    return UNKNOWN;
-  if (node.nodeName === '#text') return textState(node.value);
+  if (node.nodeName === '#text') return visibilityState(textState(node.value), node, state);
   if (!node.tagName || NON_CONTENT.has(elementName(node))) return EMPTY;
+  // CSS can hide the entire control, even when its supported name sources are empty.
+  if (current.context === 'control' && uncertainVisibility(node, state)) return UNKNOWN;
 }
 
 function cacheEntry(current, state) {
@@ -240,13 +242,10 @@ function cacheEntry(current, state) {
 function start(current, state) {
   const value = immediate(current, state);
   if (value !== undefined) return { value };
-  if (current.reference && state.active.get(current.node) && state.labels.has(current.node))
-    return { value: UNKNOWN };
   const entry = cacheEntry(current, state);
   const cached = entry.values.get(entry.key);
   if (cached !== undefined) return { value: cached === ACTIVE ? UNKNOWN : cached };
   entry.values.set(entry.key, ACTIVE);
-  state.active.set(current.node, (state.active.get(current.node) ?? 0) + 1);
   return {
     entry,
     groups: sources(current, state),
@@ -259,10 +258,11 @@ function start(current, state) {
 
 function finish(stack, value, state) {
   const frame = stack.pop();
-  frame.entry.values.set(frame.entry.key, value);
-  state.active.set(frame.entry.node, state.active.get(frame.entry.node) - 1);
-  if (stack.length) stack.at(-1).value = combine(stack.at(-1).value, value);
-  return value;
+  // Resolve source precedence first: uncertain CSS cannot make a proven empty source nonempty.
+  const result = visibilityState(value, frame.entry.node, state);
+  frame.entry.values.set(frame.entry.key, result);
+  if (stack.length) stack.at(-1).value = combine(stack.at(-1).value, result);
+  return result;
 }
 
 function evaluate(node, state) {

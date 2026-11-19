@@ -2,6 +2,7 @@
 import DemoExternalLink from '@/components/demos/DemoExternalLink.astro';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import ReleaseEntry from '@/components/demos/ReleaseEntry.astro';
+import { sourceIdentity } from '@/lib/source-identity.mjs';
 
 const releases = [
   {
@@ -544,7 +545,7 @@ const releases = [
         View the full technical changelog and source code on GitHub.
       </p>
       <DemoExternalLink
-        href="https://github.com/hbmartin/astrodeck/blob/main/CHANGELOG.md"
+        href={`${sourceIdentity.repository}/blob/${sourceIdentity.branch}/CHANGELOG.md`}
         label="Full Changelog on GitHub"
         class="rounded-md"
       />

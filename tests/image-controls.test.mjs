@@ -197,6 +197,21 @@ test('until-found visibility remains uncertain regardless of inline or block CSS
   );
 });
 
+test('until-found nonempty and unsupported name sources remain conservative', () => {
+  for (const source of [
+    '<span hidden="until-found" aria-label="Open menu"></span>',
+    '<span hidden="until-found" aria-labelledby="label"></span>',
+    '<span hidden="until-found"><img alt="Open menu"></span>',
+    '<span hidden="until-found"><custom-widget></custom-widget></span>',
+    '<span hidden="until-found"><input></span>',
+  ])
+    assert.deepEqual(
+      findings(`<span id="label">Open menu</span><button><img alt="">${source}</button>`),
+      [],
+      source
+    );
+});
+
 test('deeply nested names use all 5000 levels without recursion or truncation', () => {
   const open = '<span>'.repeat(5000);
   const close = '</span>'.repeat(5000);
@@ -214,12 +229,31 @@ test('deeply nested names use all 5000 levels without recursion or truncation', 
   );
 });
 
-test('complex native-label reference cycles stay uncertain instead of becoming false findings', () => {
+test('until-found descendants preserve empty states through all 5000 levels', () => {
+  const open = '<span>'.repeat(5000);
+  const close = '</span>'.repeat(5000);
+  for (const [content, expected] of [
+    ['', BUTTON_ERROR],
+    [' \n\t ', BUTTON_ERROR],
+    ['<img alt="" title="Open menu">', BUTTON_ERROR],
+    ['<script>Open menu</script><style>.menu { display: block }</style>', BUTTON_ERROR],
+    ['<img alt="Open menu">', []],
+    ['<custom-widget></custom-widget>', []],
+  ])
+    assert.deepEqual(
+      findings(
+        `<button><img alt=""><span hidden="until-found">${open}${content}${close}</span></button>`
+      ),
+      expected
+    );
+});
+
+test('native-label reference cycles distinguish empty and nonempty image names', () => {
   for (const alt of ['Open menu', ''])
     assert.deepEqual(
       findings(
         `<label for="control" aria-labelledby="control"></label><button id="control"><img alt="${alt}"></button>`
       ),
-      []
+      alt ? [] : BUTTON_ERROR
     );
 });

@@ -1,8 +1,10 @@
 ---
 import CodeBlock from '@/components/demos/CodeBlock.astro';
 import { ic, pre, card, link } from '@/components/demos/docs-styles';
+import { sourceIdentity } from '@/lib/source-identity.mjs';
 
-const repo = 'https://github.com/hbmartin/astrodeck';
+const repo = sourceIdentity.repository;
+const source = `${repo}/blob/${sourceIdentity.branch}`;
 
 const agentRows = [
   {
@@ -181,7 +183,7 @@ const structure = [
       the source. Details:{' '}
       <a
         class={link}
-        href={`${repo}/blob/main/docs/agents/supported-agents.md`}
+        href={`${source}/docs/agents/supported-agents.md`}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -217,7 +219,7 @@ const structure = [
         Setup for Codex, Cursor and VS Code:{' '}
         <a
           class={link}
-          href={`${repo}/blob/main/docs/agents/mcp-setup.md`}
+          href={`${source}/docs/agents/mcp-setup.md`}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -259,6 +261,11 @@ pnpm run preview   # serve the build locally`}
         Set <code class={ic}>SITE_URL</code> in <code class={ic}>src/config/site-url.mjs</code>{' '}
         first: canonical URLs, sitemap and RSS use it.
       </p>
+      <p class="text-sm text-muted-foreground mt-3">
+        The shipped templates support deployment at the domain root. Full subpath deployment
+        requires adapting root-relative navigation, assets and endpoint URLs; setting Astro's{' '}
+        <code class={ic}>base</code> alone is insufficient.
+      </p>
     </div>
     <div class={card}>
       <ul class="space-y-2 text-sm text-muted-foreground list-disc pl-5">
@@ -286,7 +293,7 @@ pnpm run preview   # serve the build locally`}
     <h2 class="text-3xl font-bold mb-2">Astro 7 Notes</h2>
     <p class="text-muted-foreground">
       The details agents most often get wrong from older training data. The full list is in{' '}
-      <a class={link} href={`${repo}/blob/main/docs/agents/astro-conventions.md`}>
+      <a class={link} href={`${source}/docs/agents/astro-conventions.md`}>
         Astro conventions
       </a>
       .

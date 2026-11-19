@@ -16,6 +16,16 @@ All notable changes to AstroDeck are documented in this file.
 
 ### Fixes
 
+- Built-output link checks include SVG anchors and preserve blocked targets without duplicate missing-file findings. Constructor parameter properties correctly shadow Astro aliases; sitemap errors distinguish invalid declarations from broken sitemap documents, recover DOCTYPE root names and normalize slashless bases.
+
+- Image-control names distinguish native labels and descendant tooltips from direct naming references, ignore hidden input descendants and respect ARIA role fallback tokens. Browser history probes skip all non-inline download dispositions, and unsupported-entry tests no longer depend on a writable `/tmp` or Unix socket path lengths.
+
+- Source-document exports preserve footnote-shaped definitions and reject destinations that escape the repository after URL normalization. Linked files keep their logical repository paths, and cleaned sites do not load the export's Markdown parser.
+
+- Image-control naming checks leave CSS-dependent `hidden="until-found"` cases uncertain instead of claiming an empty or valid name. Check these cases in a browser; offline verification continues to report only established empty names.
+
+- Publishing instructions distinguish cloned checkouts from source ZIPs, including initialization, committing and replacing example remotes with the destination repository. The version badge links to the maintained changelog.
+
 - Built-output checks handle deeply nested HTML without recursive stack overflow. Image-control names follow browser-confirmed label and image naming behavior, including empty ARIA references and inactive `noscript` content.
 
 - Astro diagnostics preserve reads before later constant writes. Unsupported filesystem entries produce `build-io` findings without being opened; canonical relationships use HTML token rules, and truncated sitemap roots are recognized before the first opening-tag event.
@@ -52,6 +62,8 @@ All notable changes to AstroDeck are documented in this file.
 - Browser checks verify skip-link focus, plus menu opening and closing by click and keyboard. When desktop navigation has links, corresponding links must be visible in the open mobile menu. Empty navigation lists are supported. Back/Forward checks run in a named step for suitable same-origin HTML navigation; absent targets produce an explained skipped step while focus assertions still run. Customized homepages using `MinimalLayout` report the three shared-header checks as skipped; demo and clean-starter CI require all four tests to pass.
 
 ### Added
+
+- `pnpm run test:browser-oracle` compares image-control naming fixtures with Chromium's accessibility tree, including conservative CSS-dependent cases. It runs separately from offline verification and the four homepage tests, without building the site.
 
 - `check:dist` rules `build-symlink`, `build-io` and `image-button-name` report rejected build links, operational filesystem failures and unnamed native buttons containing images.
 

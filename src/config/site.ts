@@ -4,6 +4,7 @@
  * pages pass plain titles (e.g. "Pricing") and never repeat the brand.
  */
 import { SITE_URL } from './site-url.mjs';
+import { sourceIdentity } from '@/lib/source-identity.mjs';
 
 export interface NavItem {
   label: string;
@@ -74,7 +75,7 @@ export const site: SiteConfig = {
   ],
   headerCta: {
     label: 'GitHub',
-    href: 'https://github.com/hbmartin/astrodeck',
+    href: sourceIdentity.repository,
     external: true,
   },
   footer: {
@@ -103,7 +104,7 @@ export const site: SiteConfig = {
     copyright: 'AstroDeck. MIT License. Open Source.',
     credit: { label: 'templatedeck.com', href: 'https://templatedeck.com' },
   },
-  social: [{ label: 'GitHub', href: 'https://github.com/hbmartin/astrodeck' }],
+  social: [{ label: 'GitHub', href: sourceIdentity.repository }],
   contact: {},
   ogImage: '/cover.png',
   features: { blog: true, rss: true, analytics: true },

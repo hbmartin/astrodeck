@@ -23,7 +23,6 @@ function navigationFixture(links, responses) {
         return {
           status: () => status,
           headers: () => headers,
-          ok: () => status >= 200 && status < 300,
           dispose: async () => disposed++,
         };
       },
@@ -105,6 +104,9 @@ test('history probes skip successful responses that do not navigate to a documen
     { 'content-disposition': 'attachment' },
     { 'content-disposition': 'Attachment; filename="export.html"' },
     { 'content-disposition': '\t ATTACHMENT ; filename="export.html"' },
+    { 'content-disposition': 'download; filename="export.html"' },
+    { 'content-disposition': 'form-data' },
+    { 'content-disposition': 'unknown-disposition' },
   ];
   for (const response of rejected) {
     await t.test(JSON.stringify(response), async () => {
@@ -119,5 +121,15 @@ test('history probes skip successful responses that do not navigate to a documen
       assert.deepEqual(h.requests, ['https://acme.test/export', 'https://acme.test/docs']);
       assert.equal(h.disposed(), 2);
     });
+  }
+});
+
+test('history probes accept empty and case-insensitive inline dispositions', async () => {
+  for (const disposition of ['', ' \t ', 'INLINE', ' \t InLiNe ; filename="docs.html"']) {
+    const h = navigationFixture([{ href: '/docs' }], {
+      '/docs': { 'content-type': 'text/html', 'content-disposition': disposition },
+    });
+    assert.deepEqual(await historyNavigation(h.page), { index: 0 }, disposition);
+    assert.equal(h.disposed(), 1);
   }
 });

@@ -12,12 +12,13 @@ function navigationUrl(link, home) {
     return target;
 }
 
-function isHtmlDocument(status, headers, successful) {
+function isHtmlDocument(status, headers) {
   const disposition = headers['content-disposition']?.split(';', 1)[0].trim().toLowerCase();
   return (
-    successful &&
+    status >= 200 &&
+    status < 300 &&
     ![204, 205].includes(status) &&
-    disposition !== 'attachment' &&
+    (!disposition || disposition === 'inline') &&
     /^\s*text\/html(?:\s*;|$)/iu.test(headers['content-type'] ?? '')
   );
 }
@@ -28,14 +29,13 @@ async function isLocalHtml(request, target, home) {
     const response = await request.get(target.href, { maxRedirects: 0, timeout: 5000 });
     const status = response.status();
     const headers = response.headers();
-    const successful = response.ok();
     await response.dispose();
     if ([301, 302, 303, 307, 308].includes(status)) {
       if (!headers.location) return false;
       target = URL.parse(headers.location, target);
       if (!target) return false;
     } else {
-      return target.pathname !== home.pathname && isHtmlDocument(status, headers, successful);
+      return target.pathname !== home.pathname && isHtmlDocument(status, headers);
     }
   }
   return false;

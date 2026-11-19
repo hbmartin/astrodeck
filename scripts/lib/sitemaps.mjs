@@ -21,10 +21,15 @@ function sitemapFailure(parser, names, error) {
   const unfinishedRoot =
     parser.state === sax.STATE.OPEN_TAG ? parser.tagName.split(':').at(-1) : undefined;
   return {
-    kind: names.find((name) => name !== undefined) ?? unfinishedRoot,
+    kind: names.find((name) => name !== undefined) ?? unfinishedRoot ?? doctypeRoot(parser.doctype),
     locations: [],
     error: error.message.split('\n')[0],
   };
+}
+
+function doctypeRoot(doctype) {
+  if (typeof doctype !== 'string') return undefined;
+  return doctype.trimStart().split(/\s|\[/u, 1)[0].split(':').at(-1);
 }
 
 /** Parse XML once, retaining only the tree needed to distinguish sitemap locations. */
@@ -57,7 +62,7 @@ function parseSitemap(xml) {
     if (stack.length) stack.at(-1).text += text;
   };
   parser.ondoctype = (doctype) => {
-    declaredRoot = doctype.trim().split(/\s/u)[0].split(':').at(-1).toLowerCase();
+    declaredRoot = doctypeRoot(doctype);
     throw new Error('sitemaps must not contain a DOCTYPE');
   };
   try {
@@ -105,30 +110,18 @@ function readSitemap(inventory, name, files) {
 
 function sitemapUrl(value, siteUrl) {
   const url = URL.parse(value);
-  if (
-    !url ||
-    !['http:', 'https:'].includes(url.protocol) ||
-    url.username ||
-    url.password ||
-    value.includes('#')
-  )
-    return undefined;
-  if (siteUrl && url.origin !== siteUrl.origin) return undefined;
-  return url;
-}
-
-function referenceUrlError(value, siteUrl) {
-  const url = URL.parse(value);
-  if (!url || !['http:', 'https:'].includes(url.protocol)) return 'must be an absolute HTTP(S) URL';
-  if (url.username || url.password) return 'must not contain credentials';
-  if (value.includes('#')) return 'must not contain a fragment';
-  if (siteUrl && url.origin !== siteUrl.origin) return `must be on SITE_URL (${siteUrl.origin})`;
+  if (!url || !['http:', 'https:'].includes(url.protocol))
+    return { error: 'must be an absolute HTTP(S) URL' };
+  if (url.username || url.password) return { error: 'must not contain credentials' };
+  if (value.includes('#')) return { error: 'must not contain a fragment' };
+  if (siteUrl && url.origin !== siteUrl.origin)
+    return { error: `must be on SITE_URL (${siteUrl.origin})` };
+  return { url };
 }
 
 function targetSitemap(value, inventory, files, siteUrl) {
-  const error = referenceUrlError(value, siteUrl);
+  const { url, error } = sitemapUrl(value, siteUrl);
   if (error) return { error: `Sitemap ${value || '(empty)'} ${error}` };
-  const url = sitemapUrl(value, siteUrl);
   let path;
   try {
     path = decodeURIComponent(url.pathname).replace(/^\//u, '');
@@ -140,7 +133,7 @@ function targetSitemap(value, inventory, files, siteUrl) {
   if (target.status === 'blocked') return target;
   if (target.status === 'missing') return { error: `Sitemap ${value} is not a built XML sitemap` };
   const { sitemap } = target;
-  if (!Object.hasOwn(ENTRY, sitemap.kind) && (!sitemap.error || sitemap.kind !== undefined))
+  if (!Object.hasOwn(ENTRY, sitemap.kind))
     return {
       error: `Sitemap ${value} is not a built XML sitemap (expected a urlset or sitemapindex root)`,
     };
@@ -163,7 +156,7 @@ function checkRobots(inventory, discovered, include, add) {
 
 function checkEntries(name, sitemap, noindexFiles, fileFor, siteUrl, add) {
   for (const location of sitemap.locations) {
-    const url = sitemapUrl(location, siteUrl);
+    const { url } = sitemapUrl(location, siteUrl);
     if (!url) {
       if (siteUrl)
         add(

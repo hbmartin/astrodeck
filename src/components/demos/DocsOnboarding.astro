@@ -2,6 +2,7 @@
 import CodeBlock from '@/components/demos/CodeBlock.astro';
 import { kitStats, recipes, skills } from '@/components/demos/kit-stats';
 import { ic, pre, card, link } from '@/components/demos/docs-styles';
+import { sourceIdentity } from '@/lib/source-identity.mjs';
 
 const workflow: { title: string; text: string; cmd?: string }[] = [
   {
@@ -74,7 +75,7 @@ const skillRoutes = [
           Download the{' '}
           <a
             class={link}
-            href="https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip"
+            href={`${sourceIdentity.repository}/archive/refs/heads/${sourceIdentity.branch}.zip`}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -107,7 +108,7 @@ const skillRoutes = [
       <CodeBlock
         class={pre}
         codeClass="text-sm font-mono"
-        code={`git clone --branch main --single-branch https://github.com/hbmartin/astrodeck.git my-site
+        code={`git clone --branch ${sourceIdentity.branch} --single-branch ${sourceIdentity.repository}.git my-site
 cd my-site
 pnpm install --frozen-lockfile
 pnpm run dev`}
@@ -120,19 +121,35 @@ pnpm run dev`}
       </p>
       <h4 class="font-semibold mt-6 mb-3">Before publishing a new site</h4>
       <p class="text-sm text-muted-foreground mb-3">
-        Create your destination Git repository first. Replace the example URL below with that
-        repository's actual URL before running these commands:
+        After building and verifying your site, create an empty destination Git repository. Replace
+        the example URL below with that repository's actual URL. For a clone, keep its history and
+        replace the starter remote:
       </p>
       <CodeBlock
         class={pre}
         codeClass="text-sm font-mono"
         code={`git remote remove origin
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git`}
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
+git add .
+git commit -m "Build site"
+git push -u origin HEAD`}
       />
       <p class="text-sm text-muted-foreground mt-3">
-        For independent history, use the source ZIP, run <code class={ic}>git init</code>, commit
-        your site and add your own remote. Contributors keep their fork remote and follow
-        CONTRIBUTING.md.
+        For a source ZIP, the extracted folder has no <code class={ic}>.git</code> directory. Run
+        these commands from that folder to create independent history; replace the example remote
+        with your destination repository's actual URL:
+      </p>
+      <CodeBlock
+        class={pre}
+        codeClass="text-sm font-mono"
+        code={`git init -b main
+git add .
+git commit -m "Build site"
+git remote add origin https://github.com/YOUR_USERNAME/YOUR_SITE.git
+git push -u origin main`}
+      />
+      <p class="text-sm text-muted-foreground mt-3">
+        Contributors keep their fork remote and follow CONTRIBUTING.md.
       </p>
       <p class="text-sm text-muted-foreground mt-3">
         Avoid <code class={ic}>npm create astro -- --template holger1411/astrodeck</code>:

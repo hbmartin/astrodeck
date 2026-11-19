@@ -16,6 +16,7 @@ const TYPE_ONLY_NODES = new Set([
 ]);
 
 const PATTERN_CHILDREN = new Map([
+  ['TSParameterProperty', (node) => [node.parameter]],
   ['AssignmentPattern', (node) => [node.left]],
   ['RestElement', (node) => [node.argument]],
   ['ObjectPattern', (node) => node.properties.map((prop) => prop.value ?? prop.argument)],

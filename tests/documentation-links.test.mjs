@@ -1,13 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import MarkdownIt from 'markdown-it';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join, sep } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { absoluteSourceLinks } from '../src/lib/documentation-links.mjs';
+import { sourceIdentity } from '../src/lib/source-identity.mjs';
 import { documentationLinksPlugin } from '../scripts/lib/documentation-links-plugin.mjs';
 
-const SOURCE = 'https://github.com/hbmartin/astrodeck/blob/main/';
+const SOURCE = `${sourceIdentity.repository}/blob/${sourceIdentity.branch}/`;
 const markdown = new MarkdownIt();
 
 function destinations(text) {
@@ -156,6 +166,48 @@ test('reference usages remain unchanged and unused definitions are still rewritt
   assert.deepEqual(destinations(output), Array(3).fill(`${SOURCE}README.md`));
 });
 
+test('footnote-shaped definitions remain intact while ordinary definitions are rewritten', () => {
+  const input = [
+    '[^note]: README.md "A prose footnote"',
+    '> [^nested]: ../README.md',
+    '',
+    '[^link]: [Guide](README.md)',
+    '',
+    '[guide]: README.md',
+    String.raw`[\^ordinary]: other.md`,
+    '',
+    '[Guide][guide] [Real](docs/guide.md)',
+  ].join('\r\n');
+  assert.equal(
+    absoluteSourceLinks(input, 'AGENTS.md'),
+    input
+      .replace('[guide]: README.md', `[guide]: ${SOURCE}README.md`)
+      .replace(': other.md', `: ${SOURCE}other.md`)
+      .replace('(docs/guide.md)', `(${SOURCE}docs/guide.md)`)
+  );
+});
+
+test('repository-root traversal is rejected after URL path normalization', () => {
+  for (const destination of ['../README.md', '%2e%2e/README.md', './a/../../README.md']) {
+    assert.throws(
+      () => absoluteSourceLinks(`[Guide](${destination})`, 'AGENTS.md'),
+      (error) => error.message.includes('AGENTS.md') && error.message.includes(destination),
+      destination
+    );
+  }
+  assert.throws(
+    () => absoluteSourceLinks('[Guide](/../README.md)', 'docs/agents/guide.md'),
+    /docs\/agents\/guide\.md.*\/\.\.\/README\.md/u
+  );
+  assert.equal(
+    absoluteSourceLinks(
+      '[Guide](../../README.md) [Encoded](../%2e%2e/README.md)',
+      'docs/agents/guide.md'
+    ),
+    `[Guide](${SOURCE}README.md) [Encoded](${SOURCE}README.md)`
+  );
+});
+
 test('source offsets preserve initial BOMs, Unicode, tabs and line endings', () => {
   for (const bom of ['', '\uFEFF', '\uFEFF\uFEFF']) {
     for (const ending of ['\n', '\r\n', '\r']) {
@@ -175,7 +227,7 @@ test('external and fragment destination escapes remain byte-for-byte intact', ()
   assert.equal(absoluteSourceLinks(input, 'AGENTS.md'), input);
 });
 
-test('the build plugin emits watched source documents as static string modules', (t) => {
+test('the build plugin emits watched source documents as static string modules', async (t) => {
   const root = mkdtempSync(join(tmpdir(), 'astrodeck-source-links-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   mkdirSync(join(root, 'docs'));
@@ -184,14 +236,87 @@ test('the build plugin emits watched source documents as static string modules',
   const watched = [];
   const plugin = documentationLinksPlugin();
   plugin.configResolved({ root });
-  assert.equal(plugin.load(`${file}?raw`), undefined);
-  const module = plugin.load.call(
-    { addWatchFile: (path) => watched.push(path) },
-    `${file}?source-links&raw`
-  );
+  assert.equal(await plugin.load(`${file}?raw`), undefined);
+  assert.equal(plugin.resolveId('@root/docs/guide.md?raw'), undefined);
+  const id = plugin.resolveId('@root/docs/guide.md?source-links&raw');
+  const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
   assert.equal(
     JSON.parse(module.slice('export default '.length, -1)),
     `\uFEFF[Read](${SOURCE}README.md)\r\n`
   );
-  assert.deepEqual(watched, [file]);
+  assert.deepEqual(watched, [...new Set([file, realpathSync(file)])]);
 });
+
+test('linked documents keep their repository path and watch their linked content', async (t) => {
+  const directory = mkdtempSync(join(tmpdir(), 'astrodeck-linked-docs-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const actualRoot = join(directory, 'actual');
+  const root = join(directory, 'checkout');
+  mkdirSync(join(actualRoot, 'docs'), { recursive: true });
+  symlinkSync(actualRoot, root, 'dir');
+  const target = join(directory, 'external.md');
+  writeFileSync(target, '[Peer](peer.md)');
+  const file = join(root, 'docs', 'guide.md');
+  symlinkSync(target, file);
+  const plugin = documentationLinksPlugin();
+  plugin.configResolved({ root });
+  const watched = [];
+  const id = plugin.resolveId('@root/docs/guide.md?source-links&raw');
+  const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
+  assert.equal(
+    JSON.parse(module.slice('export default '.length, -1)),
+    `[Peer](${SOURCE}docs/peer.md)`
+  );
+  assert.deepEqual(watched, [file, realpathSync(target)]);
+});
+
+// Cleanup removes the demo endpoint. Helper and plugin tests above remain active for customer sites.
+test(
+  'the real Astro/Vite build exports all three linked documents with logical source paths',
+  {
+    skip:
+      process.env.ASTRODECK_KIT_CHECKS !== '1' && 'demo documentation export requires kit checks',
+  },
+  async (t) => {
+    const directory = mkdtempSync(join(tmpdir(), 'astrodeck-linked-export-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const actualRoot = join(directory, 'actual');
+    const root = join(directory, 'checkout');
+    const project = fileURLToPath(new URL('../', import.meta.url));
+    mkdirSync(join(actualRoot, 'src', 'pages'), { recursive: true });
+    mkdirSync(join(actualRoot, 'src', 'lib'), { recursive: true });
+    symlinkSync(actualRoot, root, 'dir');
+    symlinkSync(join(project, 'node_modules'), join(actualRoot, 'node_modules'), 'dir');
+    writeFileSync(join(actualRoot, 'package.json'), '{"type":"module"}');
+    writeFileSync(
+      join(actualRoot, 'tsconfig.json'),
+      JSON.stringify({ compilerOptions: { paths: { '@/*': ['./src/*'], '@root/*': ['./*'] } } })
+    );
+    for (const path of ['src/pages/llms-full.txt.ts', 'src/lib/source-identity.mjs']) {
+      writeFileSync(join(actualRoot, path), readFileSync(join(project, path)));
+    }
+    const documents = ['AGENTS.md', 'README.md', 'docs/agents/astro-conventions.md'];
+    for (const [index, path] of documents.entries()) {
+      const target = join(directory, `linked-${index}.md`);
+      writeFileSync(target, readFileSync(join(project, path)));
+      mkdirSync(dirname(join(actualRoot, path)), { recursive: true });
+      symlinkSync(target, join(actualRoot, path));
+    }
+    const { build } = await import('astro');
+    await build({
+      root: pathToFileURL(root + sep),
+      configFile: false,
+      logLevel: 'silent',
+      vite: { plugins: [documentationLinksPlugin()] },
+    });
+    const body = readFileSync(join(actualRoot, 'dist', 'llms-full.txt'), 'utf8');
+    assert.ok(body.includes(`Source: ${sourceIdentity.repository}`));
+    for (const path of documents) {
+      assert.ok(
+        body.includes(absoluteSourceLinks(readFileSync(join(project, path), 'utf8'), path).trim()),
+        path
+      );
+    }
+    assert.ok(!body.includes(`${SOURCE}../`));
+  }
+);

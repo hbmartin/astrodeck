@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { sourceIdentity } from '@/lib/source-identity.mjs';
 // The build plugin rewrites source links and emits static strings, without a runtime parser.
 import agents from '@root/AGENTS.md?source-links&raw';
 import readme from '@root/README.md?source-links&raw';
@@ -17,7 +18,7 @@ export const GET: APIRoute = ({ site }) => {
     '',
     `Short index: ${origin}/llms.txt`,
     `Live docs: ${origin}/docs`,
-    `Source: https://github.com/hbmartin/astrodeck`,
+    `Source: ${sourceIdentity.repository}`,
     '',
     '---',
     '',

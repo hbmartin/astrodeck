@@ -2,7 +2,7 @@
  * Built-page indexing metadata. `fileFor(urlPath)` maps a URL path to the built HTML file
  * (relative to the build directory) or returns undefined.
  */
-import { findElements, elementName, attribute } from './html-tree.mjs';
+import { findElements, findFirstElement, elementName, attribute } from './html-tree.mjs';
 
 const tokens = (value = '') => value.toLowerCase().split(/[\s,]+/u);
 const relTokens = (value = '') => value.toLowerCase().split(/[\t\n\f\r ]+/u);
@@ -18,7 +18,7 @@ export function isNoindex(root) {
 
 /** An indexable page has one canonical on the production origin that points at itself. */
 export function checkCanonical(root, rel, siteUrl, fileFor, add) {
-  const head = findElements(root, (node) => elementName(node) === 'head')[0];
+  const head = findFirstElement(root, (node) => elementName(node) === 'head');
   const links = findElements(
     head,
     (node) =>

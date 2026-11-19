@@ -85,6 +85,12 @@ pnpm run starter:clean --yes --keep-blog`}
       containing images need an accessible name. Build files must match exact case and Unicode
       spelling; symlinks are rejected.
     </p>
+    <p class="mt-2 text-muted-foreground">
+      Static image-control naming checks leave uncertain cases unreported. The visibility of{' '}
+      <code class={ic}>hidden="until-found"</code> content depends on computed CSS; an internal
+      UNKNOWN result does not prove that a control has a name. Review CSS-dependent cases in a
+      browser.
+    </p>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <div class={`${card} overflow-x-auto`}>
@@ -129,15 +135,22 @@ pnpm run check:registry`}
       </p>
     </div>
   </div>
+  <p class="text-sm text-muted-foreground mt-6">
+    <code class={ic}>pnpm run test:e2e</code> runs four homepage tests for content, menu, theme and
+    skip-link focus. Back/Forward runs as a named step when a same-tab, same-origin HTML navigation
+    document target exists, excluding no-content responses and attachments. Otherwise the command
+    prints the reason and records only that step as skipped. MinimalLayout homepages skip the three
+    shared-header tests outside kit mode.
+  </p>
+  <p class="text-sm text-muted-foreground mt-3">
+    <code class={ic}>pnpm run test:browser-oracle</code> separately compares image-control naming
+    fixtures with Chromium's accessibility tree. It checks deterministic naming and the conservative
+    treatment of CSS-dependent <code class={ic}>hidden="until-found"</code> fixtures without an
+    Astro build. Both browser commands require Chromium (install it once with{' '}
+    <code class={ic}>pnpm exec playwright install chromium</code>); offline verification remains a
+    separate check.
+  </p>
 </section>
-
-<p class="text-sm text-muted-foreground mt-6">
-  <code class={ic}>pnpm run test:e2e</code> runs four homepage tests for content, menu, theme and
-  skip-link focus. Back/Forward runs as a named step when a same-tab, same-origin HTML navigation
-  document target exists, excluding no-content responses and attachments. Otherwise the command
-  prints the reason and records only that step as skipped. MinimalLayout homepages skip the three
-  shared-header tests outside kit mode.
-</p>
 
 <!-- vibe2prod -->
 <section id="vibe2prod" class="scroll-mt-32 lg:scroll-mt-20">

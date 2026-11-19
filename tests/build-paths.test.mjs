@@ -12,7 +12,6 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { createServer } from 'node:net';
 import { createBuildInventory } from '../scripts/lib/build-paths.mjs';
 
 function fixture(t) {
@@ -165,28 +164,34 @@ test('operational scan and read errors become stable, memoized findings', (t) =>
   assert.equal(createBuildInventory(join(dir, 'absent')).findings[0].rule, 'missing-dir');
 });
 
-test('unsupported FIFO and socket entries are blocked without being opened', async (t) => {
-  // Keep Unix socket paths below macOS's limit, including the temporary directory prefix.
-  const dir = mkdtempSync('/tmp/astrodeck-entries-');
-  const server = createServer();
-  t.after(async () => {
-    if (server.listening) await new Promise((resolve) => server.close(resolve));
-    rmSync(dir, { recursive: true, force: true });
-  });
+test('unsupported FIFO, socket and device entries are blocked without being opened', (t) => {
+  const dir = fixture(t);
   const result = spawnSync('mkfifo', [join(dir, 'stream.xml')], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  await new Promise((resolve, reject) =>
-    server.once('error', reject).listen(join(dir, 'state.sock'), resolve)
-  );
+  const unsupportedEntry = (name, type) => ({
+    name,
+    isSymbolicLink: () => false,
+    isDirectory: () => false,
+    isFile: () => false,
+    isSocket: () => type === 'socket',
+    isCharacterDevice: () => type === 'device',
+  });
   const inventory = createBuildInventory(dir, {
+    readdirSync(path, options) {
+      return [
+        ...readdirSync(path, options),
+        unsupportedEntry('state.sock', 'socket'),
+        unsupportedEntry('state.device', 'device'),
+      ];
+    },
     readFileSync() {
       assert.fail('unsupported entries must never be opened');
     },
   });
   assert.deepEqual(inventory.files, []);
-  for (const name of ['stream.xml', 'state.sock'])
+  for (const name of ['stream.xml', 'state.sock', 'state.device'])
     assert.equal(inventory.readText(name).status, 'blocked');
-  assert.equal(inventory.findings.length, 2);
+  assert.equal(inventory.findings.length, 3);
   assert.ok(
     inventory.findings.every((f) => f.rule === 'build-io' && /unsupported/u.test(f.message))
   );

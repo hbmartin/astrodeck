@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import {
   parseDocument,
   findElements,
+  findFirstElement,
   elementName,
   attribute,
   textContent,
@@ -34,8 +35,10 @@ const BAD_ALT = [
   /^IMG_\d+/i,
 ];
 const CREDIT = /<!--\s*astrodeck-credit\s*-->\s*(<a\b[^>]*>[\s\S]*?<\/a>|[^<]*)/g;
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+const XLINK_NAMESPACE = 'http://www.w3.org/1999/xlink';
 
-/** The build-output file (relative, `/`-separated) a root-relative URL path resolves to. */
+/** Resolve an HTML route while retaining blocked targets and candidate order. */
 function fileFor(dir, inventory, urlPath) {
   let p;
   try {
@@ -49,10 +52,10 @@ function fileFor(dir, inventory, urlPath) {
       ? [join(base, 'index.html')]
       : [base, join(base, 'index.html'), `${base}.html`];
   for (const candidate of candidates) {
-    const hit = inventory.file(relative(dir, candidate).split(sep).join('/'));
-    if (hit !== undefined) return hit;
+    const hit = inventory.lookup(relative(dir, candidate).split(sep).join('/'));
+    if (hit.status !== 'missing') return hit;
   }
-  return undefined;
+  return { status: 'missing' };
 }
 
 function isGenericAlt(text, src) {
@@ -73,15 +76,15 @@ function checkImg(img, add) {
 }
 
 function checkMetadata(root, rel, titles, add) {
-  const titleNode = findElements(root, (node) => elementName(node) === 'title')[0];
+  const titleNode = findFirstElement(root, (node) => elementName(node) === 'title');
   const title = titleNode ? textContent(titleNode).trim() : '';
   if (!title) add('title-empty', '<title> is missing or empty');
   else titles.set(title, [...(titles.get(title) ?? []), rel]);
 
-  const meta = findElements(
+  const meta = findFirstElement(
     root,
     (node) => elementName(node) === 'meta' && attribute(node, 'name') === 'description'
-  )[0];
+  );
   const description = meta ? attribute(meta, 'content')?.trim() : undefined;
   if (!description) add('meta-description', '<meta name="description"> is missing or empty');
   if (description?.length > 160)
@@ -96,13 +99,19 @@ function checkHomeMetadata(title, description, add) {
     add('meta-length', `home page <title> is ${title.length} characters (30-60)`);
 }
 
-function checkLinks(root, fileIn, add) {
-  const links = findElements(
-    root,
-    (node) => ['a', 'link'].includes(elementName(node)) && attribute(node, 'href') !== undefined
-  );
+function linkHref(node) {
+  if (['a', 'link'].includes(elementName(node))) return attribute(node, 'href');
+  if (node.namespaceURI === SVG_NAMESPACE && node.tagName === 'a')
+    return (
+      attribute(node, 'href') ??
+      node.attrs.find((attr) => attr.namespace === XLINK_NAMESPACE && attr.name === 'href')?.value
+    );
+}
+
+function checkLinks(root, lookupIn, add) {
+  const links = findElements(root, (node) => linkHref(node) !== undefined);
   for (const a of links) {
-    const href = attribute(a, 'href') ?? '';
+    const href = linkHref(a);
     // Whitespace after a tel: or mailto: scheme is invalid HTML.
     if (/^(tel|mailto):/i.test(href) && /\s/.test(href))
       add(
@@ -111,7 +120,7 @@ function checkLinks(root, fileIn, add) {
       );
     if (!href.startsWith('/') || href.startsWith('//')) continue;
     const path = href.split('#')[0].split('?')[0];
-    if (path && fileIn(path) === undefined)
+    if (path && lookupIn(path).status === 'missing')
       add('internal-link', `${href} does not resolve to a file`);
   }
 }
@@ -137,12 +146,12 @@ function checkDemoLeftovers(html, add) {
   if (hit) add('demo-leftover', `"${hit[0]}" found in rendered HTML`);
 }
 
-function checkPage(html, fileIn, rel, opts, titles, add) {
+function checkPage(html, lookupIn, rel, opts, titles, add) {
   const root = parseDocument(html);
   const h1s = findElements(root, (node) => elementName(node) === 'h1').length;
   if (h1s !== 1) add('h1-count', `expected exactly one <h1>, found ${h1s}`);
   checkMetadata(root, rel, titles, add);
-  checkLinks(root, fileIn, add);
+  checkLinks(root, lookupIn, add);
   for (const img of findElements(root, (node) => elementName(node) === 'img')) checkImg(img, add);
   checkImageControls(root, add);
   checkForms(root, add);
@@ -164,16 +173,17 @@ export function checkDist(dir, opts) {
   const noindex = new Set();
   const siteUrl = opts.siteUrl ? new URL(opts.siteUrl) : undefined;
   const resolved = new Map();
-  const fileIn = (urlPath) => {
+  const lookupIn = (urlPath) => {
     if (!resolved.has(urlPath)) resolved.set(urlPath, fileFor(dir, inventory, urlPath));
     return resolved.get(urlPath);
   };
+  const fileIn = (urlPath) => lookupIn(urlPath).path;
 
   for (const rel of inventory.files.filter((name) => name.endsWith('.html'))) {
     const content = inventory.readText(rel);
     if (content.status !== 'ok') continue;
     const add = (rule, message) => findings.push({ file: rel, rule, message });
-    const root = checkPage(content.text, fileIn, rel, opts, titles, add);
+    const root = checkPage(content.text, lookupIn, rel, opts, titles, add);
     if (isNoindex(root)) noindex.add(rel);
     else if (siteUrl) checkCanonical(root, rel, siteUrl, fileIn, add);
   }

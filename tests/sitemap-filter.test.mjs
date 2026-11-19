@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { includeDemoPage } from '../scripts/lib/sitemap-filter.mjs';
 
 test('demo exclusions respect the configured base and either trailing-slash policy', () => {
-  for (const base of ['/', '/docs', '/docs/']) {
-    const prefix = base.replace(/\/+$/u, '');
+  for (const base of ['', '/', '///', 'docs', 'docs/', '/docs', '/docs/', '//docs//']) {
+    const prefix = base.includes('docs') ? '/docs' : '';
     for (const slash of ['', '/']) {
       for (const route of ['/login', '/thanks'])
         assert.equal(includeDemoPage(`https://acme.test${prefix}${route}${slash}`, base), false);
@@ -12,6 +12,8 @@ test('demo exclusions respect the configured base and either trailing-slash poli
         assert.equal(includeDemoPage(`https://acme.test${prefix}${route}${slash}`, base), true);
     }
   }
-  assert.equal(includeDemoPage('https://acme.test/docs-else/thanks', '/docs'), true);
-  assert.equal(includeDemoPage('https://acme.test/thanks', '/docs'), true);
+  for (const base of ['docs', 'docs/', '/docs', '/docs/']) {
+    assert.equal(includeDemoPage('https://acme.test/docs-else/thanks', base), true);
+    assert.equal(includeDemoPage('https://acme.test/thanks', base), true);
+  }
 });

@@ -1,13 +1,18 @@
 import { parse, postprocess, preprocess } from 'micromark';
 import { decodeString } from 'micromark-util-decode-string';
+import { sourceIdentity } from './source-identity.mjs';
 
-const SOURCE = 'https://github.com/hbmartin/astrodeck/blob/main/';
+const SOURCE = `${sourceIdentity.repository}/blob/${sourceIdentity.branch}/`;
 const DESTINATIONS = new Set(['resourceDestinationString', 'definitionDestinationString']);
 
 function absoluteDestination(value, source) {
   if (!value || /^(?:[a-z][a-z\d+.-]*:|\/\/|#)/iu.test(value)) return value;
   const base = value.startsWith('/') ? SOURCE : new globalThis.URL(source, SOURCE);
-  return new globalThis.URL(value.replace(/^\//u, ''), base).href;
+  const destination = new globalThis.URL(value.replace(/^\//u, ''), base);
+  if (!destination.href.startsWith(SOURCE)) {
+    throw new Error(`Source link escapes the repository: ${source} → ${JSON.stringify(value)}`);
+  }
+  return destination.href;
 }
 
 function serializeDestination(value, literal) {
@@ -37,6 +42,20 @@ function applyEdits(text, edits) {
   return text;
 }
 
+function* sourceDestinations(events) {
+  let footnoteDefinition = false;
+  for (const [kind, token, context] of events) {
+    // CommonMark treats a footnote-shaped label as an ordinary definition. Preserve it
+    // without enabling GFM or interpreting its prose as a repository destination.
+    if (token.type === 'definition') {
+      footnoteDefinition = kind === 'enter' && context.sliceSerialize(token).startsWith('[^');
+    }
+    if (kind === 'exit' && DESTINATIONS.has(token.type) && !footnoteDefinition) {
+      yield [token, context];
+    }
+  }
+}
+
 /** Make repository-relative Markdown links usable outside their source file. */
 export function absoluteSourceLinks(text, source) {
   const events = postprocess(
@@ -47,8 +66,7 @@ export function absoluteSourceLinks(text, source) {
   // Micromark drops exactly one initial BOM from its offset accounting, not the source text.
   const bom = text.startsWith('\uFEFF') ? 1 : 0;
   const edits = [];
-  for (const [kind, token, context] of events) {
-    if (kind !== 'exit' || !DESTINATIONS.has(token.type)) continue;
+  for (const [token, context] of sourceDestinations(events)) {
     const edit = destinationEdit(text, source, token, context, bom);
     if (edit) edits.push(edit);
   }

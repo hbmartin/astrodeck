@@ -286,12 +286,26 @@ conservative treatment of CSS-dependent `hidden="until-found"` fixtures. It runs
 Astro build and requires Chromium (`pnpm exec playwright install chromium`). It complements
 the offline verification checks and the four homepage tests.
 
-Kit verification also checks recognized source links and fenced clone commands in README,
-CONTRIBUTING and `public/llms.txt` against `src/lib/source-identity.mjs`. It recognizes repository,
-source ZIP, registry, AGENTS and skills-tree references; unfamiliar link types remain unchecked.
-Findings point to the URL or command to edit, with shared reference definitions reported once.
-These documents remain hand-authored; outside `ASTRODECK_KIT_CHECKS=1`, customer documentation
-can use its own links.
+Kit verification also checks maintainer source references in README, CONTRIBUTING and
+`public/llms.txt` against `src/lib/source-identity.mjs`. It recognizes the current and former
+AstroDeck repository identities and clear source labels such as "Source ZIP" or "AstroDeck
+AGENTS.md". Unrelated repositories, generic local AGENTS/skills links and unfamiliar destinations
+without an explicit source role remain unchecked. Explicit source roles are checked even when
+they point to an upstream project. These documents remain hand-authored; outside
+`ASTRODECK_KIT_CHECKS=1`, customer documentation can use its own links.
+
+These checks normalize equivalent GitHub identity forms, default ports, fragments and trailing
+slashes on repository roots and skills directories. Scheme, query, branch and file-path
+differences still matter. Findings point to the destination or command to edit. Shared reference
+definitions are checked once; incompatible explicit roles need separate definitions. Standalone
+images and unused definitions are excluded. Labels support Markdown, reference-image alt text
+and simple inline HTML wrappers.
+
+Fenced clone checks support simple single-line commands with supported clone options and
+an optional `$ ` prompt. Unsupported forms remain unchecked, including compound commands,
+redirections, command substitutions, continuations, global Git options before `clone`, `%`
+prompts and unsupported option bundles. Recognized clone sources require HTTPS and the documented
+repository's `.git` endpoint.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured

@@ -14,6 +14,8 @@
 
 **Logical source path**. A document's location in a repository, independent of where its content is stored.
 
+**Maintainer source reference**. A source reference intended to identify AstroDeck's maintained code.
+
 **Production origin**. The scheme, host and port of the site's production URL.
 
 **Role fallback list**. An ordered list of accessibility roles. A browser uses the first role it recognizes.

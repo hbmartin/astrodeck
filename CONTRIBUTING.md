@@ -72,6 +72,21 @@ Checks that only make sense for the kit itself run when `ASTRODECK_KIT_CHECKS=1`
 this); for example, `tests/fixtures/default-globals.css` must match `src/styles/globals.css`, so
 update the fixture when you change the shipped default palette.
 
+Maintainer source-reference checks use the shared current and former repository identities and
+explicit source-role labels. A former identity is recognized so stale links can be reported;
+it is not an accepted replacement for the current repository. Generic "GitHub", "AGENTS.md"
+and "Skills" labels alone do not identify an AstroDeck source destination. Use an explicit
+label such as "AstroDeck AGENTS.md" when the role should be checked regardless of its URL.
+Source-role labels take precedence over upstream exemptions. Shared Markdown definitions used
+for incompatible source roles need separate definitions.
+
+Source-document exports resolve relative links from each document's logical repository path.
+Linked documents are supported when that logical path reaches the export plugin. If Vite has
+already resolved an importer through a symlinked directory, its logical directory identity can
+be lost; relative source-document imports from that importer are unsupported. Keep the importer
+in an ordinary repository directory or use an explicit `@root/` document import. Do not change
+global symlink-preservation settings to work around this limitation.
+
 ## Before you open a pull request
 
 ```bash

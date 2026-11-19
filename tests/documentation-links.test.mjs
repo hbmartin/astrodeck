@@ -29,19 +29,19 @@ function destinations(text) {
     .map((token) => token.attrGet(token.type === 'image' ? 'src' : 'href'));
 }
 
-function linkedCheckout(t) {
+function linkedCheckout(t, name = 'actual') {
   // Vite normalizes macOS /var before configResolved; retain only the checkout symlink.
   const directory = realpathSync(mkdtempSync(join(tmpdir(), 'astrodeck-linked-docs-')));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const actualRoot = join(directory, 'actual');
+  const actualRoot = join(directory, name);
   const root = join(directory, 'checkout');
   mkdirSync(actualRoot);
   symlinkSync(actualRoot, root, 'dir');
   return { directory, actualRoot, root };
 }
 
-function astroFixture(t) {
-  const fixture = linkedCheckout(t);
+function astroFixture(t, name) {
+  const fixture = linkedCheckout(t, name);
   const { actualRoot } = fixture;
   const project = fileURLToPath(new URL('../', import.meta.url));
   mkdirSync(join(actualRoot, 'src', 'pages'), { recursive: true });
@@ -67,6 +67,16 @@ async function buildFixture(root) {
 
 function moduleText(module) {
   return JSON.parse(module.slice('export default '.length, -1));
+}
+
+function loadDocument(plugin, resolved, watched = []) {
+  return plugin.load.call(
+    {
+      addWatchFile: (path) => watched.push(path),
+      getModuleInfo: () => ({ meta: resolved.meta }),
+    },
+    resolved.id
+  );
 }
 
 test('documentation links resolve relative to each source with queries and fragments', () => {
@@ -280,7 +290,7 @@ test('the build plugin emits watched source documents as static string modules',
   assert.equal(await plugin.load(`${file}?raw`), undefined);
   assert.equal(plugin.resolveId('@root/docs/guide.md?raw'), undefined);
   const id = plugin.resolveId('@root/docs/guide.md?source-links&raw');
-  const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
+  const module = await loadDocument(plugin, id, watched);
   assert.equal(moduleText(module), `\uFEFF[Read](${SOURCE}README.md)\r\n`);
   assert.deepEqual(watched, [...new Set([file, realpathSync(file)])]);
 });
@@ -296,29 +306,35 @@ test('linked documents keep their repository path and watch their linked content
   plugin.configResolved({ root });
   const watched = [];
   const id = plugin.resolveId('@root/docs/guide.md?source-links&raw');
-  const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
+  const module = await loadDocument(plugin, id, watched);
   assert.equal(moduleText(module), `[Peer](${SOURCE}docs/peer.md)`);
   assert.deepEqual(watched, [file, realpathSync(target)]);
 });
 
-test('relative document imports retain lexical paths with importer queries and fragments', async (t) => {
+test('relative document imports share lexical identity across importer paths and suffixes', async (t) => {
   const { directory, actualRoot, root } = linkedCheckout(t);
   mkdirSync(join(actualRoot, 'docs'));
   const target = join(directory, 'external.md');
   writeFileSync(target, '[Peer](peer.md)');
   const file = join(root, 'docs', 'guide.md');
   symlinkSync(target, file);
+  for (const name of ['C#site', 'C?site']) mkdirSync(join(root, 'docs', name));
   const plugin = documentationLinksPlugin();
   plugin.configResolved({ root });
+  const expectedId = `\0astrodeck:source-links:${encodeURIComponent(file)}.js`;
   for (const [request, importer] of [
     ['./guide.md?source-links&raw', join(root, 'docs', 'entry.ts')],
     ['../docs/guide.md?source-links&raw', join(root, 'src', 'entry.ts')],
     ['./guide.md?source-links&raw', `${join(root, 'docs', 'entry.astro')}?astro&type=script`],
     ['./guide.md?source-links&raw', `${join(root, 'docs', 'entry.ts')}#fragment`],
+    ['../guide.md?source-links&raw', join(root, 'docs', 'C#site', 'entry.ts')],
+    ['../guide.md?source-links&raw', join(root, 'docs', 'C?site', 'entry.ts')],
   ]) {
     const watched = [];
     const id = plugin.resolveId(request, importer);
-    const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
+    assert.equal(id.id, expectedId);
+    assert.deepEqual(id.meta, { [plugin.name]: { request, importer } });
+    const module = await loadDocument(plugin, id, watched);
     assert.equal(moduleText(module), `[Peer](${SOURCE}docs/peer.md)`);
     assert.deepEqual(watched, [file, realpathSync(target)]);
   }
@@ -348,7 +364,7 @@ test('relative imports defer unsupported importer forms and unrelated queries', 
   }
 });
 
-test('actual document load errors remain failures', async (t) => {
+test('document filesystem errors retain their import context, code and cause', async (t) => {
   const { root } = linkedCheckout(t);
   const loop = join(root, 'loop.md');
   symlinkSync(loop, loop);
@@ -359,9 +375,28 @@ test('actual document load errors remain failures', async (t) => {
     ['missing', 'ENOENT'],
     ['loop', 'ELOOP'],
   ]) {
-    const id = plugin.resolveId(`./${name}.md?source-links&raw`, importer);
-    await assert.rejects(plugin.load.call({ addWatchFile() {} }, id), { code });
+    const request = `./${name}.md?source-links&raw`;
+    const id = plugin.resolveId(request, importer);
+    await assert.rejects(loadDocument(plugin, id), (error) => {
+      assert.equal(error.code, code);
+      assert.equal(error.cause.code, code);
+      for (const value of [request, importer, join(root, `${name}.md`)]) {
+        assert.ok(error.message.includes(value), value);
+      }
+      return true;
+    });
   }
+  const missing = join(root, 'missing.md');
+  await assert.rejects(
+    plugin.load.call({ addWatchFile() {} }, `${missing}?source-links&raw`),
+    (error) => {
+      assert.equal(error.code, 'ENOENT');
+      assert.equal(error.cause.code, 'ENOENT');
+      assert.ok(error.cause instanceof Error);
+      assert.ok(error.message.includes(missing));
+      return true;
+    }
+  );
 });
 
 test('resolved absolute loads do not repeat root-relative import resolution', async (t) => {
@@ -377,7 +412,7 @@ test('resolved absolute loads do not repeat root-relative import resolution', as
   const loaded = await plugin.load.call(context, `${file}?source-links&raw`);
   assert.equal(moduleText(loaded), `[Absolute](${SOURCE}peer.md)`);
   const id = plugin.resolveId(`${file}?source-links&raw`);
-  const imported = await plugin.load.call(context, id);
+  const imported = await loadDocument(plugin, id);
   assert.equal(
     moduleText(imported),
     absoluteSourceLinks('[Root](other.md)', relative(root, fromRoot).split(sep).join('/'))
@@ -387,11 +422,62 @@ test('resolved absolute loads do not repeat root-relative import resolution', as
     plugin.load.call(context, `${join(root, '..', 'outside.md')}?source-links&raw`),
     /Source document is outside the repository/u
   );
-  const outside = plugin.resolveId('../outside.md?source-links&raw', join(root, 'entry.ts'));
-  await assert.rejects(
-    plugin.load.call(context, outside),
-    /Source document is outside the repository/u
+  const importer = join(root, 'entry.ts');
+  for (const name of ['outside', 'missing-outside']) {
+    const request = `../${name}.md?source-links&raw`;
+    const outside = plugin.resolveId(request, importer);
+    const watched = [];
+    await assert.rejects(loadDocument(plugin, outside, watched), (error) => {
+      assert.match(error.message, /Source document is outside the repository/u);
+      for (const value of [request, importer, resolve(root, '..', `${name}.md`)]) {
+        assert.ok(error.message.includes(value), value);
+      }
+      assert.equal(error.cause.code, undefined);
+      return true;
+    });
+    assert.deepEqual(watched, []);
+  }
+});
+
+test('a real Astro build resolves relative documents in a checkout containing a literal hash', async (t) => {
+  const { root, actualRoot } = astroFixture(t, 'C#site');
+  writeFileSync(join(root, 'src', 'lib', 'guide.md'), '[Peer](peer.md)');
+  writeFileSync(
+    join(root, 'src', 'pages', 'documents.json.ts'),
+    "import text from '../lib/guide.md?source-links&raw';\nexport function GET() { return Response.json(text); }"
   );
+  await buildFixture(root);
+  assert.equal(
+    JSON.parse(readFileSync(join(actualRoot, 'dist', 'documents.json'), 'utf8')),
+    `[Peer](${SOURCE}src/lib/peer.md)`
+  );
+});
+
+test('real Astro failures identify missing document requests and their importers', async (t) => {
+  for (const request of ['./missing.md?source-links&raw', '../../../missing.md?source-links&raw']) {
+    await t.test(request, async (t) => {
+      const { root, actualRoot } = astroFixture(t);
+      const importer = join(actualRoot, 'src', 'pages', 'documents.json.ts');
+      writeFileSync(
+        join(root, 'src', 'pages', 'documents.json.ts'),
+        `import text from ${JSON.stringify(request)};\nexport function GET() { return Response.json(text); }`
+      );
+      await assert.rejects(buildFixture(root), (error) => {
+        for (const value of [
+          request,
+          importer,
+          resolve(dirname(importer), request.split('?')[0]),
+        ]) {
+          assert.ok(error.message.includes(value), error.message);
+        }
+        assert.match(
+          error.message,
+          request.startsWith('../../../') ? /outside the repository/u : /ENOENT/u
+        );
+        return true;
+      });
+    });
+  }
 });
 
 test('the real Vite pipeline preserves lexical source paths and absolute filesystem fallbacks', async (t) => {

@@ -177,17 +177,15 @@ export function checkDist(dir, opts) {
     if (!resolved.has(urlPath)) resolved.set(urlPath, fileFor(dir, inventory, urlPath));
     return resolved.get(urlPath);
   };
-  const fileIn = (urlPath) => lookupIn(urlPath).path;
-
   for (const rel of inventory.files.filter((name) => name.endsWith('.html'))) {
     const content = inventory.readText(rel);
     if (content.status !== 'ok') continue;
     const add = (rule, message) => findings.push({ file: rel, rule, message });
     const root = checkPage(content.text, lookupIn, rel, opts, titles, add);
     if (isNoindex(root)) noindex.add(rel);
-    else if (siteUrl) checkCanonical(root, rel, siteUrl, fileIn, add);
+    else if (siteUrl) checkCanonical(root, rel, siteUrl, lookupIn, add);
   }
-  findings.push(...checkSitemaps(inventory, noindex, fileIn, siteUrl));
+  findings.push(...checkSitemaps(inventory, noindex, lookupIn, siteUrl));
 
   for (const [title, files] of titles)
     if (files.length > 1)

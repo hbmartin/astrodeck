@@ -3,6 +3,13 @@ import { join, resolve } from 'node:path';
 
 const FILESYSTEM = { lstatSync, readdirSync, readFileSync };
 
+/** Keep lookup status while accepting legacy file callbacks returning a path or undefined. */
+export function normalizeBuildLookup(result) {
+  if (typeof result === 'string') return { status: 'ok', path: result };
+  if (result?.status === 'ok') return result;
+  return { status: result?.status ?? 'missing' };
+}
+
 function scanDirectory(root, name, state) {
   let entries;
   try {

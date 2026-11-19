@@ -16,6 +16,12 @@ All notable changes to AstroDeck are documented in this file.
 
 ### Fixes
 
+- Conventional sitemap filenames receive one target-file diagnostic for invalid XML or roots, without duplicate advice to edit robots or index references. Blocked canonical targets retain their filesystem finding while independent canonical and Open Graph checks continue.
+
+- Root-relative source-document imports retain Vite's project-root resolution and logical linked-file identity. Remaining demo source links and ZIP destinations share the maintainer repository identity; kit checks detect stale repository or branch references in hand-authored static documentation.
+
+- Accessible-name checks retain provable emptiness inside until-found naming sources, recognize Chromium's `image`, `comment`, `sectionheader` and `sectionfooter` roles, and compute supported native-label reference cycles without an obsolete broad cycle guard. Controls whose visibility remains uncertain retain conservative handling.
+
 - Built-output link checks include SVG anchors and preserve blocked targets without duplicate missing-file findings. Constructor parameter properties correctly shadow Astro aliases; sitemap errors distinguish invalid declarations from broken sitemap documents, recover DOCTYPE root names and normalize slashless bases.
 
 - Image-control names distinguish native labels and descendant tooltips from direct naming references, ignore hidden input descendants and respect ARIA role fallback tokens. Browser history probes skip all non-inline download dispositions, and unsupported-entry tests no longer depend on a writable `/tmp` or Unix socket path lengths.

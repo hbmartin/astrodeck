@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { checkDist } from '../scripts/check-dist.mjs';
@@ -94,6 +94,69 @@ test('malformed identifiable sitemaps referenced by robots and indexes report th
   }
 });
 
+test('corrupt conventional sitemap targets report their file once for robots and index references', async (t) => {
+  for (const xml of [
+    '',
+    'not XML',
+    '<',
+    '<!--',
+    '<rss/>',
+    '<rss><channel>',
+    '<!DOCTYPE rss><rss/>',
+    '<urlset xmlns="urn:other"/>',
+  ]) {
+    for (const source of ['robots', 'index', 'repeated']) {
+      await t.test(`${source}: ${xml || '(empty)'}`, () => {
+        const target = 'maps/sitemap-pages.xml';
+        const files = { [target]: xml };
+        if (source === 'robots') files['robots.txt'] = `Sitemap: ${ORIGIN}/${target}\n`;
+        else {
+          files['maps/index.xml'] = sitemapIndex(`/${target}`);
+          files['robots.txt'] = `Sitemap: ${ORIGIN}/maps/index.xml\n`;
+          if (source === 'repeated') {
+            files['maps/index.xml'] = sitemapIndex(
+              `/${target}`,
+              `/${target}`,
+              '/maps/other-index.xml'
+            );
+            files['maps/other-index.xml'] = sitemapIndex(`/${target}`, '/maps/index.xml');
+            files['robots.txt'] += `Sitemap: ${ORIGIN}/${target}\nSitemap: ${ORIGIN}/${target}\n`;
+          }
+        }
+        const dir = fixture(t, files);
+        for (const siteUrl of [ORIGIN, undefined]) {
+          const findings = checkDist(dir, { starter: false, siteUrl });
+          assert.equal(findings.length, 1);
+          assert.equal(findings[0].file, target);
+          assert.equal(findings[0].rule, 'robots-sitemap');
+          assert.match(findings[0].message, /invalid sitemap:.*repair maps\/sitemap-pages\.xml/u);
+          assert.doesNotMatch(findings[0].message, /correct maps\/index|public\/robots/u);
+        }
+      });
+    }
+  }
+});
+
+test('repeated malformed sitemap references read each inventory file only once', (t) => {
+  const dir = fixture(t, {
+    'sitemap-index.xml': sitemapIndex('/sitemap.xml', '/sitemap.xml', '/sitemap-index.xml'),
+    'sitemap.xml': 'not XML',
+    'robots.txt': `Sitemap: ${ORIGIN}/sitemap-index.xml\nSitemap: ${ORIGIN}/sitemap.xml\n`,
+  });
+  const reads = new Map();
+  const inventory = createBuildInventory(dir, {
+    readFileSync(path, options) {
+      reads.set(path, (reads.get(path) ?? 0) + 1);
+      return readFileSync(path, options);
+    },
+  });
+  const findings = checkSitemaps(inventory, new Set(), () => undefined, new URL(ORIGIN));
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].file, 'sitemap.xml');
+  assert.equal(reads.size, 3);
+  assert.ok([...reads.values()].every((count) => count === 1));
+});
+
 test('DOCTYPE root names identify unreferenced custom sitemap filenames with or without siteUrl', async (t) => {
   for (const root of ['urlset', 's:urlset', 'sitemapindex', 's:sitemapindex']) {
     for (const suffix of ['[<!ENTITY page "https://acme.test/">]>', '[']) {
@@ -159,4 +222,39 @@ test('without siteUrl references still reach noindex pages without origin or rob
       },
     ]
   );
+});
+
+test('sitemap noindex checks accept both callbacks and use only successful lookup paths', (t) => {
+  const dir = fixture(t, {
+    'sitemap.xml': `<urlset>${['thanks', 'missing', 'blocked']
+      .map((path) => `<url><loc>${ORIGIN}/${path}/</loc></url>`)
+      .join('')}</urlset>`,
+    'robots.txt': `Sitemap: ${ORIGIN}/sitemap.xml\n`,
+  });
+  const callbacks = [
+    (path) => (path === '/thanks/' ? 'thanks.html' : undefined),
+    (path) => {
+      if (path === '/thanks/') return { status: 'ok', path: 'thanks.html' };
+      if (path === '/blocked/') return { status: 'blocked', path: 'blocked.html' };
+      return { status: 'missing', path: 'missing.html' };
+    },
+  ];
+  for (const fileFor of callbacks)
+    for (const siteUrl of [new URL(ORIGIN), undefined])
+      assert.deepEqual(
+        checkSitemaps(
+          createBuildInventory(dir),
+          new Set(['thanks.html', 'missing.html', 'blocked.html']),
+          fileFor,
+          siteUrl
+        ),
+        [
+          {
+            file: 'thanks.html',
+            rule: 'sitemap-noindex',
+            message:
+              'noindex page is listed in sitemap.xml; exclude it with the sitemap filter in astro.config.mjs',
+          },
+        ]
+      );
 });

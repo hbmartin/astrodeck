@@ -1,8 +1,10 @@
 /**
  * Built-page indexing metadata. `fileFor(urlPath)` maps a URL path to the built HTML file
- * (relative to the build directory) or returns undefined.
+ * (relative to the build directory) or returns undefined. It also accepts lookup results
+ * with an ok, missing or blocked status, retaining the path only for successful lookups.
  */
 import { findElements, findFirstElement, elementName, attribute } from './html-tree.mjs';
+import { normalizeBuildLookup } from './build-paths.mjs';
 
 const tokens = (value = '') => value.toLowerCase().split(/[\s,]+/u);
 const relTokens = (value = '') => value.toLowerCase().split(/[\t\n\f\r ]+/u);
@@ -30,9 +32,12 @@ export function checkCanonical(root, rel, siteUrl, fileFor, add) {
   const url = URL.parse(href);
   if (url?.origin !== siteUrl.origin)
     return add('canonical', `canonical ${href} is not on SITE_URL (${siteUrl.origin})`);
-  const target = fileFor(url.pathname);
-  if (target !== rel)
-    add('canonical', `canonical ${href} points at ${target ?? 'a missing page'}, not this page`);
+  const target = normalizeBuildLookup(fileFor(url.pathname));
+  if (target.status !== 'blocked' && target.path !== rel)
+    add(
+      'canonical',
+      `canonical ${href} points at ${target.path ?? 'a missing page'}, not this page`
+    );
   const ogTags = findElements(
     head,
     (node) => elementName(node) === 'meta' && attribute(node, 'property') === 'og:url'

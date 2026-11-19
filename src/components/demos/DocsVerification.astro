@@ -89,7 +89,9 @@ pnpm run starter:clean --yes --keep-blog`}
       Static image-control naming checks leave uncertain cases unreported. The visibility of{' '}
       <code class={ic}>hidden="until-found"</code> content depends on computed CSS; an internal
       UNKNOWN result does not prove that a control has a name. Review CSS-dependent cases in a
-      browser.
+      browser. Provably empty naming sources still produce a finding, including empty or inert
+      content inside an until-found subtree. Role fallback lists use the first role recognized by
+      Chromium.
     </p>
   </div>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

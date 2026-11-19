@@ -9,6 +9,7 @@ import type { IconName } from '@/lib/icons';
 import Stats from '@/components/sections/Stats.astro';
 import FAQ from '@/components/sections/FAQ.astro';
 import { kitStats } from '@/components/demos/kit-stats';
+import { sourceIdentity } from '@/lib/source-identity.mjs';
 
 const logos = [
   { name: 'Astro', src: '/icons/tech/astro.svg' },
@@ -148,12 +149,12 @@ const faqs = [
     badge={{ label: 'v4.0 — Open Source & MIT', href: '/changelog' }}
     title="Build your website with your coding agent."
     subtitle="Download source ZIP, open it in <mark>Claude Code, Codex, Cursor or another coding agent</mark>, and describe your site — in one sentence or with a full brief. The agent follows a <mark>guided workflow</mark> from brief to finished pages, and the result is checked by <mark>pnpm run verify</mark> and the bundled <mark>vibe2prod</mark> audit."
-    prompt="Clone the main branch of https://github.com/hbmartin/astrodeck into a new folder, remove its origin remote for my new site, run pnpm install --frozen-lockfile and follow its AGENTS.md. Then build my website for: [your business or project in one sentence]. If I give you a brief or a DESIGN.md, put it in brief/ and use it."
+    prompt={`Clone the ${sourceIdentity.branch} branch of ${sourceIdentity.repository} into a new folder, remove its origin remote for my new site, run pnpm install --frozen-lockfile and follow its AGENTS.md. Then build my website for: [your business or project in one sentence]. If I give you a brief or a DESIGN.md, put it in brief/ and use it.`}
     primaryCta={{
-      href: 'https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip',
+      href: `${sourceIdentity.repository}/archive/refs/heads/${sourceIdentity.branch}.zip`,
       label: 'Download source ZIP',
     }}
-    secondaryCta={{ href: 'https://github.com/hbmartin/astrodeck', label: 'GitHub' }}
+    secondaryCta={{ href: sourceIdentity.repository, label: 'GitHub' }}
   />
 
   <LogoCloud title="Built with:" logos={logos} />
@@ -244,7 +245,7 @@ const faqs = [
         </p>
         <div class="flex flex-col sm:flex-row gap-4 mt-10 justify-center">
           <a
-            href="https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip"
+            href={`${sourceIdentity.repository}/archive/refs/heads/${sourceIdentity.branch}.zip`}
             class="group relative inline-flex items-center justify-center whitespace-nowrap rounded-md text-base font-semibold ring-offset-background transition-[transform,box-shadow,background-color] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 h-12 px-12 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 overflow-hidden"
           >
             <span
@@ -256,7 +257,7 @@ const faqs = [
             </span>
           </a>
           <a
-            href="https://github.com/hbmartin/astrodeck"
+            href={sourceIdentity.repository}
             target="_blank"
             rel="noopener noreferrer"
             class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-12 px-8"

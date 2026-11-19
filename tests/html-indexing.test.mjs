@@ -13,17 +13,83 @@ const ORIGIN = 'https://acme.test';
 const CANONICAL = `<link rel="canonical" href="${ORIGIN}/">`;
 const OG = `<meta property="og:url" content="${ORIGIN}/">`;
 
-function canonicalFindings(html) {
+function canonicalFindings(html, fileFor = () => 'index.html') {
   const findings = [];
-  checkCanonical(
-    parseDocument(html),
-    'index.html',
-    new URL(ORIGIN),
-    () => 'index.html',
-    (rule, message) => findings.push({ rule, message })
+  checkCanonical(parseDocument(html), 'index.html', new URL(ORIGIN), fileFor, (rule, message) =>
+    findings.push({ rule, message })
   );
   return findings;
 }
+
+test('canonical targets accept legacy file paths and tri-state lookup results', () => {
+  const html = `<head>${CANONICAL}${OG}</head>`;
+  for (const target of [
+    'index.html',
+    { status: 'ok', path: 'index.html' },
+    { status: 'blocked' },
+    { status: 'blocked', path: 'other.html' },
+  ])
+    assert.deepEqual(
+      canonicalFindings(html, () => target),
+      [],
+      JSON.stringify(target)
+    );
+  for (const target of [
+    undefined,
+    { status: 'missing' },
+    { status: 'missing', path: 'index.html' },
+    { status: 'missing', path: 'other.html' },
+  ])
+    assert.deepEqual(
+      canonicalFindings(html, () => target),
+      [
+        {
+          rule: 'canonical',
+          message: `canonical ${ORIGIN}/ points at a missing page, not this page`,
+        },
+      ]
+    );
+  for (const target of ['other.html', { status: 'ok', path: 'other.html' }])
+    assert.deepEqual(
+      canonicalFindings(html, () => target),
+      [
+        {
+          rule: 'canonical',
+          message: `canonical ${ORIGIN}/ points at other.html, not this page`,
+        },
+      ]
+    );
+});
+
+test('blocked canonical targets preserve independent metadata diagnostics despite stale paths', () => {
+  const blocked = () => ({ status: 'blocked', path: 'index.html' });
+  for (const [tags, expected] of [
+    ['', 'expected one og:url in head, found 0'],
+    [`${OG}${OG}`, 'expected one og:url in head, found 2'],
+    [
+      `<meta property="og:url" content="${ORIGIN}/other">`,
+      `og:url ${ORIGIN}/other differs from the canonical ${ORIGIN}/`,
+    ],
+  ])
+    assert.deepEqual(canonicalFindings(`<head>${CANONICAL}${tags}</head>`, blocked), [
+      { rule: 'canonical', message: expected },
+    ]);
+  assert.deepEqual(canonicalFindings(`<head>${CANONICAL}${CANONICAL}${OG}</head>`, blocked), [
+    { rule: 'canonical', message: 'expected one <link rel="canonical">, found 2' },
+  ]);
+  assert.deepEqual(canonicalFindings(`<head>${OG}</head>`, blocked), [
+    { rule: 'canonical', message: 'expected one <link rel="canonical">, found 0' },
+  ]);
+  assert.deepEqual(
+    canonicalFindings('<head><link rel="canonical" href="https://other.test/"></head>', blocked),
+    [
+      {
+        rule: 'canonical',
+        message: `canonical https://other.test/ is not on SITE_URL (${ORIGIN})`,
+      },
+    ]
+  );
+});
 
 test('browser document construction supplies an implicit head', () => {
   assert.deepEqual(canonicalFindings(`<!doctype html>${CANONICAL}${OG}<h1>Page</h1>`), []);

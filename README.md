@@ -29,7 +29,7 @@ TypeScript, React 19 islands and [shadcn/ui](https://ui.shadcn.com) on Radix.
 
 ## How it works
 
-1. **Download** the [main branch source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip)
+1. **Download** the [source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip)
    (or from [templatedeck.com](https://templatedeck.com/templates/astrodeck)) and unzip it.
 2. **Open the folder in your coding agent.** It reads `AGENTS.md` and finds the skills in
    `.agents/skills/`.
@@ -47,7 +47,7 @@ Requires **macOS or Linux**, **Node.js >= 22.23.4**, and **pnpm 12.21.0**.
 
 ### No coding experience
 
-1. Download and unzip the [main branch source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip).
+1. Download and unzip the [source ZIP](https://github.com/hbmartin/astrodeck/archive/refs/heads/main.zip).
 2. Open the folder in your coding agent (Claude Code, Codex, Cursor, GitHub Copilot, Gemini CLI,
    Windsurf).
 3. Say: *"Build my website for [your business or project in one sentence]."*
@@ -95,7 +95,7 @@ git push -u origin main
 Contributors should keep their fork remote and follow [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Avoid `npm create astro -- --template holger1411/astrodeck`: create-astro can write its own
-`AGENTS.md` over the kit's. Use the main branch source ZIP or `git clone`.
+`AGENTS.md` over the kit's. Use the source ZIP or `git clone`.
 
 ## What you get
 
@@ -286,9 +286,12 @@ conservative treatment of CSS-dependent `hidden="until-found"` fixtures. It runs
 Astro build and requires Chromium (`pnpm exec playwright install chromium`). It complements
 the offline verification checks and the four homepage tests.
 
-Kit verification also checks maintainer repository and branch references in README,
-CONTRIBUTING and `public/llms.txt` against `src/lib/source-identity.mjs`. These documents remain
-hand-authored; outside `ASTRODECK_KIT_CHECKS=1`, customer documentation can use its own links.
+Kit verification also checks recognized source links and fenced clone commands in README,
+CONTRIBUTING and `public/llms.txt` against `src/lib/source-identity.mjs`. It recognizes repository,
+source ZIP, registry, AGENTS and skills-tree references; unfamiliar link types remain unchecked.
+Findings point to the URL or command to edit, with shared reference definitions reported once.
+These documents remain hand-authored; outside `ASTRODECK_KIT_CHECKS=1`, customer documentation
+can use its own links.
 
 Fallow blocks dead code, broken imports, dependency errors, import cycles, and functions over the
 complexity limits in `.fallowrc.json`. It blocks every duplicate group meeting the configured

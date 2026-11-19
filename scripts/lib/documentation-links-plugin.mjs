@@ -1,5 +1,5 @@
 import { readFileSync, realpathSync, statSync } from 'node:fs';
-import { isAbsolute, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
 const QUERY = '?source-links&raw';
 const PREFIX = '\0astrodeck:source-links:';
@@ -9,16 +9,28 @@ function documentPath(id) {
   return id.slice(0, -QUERY.length);
 }
 
-function importPath(id, root) {
+function isFile(path) {
+  try {
+    return statSync(path, { throwIfNoEntry: false })?.isFile();
+  } catch {
+    // A failed root-candidate probe still permits Vite's absolute filesystem fallback.
+    return false;
+  }
+}
+
+function importPath(id, root, importer) {
   const path = documentPath(id);
   if (!path) return;
   if (path.startsWith('@root/')) return resolve(root, path.slice('@root/'.length));
+  if (/^\.\.?\//u.test(path)) {
+    const importerPath = importer?.split(/[?#]/u, 1)[0];
+    if (!importerPath || !isAbsolute(importerPath)) return;
+    return resolve(dirname(importerPath), path);
+  }
   if (!isAbsolute(path)) return;
   // Vite tries a leading slash from the project root before an absolute filesystem path.
   const fromRoot = resolve(root, `.${path}`);
-  return path.startsWith('/') && statSync(fromRoot, { throwIfNoEntry: false })?.isFile()
-    ? fromRoot
-    : path;
+  return path.startsWith('/') && isFile(fromRoot) ? fromRoot : path;
 }
 
 /** Resolve source-document links during the build, before runtime endpoint modules are emitted. */
@@ -31,8 +43,8 @@ export function documentationLinksPlugin() {
       // Keep the lexical checkout path: real paths can point outside it through symlinks.
       root = resolve(config.root);
     },
-    resolveId(id) {
-      const path = importPath(id, root);
+    resolveId(id, importer) {
+      const path = importPath(id, root, importer);
       // A virtual ID prevents Vite from replacing the document's repository identity
       // with its real path before load, while reads still follow linked content.
       if (path) return `${PREFIX}${encodeURIComponent(path)}.js`;

@@ -152,6 +152,13 @@ pnpm run check:registry`}
     <code class={ic}>pnpm exec playwright install chromium</code>); offline verification remains a
     separate check.
   </p>
+  <p class="text-sm text-muted-foreground mt-3">
+    Kit verification checks recognized source links and fenced clone commands in README,
+    CONTRIBUTING and <code class={ic}>public/llms.txt</code> against the shared repository identity.
+    It covers repository, source ZIP, registry, AGENTS and skills-tree references; unfamiliar link
+    types remain unchecked. Findings identify the URL or command to edit, with shared reference
+    definitions reported once. Customer documentation is outside these kit-only checks.
+  </p>
 </section>
 
 <!-- vibe2prod -->

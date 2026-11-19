@@ -16,6 +16,12 @@ All notable changes to AstroDeck are documented in this file.
 
 ### Fixes
 
+- Relative source-document imports preserve logical repository paths through linked files. Errors probing an optional project-root candidate no longer prevent valid absolute-path fallback; document-load errors and repository containment remain enforced.
+
+- Kit source-reference checks recognize normalized labels and known destination shapes without relying on current headings. Markdown findings use exact destination lines and report shared definitions once. Fenced clone checks handle prompts, indentation, quoted branch options and substitutions without ignoring literal repositories because of target-directory variables or comments.
+
+- Source-download labels and instructions use branch-neutral wording. Static documentation remains hand-authored, and unfamiliar link types stay outside the bounded source-reference checks.
+
 - Conventional sitemap filenames receive one target-file diagnostic for invalid XML or roots, without duplicate advice to edit robots or index references. Blocked canonical targets retain their filesystem finding while independent canonical and Open Graph checks continue.
 
 - Root-relative source-document imports retain Vite's project-root resolution and logical linked-file identity. Remaining demo source links and ZIP destinations share the maintainer repository identity; kit checks detect stale repository or branch references in hand-authored static documentation.

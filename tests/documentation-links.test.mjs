@@ -7,6 +7,7 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
+  statSync,
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
@@ -300,6 +301,69 @@ test('linked documents keep their repository path and watch their linked content
   assert.deepEqual(watched, [file, realpathSync(target)]);
 });
 
+test('relative document imports retain lexical paths with importer queries and fragments', async (t) => {
+  const { directory, actualRoot, root } = linkedCheckout(t);
+  mkdirSync(join(actualRoot, 'docs'));
+  const target = join(directory, 'external.md');
+  writeFileSync(target, '[Peer](peer.md)');
+  const file = join(root, 'docs', 'guide.md');
+  symlinkSync(target, file);
+  const plugin = documentationLinksPlugin();
+  plugin.configResolved({ root });
+  for (const [request, importer] of [
+    ['./guide.md?source-links&raw', join(root, 'docs', 'entry.ts')],
+    ['../docs/guide.md?source-links&raw', join(root, 'src', 'entry.ts')],
+    ['./guide.md?source-links&raw', `${join(root, 'docs', 'entry.astro')}?astro&type=script`],
+    ['./guide.md?source-links&raw', `${join(root, 'docs', 'entry.ts')}#fragment`],
+  ]) {
+    const watched = [];
+    const id = plugin.resolveId(request, importer);
+    const module = await plugin.load.call({ addWatchFile: (path) => watched.push(path) }, id);
+    assert.equal(moduleText(module), `[Peer](${SOURCE}docs/peer.md)`);
+    assert.deepEqual(watched, [file, realpathSync(target)]);
+  }
+});
+
+test('relative imports defer unsupported importer forms and unrelated queries', (t) => {
+  const { root } = linkedCheckout(t);
+  const plugin = documentationLinksPlugin();
+  plugin.configResolved({ root });
+  const importer = join(root, 'docs', 'entry.ts');
+  for (const unsupported of [
+    undefined,
+    'entry.ts',
+    '\0virtual:entry',
+    'virtual:entry',
+    pathToFileURL(importer).href,
+  ]) {
+    assert.equal(plugin.resolveId('./guide.md?source-links&raw', unsupported), undefined);
+  }
+  for (const request of [
+    'guide.md?source-links&raw',
+    './guide.md?raw',
+    './guide.md?raw&source-links',
+    './guide.md?source-links&raw&extra',
+  ]) {
+    assert.equal(plugin.resolveId(request, importer), undefined);
+  }
+});
+
+test('actual document load errors remain failures', async (t) => {
+  const { root } = linkedCheckout(t);
+  const loop = join(root, 'loop.md');
+  symlinkSync(loop, loop);
+  const plugin = documentationLinksPlugin();
+  plugin.configResolved({ root });
+  const importer = join(root, 'entry.ts');
+  for (const [name, code] of [
+    ['missing', 'ENOENT'],
+    ['loop', 'ELOOP'],
+  ]) {
+    const id = plugin.resolveId(`./${name}.md?source-links&raw`, importer);
+    await assert.rejects(plugin.load.call({ addWatchFile() {} }, id), { code });
+  }
+});
+
 test('resolved absolute loads do not repeat root-relative import resolution', async (t) => {
   const { root } = linkedCheckout(t);
   const file = join(root, 'guide.md');
@@ -323,9 +387,14 @@ test('resolved absolute loads do not repeat root-relative import resolution', as
     plugin.load.call(context, `${join(root, '..', 'outside.md')}?source-links&raw`),
     /Source document is outside the repository/u
   );
+  const outside = plugin.resolveId('../outside.md?source-links&raw', join(root, 'entry.ts'));
+  await assert.rejects(
+    plugin.load.call(context, outside),
+    /Source document is outside the repository/u
+  );
 });
 
-test('the real Vite pipeline preserves source paths for root, alias and absolute imports', async (t) => {
+test('the real Vite pipeline preserves lexical source paths and absolute filesystem fallbacks', async (t) => {
   const { directory, actualRoot, root } = astroFixture(t);
   const content = '[Peer](peer.md)';
   const target = join(directory, 'outside.md');
@@ -341,14 +410,35 @@ test('the real Vite pipeline preserves source paths for root, alias and absolute
   mkdirSync(dirname(fromRoot), { recursive: true });
   writeFileSync(collision, '[Filesystem](unused.md)');
   writeFileSync(fromRoot, '[Project](peer.md)');
+  const fallback = join(actualRoot, 'docs', 'fallback.md');
+  const fallbackFromRoot = resolve(actualRoot, `.${fallback}`);
+  writeFileSync(fallback, '[Fallback](peer.md)');
+  symlinkSync(fallbackFromRoot, fallbackFromRoot);
+  assert.throws(() => statSync(fallbackFromRoot, { throwIfNoEntry: false }), { code: 'ELOOP' });
+  const localContent = '[Local](peer.md)';
+  writeFileSync(join(root, 'src', 'lib', 'local.md'), localContent);
+  writeFileSync(
+    join(root, 'src', 'lib', 'documents.ts'),
+    [
+      "import sibling from './local.md?source-links&raw';",
+      "import parent from '../../docs/guide.md?source-links&raw';",
+      'export default { sibling, parent };',
+    ].join('\n')
+  );
   const imports = {
     readme: '/README.md?source-links&raw',
     root: '/docs/guide.md?source-links&raw',
     alias: '@root/docs/guide.md?source-links&raw',
     absolute: `${absolute}?source-links&raw`,
     raw: '/docs/guide.md?raw',
+    relative: '../../docs/guide.md?source-links&raw',
+    relativeRaw: '../../docs/guide.md?raw',
+    local: '../lib/local.md?source-links&raw',
+    queried: '../lib/documents.ts?fixture',
     collision: `${collision}?source-links&raw`,
     collisionRaw: `${collision}?raw`,
+    fallback: `${fallback}?source-links&raw`,
+    fallbackRaw: `${fallback}?raw`,
   };
   writeFileSync(
     join(root, 'src', 'pages', 'documents.json.ts'),
@@ -367,11 +457,20 @@ test('the real Vite pipeline preserves source paths for root, alias and absolute
     alias: absoluteSourceLinks(content, 'docs/guide.md'),
     absolute: absoluteSourceLinks(content, 'docs/guide.md'),
     raw: content,
+    relative: absoluteSourceLinks(content, 'docs/guide.md'),
+    relativeRaw: content,
+    local: absoluteSourceLinks(localContent, 'src/lib/local.md'),
+    queried: {
+      sibling: absoluteSourceLinks(localContent, 'src/lib/local.md'),
+      parent: absoluteSourceLinks(content, 'docs/guide.md'),
+    },
     collision: absoluteSourceLinks(
       '[Project](peer.md)',
       relative(actualRoot, fromRoot).split(sep).join('/')
     ),
     collisionRaw: '[Project](peer.md)',
+    fallback: absoluteSourceLinks('[Fallback](peer.md)', 'docs/fallback.md'),
+    fallbackRaw: '[Fallback](peer.md)',
   });
 });
 
